@@ -113,15 +113,6 @@ const Header = () => {
     }
   }, [settings]);
 
-  // Hàm xử lý khi click vào icon User
-  const toggleUserDropdown = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setShowUserDropdown(!showUserDropdown);
-  };
-
-  // Lấy logoUrl đúng chuẩn từ settings.Logo
-  const logoUrl = settings?.Logo ? getImageUrl(settings.Logo) : '';
-
   // Xử lý tìm kiếm sản phẩm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,10 +153,10 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              {logoUrl && (
+              {settings?.Logo && (
                 <div className="relative w-32 h-8">
                   <Image
-                    src={logoUrl}
+                    src={getImageUrl(settings.Logo)}
                     alt="Logo"
                     width={128}
                     height={32}
@@ -288,17 +279,21 @@ const Header = () => {
             </Link>
 
             {/* User account with click toggle dropdown */}
-            <div className="relative" ref={userDropdownRef}>
+            <div
+              className="relative"
+            >
               <button
-                onClick={toggleUserDropdown}
                 className="text-gray-300 hover:text-white flex items-center"
+                onClick={() => setShowUserDropdown((prev) => !prev)}
               >
                 <User className="w-5 h-5" />
               </button>
 
-              {/* Dropdown - appears on click and stays open until clicked away */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10">
+                <div
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10"
+                  onMouseLeave={() => setShowUserDropdown(false)}
+                >
                   <div className="px-4 py-3">
                     <Link href="/register" className="block py-2 text-sm text-gray-800 hover:text-gray-600">
                       Tạo tài khoản ngay

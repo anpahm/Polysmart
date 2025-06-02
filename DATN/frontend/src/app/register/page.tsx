@@ -6,8 +6,7 @@ import Image from "next/image";
 const getImageUrl = (url: string | string[]) => {
   if (Array.isArray(url)) url = url[0];
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const backendUrl = process.env.NEXT_PUBLIC_IMAGE_URL;
-  if (url.startsWith('../images/')) return url.replace('../images', '/images');
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
   if (url.startsWith('/images/')) return `${backendUrl}${url}`;
   return `${backendUrl}/images/${url}`;
 };
@@ -30,28 +29,9 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [phoneShake, setPhoneShake] = useState(false);
-  const [typingText, setTypingText] = useState("");
-  const phoneRef = useRef<HTMLDivElement>(null);
-  const [activeField, setActiveField] = useState("");
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setActiveField(name);
-    // Hiện chữ đang nhập lên "màn hình điện thoại"
-    if (name === "password" || name === "confirmPassword") {
-      setTypingText("•".repeat(value.length));
-    } else {
-      setTypingText(value);
-    }
-    // Rung nhẹ điện thoại
-    setPhoneShake(true);
-    setTimeout(() => setPhoneShake(false), 300);
-  };
+
+  
 
   useEffect(() => {
     if (window && !(window as any).grecaptcha) {
@@ -102,8 +82,16 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-white">
       <div className="flex w-full max-w-5xl bg-white rounded shadow-lg overflow-hidden">
         {/* Cột trái: Ảnh */}
-        <div className="hidden md:flex w-1/2 items-center justify-center bg-blue-50">
-          <Image src={illustration} alt="Đăng ký" width={200} height={200} className="object-contain" style={{ maxWidth: '50%', height: 'auto' }} />
+        <div className="hidden md:flex w-1/2 justify-center items-start" style={{ minHeight: 600 }}>
+          <Image
+            src={getImageUrl("/images/register_banner.jpeg")}
+            alt="Đăng ký"
+            width={900}
+            height={900}
+            className="object-contain"
+            style={{ width: '100%', height: 'auto', marginTop: 0 }}
+            unoptimized
+          />
         </div>
         {/* Cột phải: Form */}
         <div className="w-full md:w-1/2 p-8">
@@ -113,43 +101,43 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Họ và tên:</label>
-              <input name="TenKH" value={form.TenKH} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="TenKH" value={form.TenKH}  className="w-full border rounded px-3 py-2" required />
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Địa chỉ:</label>
-              <input name="Dia_chi" value={form.Dia_chi} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="Dia_chi" value={form.Dia_chi}  className="w-full border rounded px-3 py-2" required />
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Điện thoại:</label>
-              <input name="Sdt" value={form.Sdt} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="Sdt" value={form.Sdt} className="w-full border rounded px-3 py-2" required />
             </div>
             <div className="mb-3 flex items-center gap-4">
               <label className="text-sm">Giới tính:</label>
               <label className="flex items-center gap-1 text-sm">
-                <input type="radio" name="gender" value="Nam" checked={form.gender === "Nam"} onChange={handleChange} /> Nam
+                <input type="radio" name="gender" value="Nam" checked={form.gender === "Nam"}/> Nam
               </label>
               <label className="flex items-center gap-1 text-sm">
-                <input type="radio" name="gender" value="Nữ" checked={form.gender === "Nữ"} onChange={handleChange} /> Nữ
+                <input type="radio" name="gender" value="Nữ" checked={form.gender === "Nữ"}/> Nữ
               </label>
             </div>
             <div className="mb-3 flex gap-2">
               <div>
                 <label className="block mb-1 text-sm">Ngày sinh:</label>
-                <select name="day" value={form.day} onChange={handleChange} className="border rounded px-2 py-1">
+                <select name="day" value={form.day}className="border rounded px-2 py-1">
                   <option value="">Ngày</option>
                   {[...Array(31)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block mb-1 text-sm">&nbsp;</label>
-                <select name="month" value={form.month} onChange={handleChange} className="border rounded px-2 py-1">
+                <select name="month" value={form.month}className="border rounded px-2 py-1">
                   <option value="">Tháng</option>
                   {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block mb-1 text-sm">&nbsp;</label>
-                <select name="year" value={form.year} onChange={handleChange} className="border rounded px-2 py-1">
+                <select name="year" value={form.year}className="border rounded px-2 py-1">
                   <option value="">Năm</option>
                   {Array.from({length: 100}, (_, i) => 2024 - i).map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
@@ -157,20 +145,20 @@ export default function RegisterPage() {
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">E-mail:</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="email" type="email" value={form.email}className="w-full border rounded px-3 py-2" required />
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Username:</label>
-              <input name="username" value={form.username || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+              <input name="username" value={form.username || ''}className="w-full border rounded px-3 py-2" />
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Mật khẩu:</label>
-              <input name="password" type="password" value={form.password} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="password" type="password" value={form.password}className="w-full border rounded px-3 py-2" required />
               <div className="text-xs text-gray-500 mt-1">Lưu ý: Mật khẩu phải có tối thiểu 8 ký tự bao gồm chữ, số và các ký tự đặc biệt</div>
             </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">Xác nhận mật khẩu:</label>
-              <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+              <input name="confirmPassword" type="password" value={form.confirmPassword}className="w-full border rounded px-3 py-2" required />
             </div>
             <div className="mb-3">
               <div className="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>

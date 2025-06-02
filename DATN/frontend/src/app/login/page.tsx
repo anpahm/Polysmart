@@ -32,18 +32,26 @@ export default function LoginPage() {
     }
   };
 
+  const getImageUrl = (url: string) => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('/images/')) return `${backendUrl}${url}`;
+    return `${backendUrl}/images/${url}`;
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex w-full max-w-5xl bg-white rounded shadow-lg overflow-hidden">
         {/* Cột trái: Ảnh minh họa */}
-        <div className="hidden md:flex w-1/2 items-center justify-center bg-blue-50">
+        <div className="hidden md:flex w-1/2 justify-center items-start" style={{ minHeight: 400 }}>
           <Image
-            src="/images/login-illustration.png" // Đổi thành đường dẫn ảnh của bạn
+            src={getImageUrl("/images/login_banner.jpeg")}
             alt="Đăng nhập"
-            width={400}
-            height={400}
+            width={500}
+            height={500}
             className="object-contain"
-            style={{ maxWidth: "80%", height: "auto" }}
+            style={{ width: '100%', height: 'auto' }}
+            unoptimized
           />
         </div>
         {/* Cột phải: Form */}

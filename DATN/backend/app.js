@@ -33,7 +33,10 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/video', express.static(path.join(__dirname, 'public/video')));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3001', // URL của frontend
+  credentials: true
+}));
 
 app.use("/api", indexRouter);
 app.use("/api/users", usersRouter);
@@ -41,20 +44,29 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/variants", variantRoutes);
 app.use("/api/settings", settingsRouter);
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  res.status(404).json({
+    success: false,
+    message: 'API endpoint not found'
+  });
 });
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  // Log error for debugging
+  console.error('Error:', err);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  // Set status code
+  const statusCode = err.status || 500;
+
+  // Return JSON response
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
+  });
 });
 
 module.exports = app;

@@ -154,13 +154,42 @@ export default function SettingsPage() {
               <label className="block font-medium mb-1">Banner</label>
               <input type="file" accept="image/*" multiple onChange={handleBannerChange} />
               <div className="flex flex-col gap-2 mt-2">
-                {form.Banner && form.Banner.split('|').map((url, idx) => (
-                  <img
-                    key={idx}
-                    src={getImageUrl(url)}
-                    alt={`Banner ${idx + 1}`}
-                    className="w-full h-28 object-cover border rounded"
-                  />
+                {form.Banner && form.Banner.split('|').map((url, idx, arr) => (
+                  <div key={idx} className="relative group flex items-center gap-2">
+                    <img
+                      src={getImageUrl(url)}
+                      alt={`Banner ${idx + 1}`}
+                      className="w-full h-28 object-cover border rounded"
+                    />
+                    {/* Nút di chuyển lên */}
+                    <button
+                      type="button"
+                      className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs font-semibold ml-2"
+                      disabled={idx === 0}
+                      onClick={() => {
+                        if (idx === 0) return;
+                        const banners = form.Banner.split('|');
+                        [banners[idx - 1], banners[idx]] = [banners[idx], banners[idx - 1]];
+                        setForm(prev => ({ ...prev, Banner: banners.join('|') }));
+                      }}
+                    >
+                      ↑
+                    </button>
+                    {/* Nút di chuyển xuống */}
+                    <button
+                      type="button"
+                      className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 text-xs font-semibold"
+                      disabled={idx === arr.length - 1}
+                      onClick={() => {
+                        if (idx === arr.length - 1) return;
+                        const banners = form.Banner.split('|');
+                        [banners[idx], banners[idx + 1]] = [banners[idx + 1], banners[idx]];
+                        setForm(prev => ({ ...prev, Banner: banners.join('|') }));
+                      }}
+                    >
+                      ↓
+                    </button>
+                  </div>
                 ))}
               </div>
               {bannerError && <div className="text-red-600 text-sm">{bannerError}</div>}

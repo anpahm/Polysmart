@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { ProductVariant, Product } from "@/components/cautrucdata";
+import Link from 'next/link';
 
 export function getImageUrl(url: string | string[] | undefined | null) {
   if (!url) return "/images/no-image.png";
@@ -9,48 +11,6 @@ export function getImageUrl(url: string | string[] | undefined | null) {
   if (typeof url !== "string") return "/images/no-image.png";
   if (url.startsWith("http")) return url;
   return `http://localhost:3000/images/${url.replace(/^\/?images\//, "")}`;
-}
-
-interface ProductVariant {
-  _id: string;
-  id_san_pham: string;
-  hinh: string;
-  gia: number;
-  gia_goc: number;
-  phien_ban: string;
-  dung_luong: string;
-  mau: string;
-  so_luong_hang: number;
-  // Đã bỏ video và thong_so_ky_thuat khỏi variant
-}
-
-interface Product {
-  gia: number | undefined;
-  _id: string;
-  TenSP: string;
-  Gia: number;
-  khuyen_mai?: number;
-  Mota?: string;
-  hinh: string[];
-  video?: string[]; // video ở cấp product
-  thong_so_ky_thuat: {
-    CPU: String,
-    Camera: [String],
-    GPU: String,
-    Cong_nghe_man_hinh: String,
-    He_dieu_hanh: String,
-    Do_phan_giai: String,
-    Ket_noi: [String],
-    Kich_thuoc_khoi_luong: [String],
-    Kich_thuoc_man_hinh: String,
-    Tien_ich_khac: [String],
-    Tinh_nang_camera: [String]
-  };
-  an_hien?: boolean;
-  ngay_tao?: string;
-  id_danhmuc: string;
-  Soluong: number;
-  variants?: ProductVariant[];
 }
 
 const ProductDetailPage = () => {
@@ -68,6 +28,12 @@ const ProductDetailPage = () => {
   const [activeTab, setActiveTab] = useState<'thongso' | 'baiviet'>('thongso');
   const mainVideoRef = useRef<HTMLVideoElement>(null);
   const thumbVideoRef = useRef<HTMLVideoElement>(null);
+  // Modal đăng ký nhận thông tin khi hết hàng (phải đặt ở đầu hàm component)
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registerForm, setRegisterForm] = useState({ name: '', phone: '', email: '' });
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -265,6 +231,31 @@ const ProductDetailPage = () => {
     );
   };
 
+  // Hàm xử lý submit đăng ký nhận thông tin
+const handleRegisterSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setRegisterLoading(true);
+  setRegisterError('');
+  // Giả lập gửi API, bạn thay bằng API thực tế nếu có
+  try {
+    if (!registerForm.name || !registerForm.phone) {
+      setRegisterError('Vui lòng nhập đầy đủ họ tên và số điện thoại!');
+      setRegisterLoading(false);
+      return;
+    }
+    // await fetch('/api/register-stock', { method: 'POST', body: JSON.stringify(registerForm) })
+    setTimeout(() => {
+      setShowRegisterModal(false);
+      setShowSuccessModal(true);
+      setRegisterLoading(false);
+      setRegisterForm({ name: '', phone: '', email: '' });
+    }, 1000);
+  } catch (err) {
+    setRegisterError('Đăng ký thất bại, vui lòng thử lại!');
+    setRegisterLoading(false);
+  }
+};
+
   return (
     <div className="container mx-auto px-40 py-8">
       {/* Breadcrumbs */}
@@ -453,117 +444,144 @@ const ProductDetailPage = () => {
           </div>
           {/* Nút mua hàng */}
           <div className="flex flex-col items-center gap-4 mb-6">
-            <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition">MUA NGAY</button>
-            <div className="flex gap-4 w-[570px]">
-              <button className="flex-1 h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">Mua trả góp 0%<br/><span className='text-xs font-normal'>Qua công ty tài chính</span></button>
-              <button className="flex-1 h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">Trả góp 0% qua thẻ<br/><span className='text-xs font-normal'>Visa, Mastercard, JCB, Amex</span></button>
-            </div>
-            <button className="w-[570px] h-[48px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
-              </svg>
-              Thu cũ đổi mới
-            </button>
-          </div>
+  {selectedVariant?.so_luong_hang === 0 ? (
+    // Nếu hết hàng, hiển thị UI đặc biệt
+    <div className="w-[535px] flex flex-col items-center">
+      <div className="font-bold text-xl text-center mb-4 mt-2">ĐĂNG KÝ NHẬN THÔNG TIN KHI CÓ HÀNG</div>
+      <button
+        className="w-full h-[48px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition"
+        onClick={() => setShowRegisterModal(true)}
+      >
+        ĐĂNG KÝ NHẬN THÔNG TIN
+      </button>
+      <button className="w-full h-[68px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition flex flex-col items-center justify-center">
+        <span>SẢN PHẨM NGỪNG KINH DOANH</span>
+        <span className="text-[14px] font-normal">(Vui lòng liên hệ trực tiếp)</span>
+      </button>
+      <button className="w-full h-[48px] bg-blue-600 text-white rounded-lg font-bold text-[14px] hover:bg-blue-700 transition">
+        <Link href="" as={`/categories/${product.id_danhmuc}`}>
+            Xem thêm sản phẩm khác
+        </Link>
+      </button>
+    </div>
+  ) : (
+    // Nếu còn hàng, hiển thị nút mua hàng bình thường
+    <>
+      <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition">MUA NGAY</button>
+      <div className="flex gap-4 w-[570px]">
+        <button className="flex-1 h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">Mua trả góp 0%<br/><span className='text-xs font-normal'>Qua công ty tài chính</span></button>
+        <button className="flex-1 h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">Trả góp 0% qua thẻ<br/><span className='text-xs font-normal'>Visa, Mastercard, JCB, Amex</span></button>
+      </div>
+      <button className="w-[570px] h-[48px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
+        </svg>
+        Thu cũ đổi mới
+      </button>
+    </>
+  )}
+</div>
         </div>
       </div>
       {/* Mua kèm giá sốc */}
-      <div className="mt-12 border-t pt-8">
-        <h2 className="text-2xl font-bold mb-6">Sản phẩm mua kèm</h2>
-        <div className="flex items-stretch gap-6">
-          {/* Sản phẩm chính */}
-          <div className="flex flex-col items-center min-w-[220px] bg-white rounded-xl shadow p-4">
-            <img src={getImageUrl(images[0])} alt={product.TenSP} className="w-28 h-28 object-contain mb-2" />
-            <div className="font-medium text-center mb-1">{product.TenSP}{variantName && ` ${variantName}`}</div>
-            <div className="text-blue-600 font-bold mb-1 text-lg">{price.toLocaleString()}₫</div>
-            {originPrice > price && (
-              <div className="text-gray-400 line-through text-sm">{originPrice.toLocaleString()}₫</div>
-            )}
-            <div className="text-gray-500 text-sm">{product.khuyen_mai ? `Giảm ${product.khuyen_mai}%` : null}</div>
-          </div>
-          {/* Dấu cộng */}
-          <div className="flex items-center">
-            <span className="text-4xl text-gray-400 font-bold">+</span>
-          </div>
-          {/* Sản phẩm mua kèm */}
-          <div className="relative" style={{ width: 600, overflow: 'hidden' }}>
-  {/* Nút scroll trái */}
-  <button
-    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-    style={{ marginLeft: '2px' }}
-    onClick={() => {
-      const container = document.getElementById('accessories-slider');
-      if (container) container.scrollLeft -= 240;
-    }}
-    type="button"
-  >
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-    </svg>
-  </button>
-  {/* Slider sản phẩm mua kèm */}
-  <div
-    id="accessories-slider"
-    className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
-    style={{
-      width: 680, // Hiển thị 2,5 sản phẩm (mỗi sản phẩm ~220px + gap)
-      scrollBehavior: 'smooth'
-    }}
-  >
-    {accessories.map((acc) => (
-      <div key={acc._id} className="min-w-[220px] max-w-[220px] bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative">
-        {/* Thêm icon tích khi được chọn */}
-        {selectedAccessories.includes(acc._id) && (
-          <div className="absolute top-2 right-2">
-            <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-            </svg>
-          </div>
-        )}
-        <img src={getImageUrl(acc.hinh)} alt={acc.TenSP} className="w-20 h-20 object-contain mb-2" />
-        <div className="font-medium text-center mb-1 line-clamp-2">{acc.TenSP}</div>
-        <div className="text-blue-600 font-bold mb-2">
-          {(acc.gia ?? acc.variants?.[0]?.gia ?? 0).toLocaleString()}₫
-        </div>
-        <button 
-          className={`${
-            selectedAccessories.includes(acc._id)
-              ? "bg-red-100 text-red-600 border-red-500"
-              : "border-blue-500 text-blue-600"
-          } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
-          onClick={() => toggleAccessory(acc._id)}
-        >
-          {selectedAccessories.includes(acc._id) ? "Bỏ chọn sản phẩm" : "Chọn sản phẩm"}
-        </button>
-      </div>
-    ))}
-  </div>
-  {/* Nút scroll phải */}
-  <button
-    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-    style={{ marginRight: '2px' }}
-    onClick={() => {
-      const container = document.getElementById('accessories-slider');
-      if (container) container.scrollLeft += 240;
-    }}
-    type="button"
-  >
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  </button>
-</div>
-          {/* Tổng giá và nút mua */}
-          <div className="flex flex-col justify-center items-center min-w-[260px] ml-8">
-            <div className="text-2xl font-bold text-blue-700 mb-4">
-              {calculateTotal().toLocaleString()}₫
+      {selectedVariant?.so_luong_hang !== 0 && (
+        <div className="mt-12 border-t pt-8">
+          <h2 className="text-2xl font-bold mb-6">Sản phẩm mua kèm</h2>
+          <div className="flex items-stretch gap-6">
+            {/* Sản phẩm chính */}
+            <div className="flex flex-col items-center min-w-[220px] bg-white rounded-xl shadow p-4">
+              <img src={getImageUrl(images[0])} alt={product.TenSP} className="w-28 h-28 object-contain mb-2" />
+              <div className="font-medium text-center mb-1">{product.TenSP}{variantName && ` ${variantName}`}</div>
+              <div className="text-blue-600 font-bold mb-1 text-lg">{price.toLocaleString()}₫</div>
+              {originPrice > price && (
+                <div className="text-gray-400 line-through text-sm">{originPrice.toLocaleString()}₫</div>
+              )}
+              <div className="text-gray-500 text-sm">{product.khuyen_mai ? `Giảm ${product.khuyen_mai}%` : null}</div>
             </div>
-            <button className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition">
-              Mua {selectedAccessories.length + 1} sản phẩm
-            </button>
+            {/* Dấu cộng */}
+            <div className="flex items-center">
+              <span className="text-4xl text-gray-400 font-bold">+</span>
+            </div>
+            {/* Sản phẩm mua kèm */}
+            <div className="relative" style={{ width: 600, overflow: 'hidden' }}>
+              {/* Nút scroll trái */}
+              <button
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                style={{ marginLeft: '2px' }}
+                onClick={() => {
+                  const container = document.getElementById('accessories-slider');
+                  if (container) container.scrollLeft -= 240;
+                }}
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              {/* Slider sản phẩm mua kèm */}
+              <div
+                id="accessories-slider"
+                className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
+                style={{
+                  width: 680, // Hiển thị 2,5 sản phẩm (mỗi sản phẩm ~220px + gap)
+                  scrollBehavior: 'smooth'
+                }}
+              >
+                {accessories.map((acc) => (
+                  <div key={acc._id} className="min-w-[220px] max-w-[220px] bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative">
+                    {/* Thêm icon tích khi được chọn */}
+                    {selectedAccessories.includes(acc._id) && (
+                      <div className="absolute top-2 right-2">
+                        <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                        </svg>
+                      </div>
+                    )}
+                    <img src={getImageUrl(acc.hinh)} alt={acc.TenSP} className="w-20 h-20 object-contain mb-2" />
+                    <div className="font-medium text-center mb-1 line-clamp-2">{acc.TenSP}</div>
+                    <div className="text-blue-600 font-bold mb-2">
+                      {(acc.gia ?? acc.variants?.[0]?.gia ?? 0).toLocaleString()}₫
+                    </div>
+                    <button 
+                      className={`${
+                        selectedAccessories.includes(acc._id)
+                          ? "bg-red-100 text-red-600 border-red-500"
+                          : "border-blue-500 text-blue-600"
+                      } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
+                      onClick={() => toggleAccessory(acc._id)}
+                    >
+                      {selectedAccessories.includes(acc._id) ? "Bỏ chọn sản phẩm" : "Chọn sản phẩm"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {/* Nút scroll phải */}
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                style={{ marginRight: '2px' }}
+                onClick={() => {
+                  const container = document.getElementById('accessories-slider');
+                  if (container) container.scrollLeft += 240;
+                }}
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            {/* Tổng giá và nút mua */}
+            <div className="flex flex-col justify-center items-center min-w-[260px] ml-8">
+              <div className="text-2xl font-bold text-blue-700 mb-4">
+                {calculateTotal().toLocaleString()}₫
+              </div>
+              <button className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition">
+                Mua {selectedAccessories.length + 1} sản phẩm
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       {/* Sản phẩm liên quan */}
       <div className="mt-12">
         <h2 className="text-xl font-bold mb-4">Sản phẩm tương tự</h2>
@@ -593,7 +611,11 @@ const ProductDetailPage = () => {
         p =>
           p.id_danhmuc === product.id_danhmuc &&
           p._id !== product._id &&
-          (p.an_hien === undefined || p.an_hien === true)
+          (p.an_hien === undefined || p.an_hien === true) &&
+          // Ẩn sản phẩm tương tự nếu tất cả variant đều hết hàng
+          (Array.isArray(p.variants)
+            ? p.variants.some(v => v.so_luong_hang > 0)
+            : true)
       )
       .map(sp => {
         const giaGoc = sp.variants?.[0]?.gia_goc ?? sp.Gia ?? 0;
@@ -601,7 +623,7 @@ const ProductDetailPage = () => {
         const discount = giaGoc > giaBan ? Math.round(100 - (giaBan / giaGoc) * 100) : 0;
         const dungLuong = sp.variants?.[0]?.dung_luong ? ` ${sp.variants[0].dung_luong}` : "";
         return (
-          <div key={sp._id} className="bg-white rounded-xl shadow p-4 flex flex-col w-[280px] h-[370px] relative flex-shrink-0">
+          <Link key={sp._id} href={`/product/${sp._id}`} className="bg-white rounded-xl shadow p-4 flex flex-col w-[280px] h-[370px] relative flex-shrink-0 hover:shadow-lg transition">
             {/* Badge giảm giá */}
             {discount > 0 && (
               <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded z-10">
@@ -632,7 +654,7 @@ const ProductDetailPage = () => {
                 </span>
               )}
             </div>
-          </div>
+          </Link>
         );
       })}
   </div>
@@ -683,6 +705,67 @@ const ProductDetailPage = () => {
           {activeTab === 'baiviet' && <div>Nội dung bài viết đánh giá</div>}
         </div>
       </div>
+      {/* Modal đăng ký nhận thông tin */}
+{showRegisterModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] relative animate-fadeIn">
+      <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowRegisterModal(false)}>&times;</button>
+      <h2 className="text-xl font-bold text-center mb-4">Đăng Ký Nhận Tin</h2>
+      <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+        <input
+          className="border rounded px-4 py-2"
+          placeholder="Họ tên (bắt buộc)"
+          value={registerForm.name}
+          onChange={e => setRegisterForm(f => ({ ...f, name: e.target.value }))}
+        />
+        <input
+          className="border rounded px-4 py-2"
+          placeholder="Số điện thoại (bắt buộc)"
+          value={registerForm.phone}
+          onChange={e => setRegisterForm(f => ({ ...f, phone: e.target.value }))}
+        />
+        <input
+          className="border rounded px-4 py-2"
+          placeholder="Địa chỉ email (để nhận phản hồi qua email)"
+          value={registerForm.email}
+          onChange={e => setRegisterForm(f => ({ ...f, email: e.target.value }))}
+        />
+        {registerError && <div className="text-red-500 text-sm text-center">{registerError}</div>}
+        <button
+          type="submit"
+          className="bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition"
+          disabled={registerLoading}
+        >
+          {registerLoading ? 'Đang gửi...' : 'ĐĂNG KÝ'}
+        </button>
+      </form>
+    </div>
+  </div>
+)}
+{/* Modal đăng ký thành công */}
+{showSuccessModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-lg p-8 w-[780px] relative animate-fadeIn">
+      <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowSuccessModal(false)}>&times;</button>
+      <div className="flex flex-col items-center">
+        <div className="mb-4">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="32" fill="#FEE2E2"/>
+            <path d="M20 32L28 40L44 24" stroke="#22C55E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <div className="text-green-600 font-bold text-lg mb-2 text-center">Đăng ký nhận thông tin thành công</div>
+        <div className="text-gray-700 text-center mb-4">Cảm ơn bạn đã để lại thông tin, PolySmart sẽ liên hệ lại với bạn trong thời gian nhanh nhất.</div>
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          Quay lại danh sách sản phẩm
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

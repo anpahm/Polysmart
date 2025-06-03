@@ -5,6 +5,8 @@ const productSchema = new mongoose.Schema(
     TenSP: { type: String, required: true },
     hinh: String,
     video: [String],
+    hot: { type: Boolean, default: false },
+    ban_chay: { type: Number, default: 0 },
     khuyen_mai: { type: Number, default: 0 },
     an_hien: { type: Boolean, default: true },
     ngay_tao: { type: Date, default: Date.now },

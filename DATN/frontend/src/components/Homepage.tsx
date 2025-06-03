@@ -188,7 +188,7 @@ useEffect(() => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
-    }, 5000);
+    }, 9000);
     return () => clearInterval(interval);
   }, [banners.length]);
 
@@ -293,15 +293,26 @@ useEffect(() => {
               </div>
             ))}
           </div>
-          {/* Nút chuyển slide */}
+          {/* Nút chuyển slide banner */}
           <button
-            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 rounded-full p-2"
+            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow z-10"
             onClick={() => setCurrentSlide((prev) => prev === 0 ? banners.length - 1 : prev - 1)}
-          >&#8592;</button>
+            aria-label="Previous slide"
+          >
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600">
+            
+              <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <button
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 rounded-full p-2"
+            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow z-10"
             onClick={() => setCurrentSlide((prev) => prev === banners.length - 1 ? 0 : prev + 1)}
-          >&#8594;</button>
+            aria-label="Next slide"
+          >
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600">
+              <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           {/* Dots nằm đè lên banner */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex">
             {banners.map((_, idx) => (
@@ -545,22 +556,28 @@ useEffect(() => {
           </Link>
         ))}
       </div>
-      {/* Nút chuyển slide */}
+      {/* Nút chuyển slide iPhone section */}
       {totalSlides > 1 && (
         <>
           <button
             className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-blue-100 z-10"
             onClick={() => setIphoneSlide((prev) => prev > 0 ? prev - 1 : totalSlides - 1)}
             style={{ minWidth: 32 }}
+            aria-label="Previous iPhone slide"
           >
-            &#8592;
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+              <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           <button
             className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-blue-100 z-10"
             onClick={() => setIphoneSlide((prev) => prev < totalSlides - 1 ? prev + 1 : 0)}
             style={{ minWidth: 32 }}
+            aria-label="Next iPhone slide"
           >
-            &#8594;
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+              <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </>
       )}

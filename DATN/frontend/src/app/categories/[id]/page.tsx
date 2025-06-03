@@ -8,6 +8,15 @@ interface Category extends BaseCategory {
   video?: string;
 }
 
+// Thêm các trường vào Product (nếu dùng typescript type hoặc interface)
+declare module "@/components/cautrucdata" {
+  interface Product {
+    hot?: boolean;
+    ngay_tao?: string;
+    ban_chay?: number;
+  }
+}
+
 function getImageUrl(url: string | string[] | undefined | null) {
   if (!url) return "/images/no-image.png";
   if (Array.isArray(url)) url = url[0] || "";
@@ -82,6 +91,55 @@ const CategoryDetailPage = () => {
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const [videoScale, setVideoScale] = useState(1);
   const [current, setCurrent] = useState(0);
+  const [sortBy, setSortBy] = useState("hot");
+
+  const sortOptions = [
+    { label: "Nổi bật", value: "hot" },
+    { label: "Mới ra mắt", value: "ngay_tao" },
+    { label: "Bán chạy", value: "ban_chay" },
+    { label: "Giá thấp đến cao", value: "price-asc" },
+    { label: "Giá cao đến thấp", value: "price-desc" },
+  ];
+
+  const sortedProducts = React.useMemo(() => {
+    let sorted = [...products];
+    switch (sortBy) {
+      case "hot":
+        // Lọc sản phẩm nổi bật (hot === true), ưu tiên lên đầu
+        sorted = sorted.filter(p => p.hot === true).concat(sorted.filter(p => !p.hot));
+        break;
+      case "ngay_tao":
+        // Sắp xếp mới ra mắt (ngày tạo mới nhất lên đầu)
+        sorted.sort((a, b) => {
+          const dateA = a.ngay_tao ? new Date(a.ngay_tao).getTime() : 0;
+          const dateB = b.ngay_tao ? new Date(b.ngay_tao).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      case "ban_chay":
+        // Sắp xếp bán chạy (số lượng bán nhiều lên đầu)
+        sorted.sort((a, b) => (b.ban_chay || 0) - (a.ban_chay || 0));
+        break;
+      case "price-asc":
+        sorted.sort((a, b) => {
+          const aMin = Math.min(...(a.variants?.map(v => v.gia) || [a.Gia]));
+          const bMin = Math.min(...(b.variants?.map(v => v.gia) || [b.Gia]));
+          return aMin - bMin;
+        });
+        break;
+      case "price-desc":
+        sorted.sort((a, b) => {
+          const aMin = Math.min(...(a.variants?.map(v => v.gia) || [a.Gia]));
+          const bMin = Math.min(...(b.variants?.map(v => v.gia) || [b.Gia]));
+          return bMin - aMin;
+        });
+        break;
+      default:
+        // Nổi bật giữ nguyên thứ tự
+        break;
+    }
+    return sorted;
+  }, [products, sortBy]);
 
   const handlePlayPause = () => {
     if (!videoRef.current) return;
@@ -165,8 +223,8 @@ const CategoryDetailPage = () => {
         overscroll-behavior-x: none;
       }
     `}</style>
-      <div className="max-w-6xl mx-auto p-4">
-        <h1 className="text-[80px] font-bold text-black mb-4">{category.ten_danh_muc}</h1>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-[80px] font-bold text-black pb-[63px] pt-[63px]">{category.ten_danh_muc}</h1>
         {category.video ? (
           <div className="w-full flex flex-col items-center mb-8">
             <div
@@ -216,11 +274,26 @@ const CategoryDetailPage = () => {
           />
         )}
         <h2 className="text-2xl font-semibold mb-4">Khám Phá Dòng Sản Phẩm</h2>
+        {/* Dropdown sắp xếp */}
+        <div className="flex justify-end mb-6">
+          <label className="text-base font-semibold mr-2 mt-2">Xếp theo:</label>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className="border rounded-lg px-4 py-2 bg-white text-black font-semibold"
+            style={{ minWidth: 180 }}
+          >
+            {sortOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
         {products.length === 0 ? (
           <div className="text-gray-500">Chưa có sản phẩm nào trong danh mục này.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-center">
-            {products.map((product) => {
+            {/* Thay products.map thành sortedProducts.map */}
+            {sortedProducts.map((product) => {
               // Lấy variant đầu tiên (hoặc rẻ nhất)
               const variants = product.variants || [];
               const firstVariant = variants[0];
@@ -245,19 +318,25 @@ const CategoryDetailPage = () => {
                   className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl duration-300 relative"
                 >
                   {/* Badge giảm giá */}
-            {(product.khuyen_mai ?? 0) > 0 && (
-              <div className="absolute top-3 left-3 z-10">
-                <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
-                  Giảm {product.khuyen_mai}%
-                </span>
-              </div>
-            )}
-            {/* Badge trả góp */}
-            <div className="absolute top-3 right-3 z-10">
-              <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
-                Trả góp 0%
-              </span>
-            </div>
+                  {(product.khuyen_mai ?? 0) > 0 && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                        Giảm {product.khuyen_mai}%
+                      </span>
+                    </div>
+                  )}
+                  {/* Badge trả góp hoặc Sold out */}
+                  {totalStock === 0 ? (
+                    <div className="absolute top-3 right-3 z-10">
+                      <img src="/images/het_hang.png" alt="Sold out" className="w-12 h-12 object-contain" />
+                    </div>
+                  ) : (
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                        Trả góp 0%
+                      </span>
+                    </div>
+                  )}
                   <Link href={`/product/${product._id}`}>
                     {/* Ảnh sản phẩm */}
                     <div className="relative pt-[100%] overflow-hidden">
@@ -277,13 +356,19 @@ const CategoryDetailPage = () => {
                       </h3>
                       {/* Giá */}
                       <div className="flex gap-2 items-start mb-1">
-                        <span className="text-[15px] font-bold text-[#0066D6]">
-                          {formatCurrency(salePrice)}
-                        </span>
-                        {originPrice > salePrice && (
-                          <span className="text-[14px] text-gray-700 line-through">
-                            {formatCurrency(originPrice)}
-                          </span>
+                        {totalStock === 0 ? (
+                          <span className="text-[15px] font-bold text-red-500">Liên hệ</span>
+                        ) : (
+                          <>
+                            <span className="text-[15px] font-bold text-[#0066D6]">
+                              {formatCurrency(salePrice)}
+                            </span>
+                            {originPrice > salePrice && (
+                              <span className="text-[14px] text-gray-700 line-through">
+                                {formatCurrency(originPrice)}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

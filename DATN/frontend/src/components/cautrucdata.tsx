@@ -12,7 +12,6 @@ export interface ProductVariant {
   hinh: string;
   gia: number;
   gia_goc: number;
-  phien_ban: string;
   dung_luong: string;
   mau: string;
   so_luong_hang: number;
@@ -20,13 +19,27 @@ export interface ProductVariant {
 
 // Định nghĩa cấu trúc cho Product
 export interface Product {
+  gia: number | undefined;
   _id: string;
   TenSP: string;
   Gia: number;
   khuyen_mai?: number;
   Mota?: string;
   hinh: string[];
-  thongso?: string;
+  video?: string[]; 
+  thong_so_ky_thuat: {
+    CPU: String,
+    Camera: [String],
+    GPU: String,
+    Cong_nghe_man_hinh: String,
+    He_dieu_hanh: String,
+    Do_phan_giai: String,
+    Ket_noi: [String],
+    Kich_thuoc_khoi_luong: [String],
+    Kich_thuoc_man_hinh: String,
+    Tien_ich_khac: [String],
+    Tinh_nang_camera: [String]
+  };
   an_hien?: boolean;
   ngay_tao?: string;
   id_danhmuc: string;

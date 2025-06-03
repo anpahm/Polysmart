@@ -39,6 +39,13 @@ export default function ProductTable() {
   const [categories, setCategories] = useState<{ _id: string; ten_danh_muc: string }[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
+  // Thêm state để lưu sản phẩm đang được chọn để show variant
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [variantModal, setVariantModal] = useState<{ open: boolean; productId: string | null }>({ open: false, productId: null });
+  const [variants, setVariants] = useState<any[]>([]);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+  const [showVariantModal, setShowVariantModal] = useState(false);
+
   const columns: ColumnDef<Product, any>[] = [
     {
       id: "STT",
@@ -133,12 +140,6 @@ export default function ProductTable() {
             className="p-2 bg-blue-400 hover:bg-blue-500 text-white rounded-full"
           >
             <FaEdit />
-          </button>
-          <button
-            onClick={() => handleDeleteProduct(row.original._id)}
-            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full"
-          >
-            <FaTrash />
           </button>
           <button
             onClick={() => handleToggleVisibility(row.original)}
@@ -285,20 +286,6 @@ export default function ProductTable() {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-      try {
-        await fetch(`http://localhost:3000/api/products/${id}`, {
-          method: 'DELETE'
-        });
-        setProducts(prev => prev.filter(p => p._id !== id));
-        toast.success('Đã xóa sản phẩm thành công!');
-      } catch (error) {
-        toast.error('Có lỗi xảy ra khi xóa!');
-      }
-    }
-  };
-
   const handleToggleVisibility = async (product: Product) => {
     try {
       const res = await fetch(`http://localhost:3000/api/products/${product._id}`, {
@@ -325,6 +312,21 @@ export default function ProductTable() {
     });
     setEditProduct(null);
     setImageError("");
+  };
+
+  // Hàm lấy variant theo productId
+  const handleShowVariants = async (productId: string) => {
+    setLoadingVariants(true);
+    setVariantModal({ open: true, productId });
+    try {
+      const res = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`);
+      const data = await res.json();
+      setVariants(data);
+    } catch (error) {
+      setVariants([]);
+    } finally {
+      setLoadingVariants(false);
+    }
   };
 
   if (loading) {
@@ -396,7 +398,15 @@ export default function ProductTable() {
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-blue-50 transition"
+                  onClick={e => {
+                    // Không trigger khi click vào nút thao tác
+                    if ((e.target as HTMLElement).closest("button")) return;
+                    handleShowVariants(row.original._id);
+                  }}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -538,6 +548,51 @@ export default function ProductTable() {
                 Lưu
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal hiển thị variant */}
+      {variantModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl"
+              onClick={() => setVariantModal({ open: false, productId: null })}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-4 text-blue-700">Danh sách biến thể sản phẩm</h2>
+            {loadingVariants ? (
+              <div className="text-center py-8">Đang tải dữ liệu...</div>
+            ) : variants.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">Không có biến thể nào cho sản phẩm này.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-3 py-2 border">Tên biến thể</th>
+                      <th className="px-3 py-2 border">Dung lượng</th>
+                      <th className="px-3 py-2 border">Màu sắc</th>
+                      <th className="px-3 py-2 border">Giá</th>
+                      <th className="px-3 py-2 border">Số lượng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variants.map((v, idx) => (
+                      <tr key={v._id || idx}>
+                        <td className="px-3 py-2 border">{v.ten_variant || v.ten_bien_the || '-'}</td>
+                        <td className="px-3 py-2 border">{v.dung_luong || '-'}</td>
+                        <td className="px-3 py-2 border">{v.mau_sac || '-'}</td>
+                        <td className="px-3 py-2 border">{v.gia ? v.gia.toLocaleString('vi-VN') + '₫' : '-'}</td>
+                        <td className="px-3 py-2 border">{v.so_luong ?? '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

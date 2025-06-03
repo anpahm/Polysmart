@@ -113,6 +113,15 @@ const Header = () => {
     }
   }, [settings]);
 
+  // Hàm xử lý khi click vào icon User
+  const toggleUserDropdown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setShowUserDropdown(!showUserDropdown);
+  };
+
+  // Lấy logoUrl đúng chuẩn từ settings.Logo
+  const logoUrl = settings?.Logo ? getImageUrl(settings.Logo) : '';
+
   // Xử lý tìm kiếm sản phẩm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,24 +131,76 @@ const Header = () => {
     }
   };
 
+  // Hàm lọc sản phẩm theo từ khóa
+  const filterProducts = (products: any[], searchTerm: string) => {
+    const normalizedTerm = searchTerm.trim().toLowerCase();
+    
+    // Tách số từ chuỗi tìm kiếm (ví dụ: "iPhone 15" -> 15)
+    const numberInSearch = parseInt(normalizedTerm.match(/\d+/)?.[0] || "0");
+    const baseSearchTerm = normalizedTerm.replace(/\d+/g, '').trim(); // Lấy phần chữ (ví dụ: "iPhone 15" -> "iPhone")
+    
+    return products.filter(product => {
+      if (!product.TenSP) return false;
+      
+      const productName = product.TenSP.trim().toLowerCase();
+      const productNumber = parseInt(productName.match(/\d+/)?.[0] || "0");
+      
+      // Nếu tìm kiếm có số (ví dụ: iPhone 15)
+      if (numberInSearch > 0) {
+        // Kiểm tra xem tên sản phẩm có chứa phần chữ của từ khóa không
+        const hasBaseTerm = productName.includes(baseSearchTerm);
+        
+        // Kiểm tra điều kiện số
+        const numberMatches = productNumber >= numberInSearch;
+        
+        // Chỉ trả về true nếu cả hai điều kiện đều đúng
+        return hasBaseTerm && numberMatches;
+      }
+      
+      return productName.includes(normalizedTerm);
+    });
+  };
+
   // Fetch gợi ý sản phẩm khi nhập từ khóa (debounce)
   useEffect(() => {
     if (!showSearch || !searchTerm.trim()) {
       setSuggestions([]);
       return;
     }
+
     setLoadingSuggest(true);
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(getApiUrl(`products?keyword=${encodeURIComponent(searchTerm)}`));
+        const res = await fetch(getApiUrl('products'));
         const data = await res.json();
-        setSuggestions(Array.isArray(data) ? data.slice(0, 6) : []);
-      } catch {
+        if (Array.isArray(data)) {
+          const filteredProducts = filterProducts(data, searchTerm)
+            .sort((a, b) => {
+              // Sắp xếp ưu tiên sản phẩm có tên chứa đúng từ khóa
+              const aName = a.TenSP.toLowerCase();
+              const bName = b.TenSP.toLowerCase();
+              const searchTermLower = searchTerm.toLowerCase();
+              const aContains = aName.includes(searchTermLower);
+              const bContains = bName.includes(searchTermLower);
+              
+              if (aContains && !bContains) return -1;
+              if (!aContains && bContains) return 1;
+              
+              // Nếu cả hai đều chứa hoặc không chứa, sắp xếp theo độ tương đồng
+              return aName.localeCompare(bName);
+            })
+            .slice(0, 6); // Giới hạn 6 gợi ý
+
+          setSuggestions(filteredProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
         setSuggestions([]);
       } finally {
         setLoadingSuggest(false);
       }
-    }, 400); // debounce 400ms
+    }, 300);
+
     return () => clearTimeout(timeout);
   }, [searchTerm, showSearch]);
 
@@ -153,13 +214,13 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              {settings?.Logo && (
-                <div className="relative w-32 h-8">
+              {logoUrl && (
+                <div className="relative w-32 h-13">
                   <Image
-                    src={getImageUrl(settings.Logo)}
+                    src={logoUrl}
                     alt="Logo"
                     width={128}
-                    height={32}
+                    height={24}
                     className="object-contain"
                     priority
                   />
@@ -279,21 +340,17 @@ const Header = () => {
             </Link>
 
             {/* User account with click toggle dropdown */}
-            <div
-              className="relative"
-            >
+            <div className="relative" ref={userDropdownRef}>
               <button
+                onClick={toggleUserDropdown}
                 className="text-gray-300 hover:text-white flex items-center"
-                onClick={() => setShowUserDropdown((prev) => !prev)}
               >
                 <User className="w-5 h-5" />
               </button>
 
+              {/* Dropdown - appears on click and stays open until clicked away */}
               {showUserDropdown && (
-                <div
-                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10"
-                  onMouseLeave={() => setShowUserDropdown(false)}
-                >
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10">
                   <div className="px-4 py-3">
                     <Link href="/register" className="block py-2 text-sm text-gray-800 hover:text-gray-600">
                       Tạo tài khoản ngay

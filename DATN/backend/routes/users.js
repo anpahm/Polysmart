@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser } = require('../controllers/userController');
+const { register, login, verifyToken, getUser, getAllUsers, addUser, updateUser, deleteUser } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
@@ -10,12 +10,12 @@ router.post('/register', register);
 router.post('/login', login);
 
 //Lấy thông tin 1 user theo token
-router.get('/userinfo', verifyToken, async (req, res) => {
-    try {
-        await getUser(req, res);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.get('/userinfo', verifyToken, getUser);
+
+// CRUD cho admin
+router.get('/', getAllUsers);
+router.post('/', addUser);
+router.patch('/:id', updateUser);
+router.delete('/:id', deleteUser);
 
 module.exports = router;

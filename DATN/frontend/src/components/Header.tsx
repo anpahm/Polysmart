@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingBag, Search, User } from 'lucide-react';
 import { Category, Settings, Logo, Product } from './cautrucdata';
-import { getApiUrl } from '@/config/api';
+import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
 
 const getImageUrl = (url: string | string[]) => {
   // Log để debug
@@ -56,13 +56,13 @@ const Header = () => {
   const [cartCount, setCartCount] = useState(0);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const userDropdownRef = useRef(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const [settings, setSettings] = useState<any>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
-
+  const [user, setUser] = useState<any>(null);
 
   // Fetch settings from API
   useEffect(() => {
@@ -113,11 +113,51 @@ const Header = () => {
     }
   }, [settings]);
 
-  // Hàm xử lý khi click vào icon User
-  const toggleUserDropdown = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setShowUserDropdown(!showUserDropdown);
+  // Kiểm tra session khi component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetchApi(API_ENDPOINTS.GET_USER);
+        const userData = await response.json();
+        setUser(userData);
+      } catch (error: any) {
+        // Bỏ qua lỗi khi chưa đăng nhập
+        console.log('Chưa đăng nhập');
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // Xử lý đăng xuất
+  const handleLogout = async () => {
+    try {
+      await fetchApi(API_ENDPOINTS.LOGOUT, {
+        method: 'POST'
+      });
+      setUser(null);
+      setShowUserDropdown(false);
+      window.location.href = '/login';
+    } catch (error: any) {
+      console.error('Lỗi đăng xuất:', error);
+      // Vẫn chuyển hướng về trang đăng nhập nếu có lỗi
+      window.location.href = '/login';
+    }
   };
+
+  // Xử lý click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Lấy logoUrl đúng chuẩn từ settings.Logo
   const logoUrl = settings?.Logo ? getImageUrl(settings.Logo) : '';
@@ -342,23 +382,61 @@ const Header = () => {
             {/* User account with click toggle dropdown */}
             <div className="relative" ref={userDropdownRef}>
               <button
-                onClick={toggleUserDropdown}
-                className="text-gray-300 hover:text-white flex items-center"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="text-gray-300 hover:text-white flex items-center gap-2"
               >
                 <User className="w-5 h-5" />
+                {user && (
+                  <span className="text-sm">{user.TenKH}</span>
+                )}
               </button>
 
-              {/* Dropdown - appears on click and stays open until clicked away */}
               {showUserDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10">
                   <div className="px-4 py-3">
-                    <Link href="/register" className="block py-2 text-sm text-gray-800 hover:text-gray-600">
-                      Tạo tài khoản ngay
-                    </Link>
-                    <div className="my-1 border-t border-gray-200"></div>
-                    <Link href="/login" className="block py-2 text-sm text-gray-800 hover:text-gray-600">
-                      Đăng nhập
-                    </Link>
+                    {user ? (
+                      <>
+                        <Link 
+                          href="/profile" 
+                          className="block py-2 text-sm text-gray-800 hover:text-gray-600"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          Thông tin cá nhân
+                        </Link>
+                        <Link 
+                          href="/orders" 
+                          className="block py-2 text-sm text-gray-800 hover:text-gray-600"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          Đơn hàng của tôi
+                        </Link>
+                        <div className="my-1 border-t border-gray-200"></div>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left py-2 text-sm text-gray-800 hover:text-gray-600"
+                        >
+                          Đăng xuất
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link 
+                          href="/register" 
+                          className="block py-2 text-sm text-gray-800 hover:text-gray-600"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          Tạo tài khoản ngay
+                        </Link>
+                        <div className="my-1 border-t border-gray-200"></div>
+                        <Link 
+                          href="/login" 
+                          className="block py-2 text-sm text-gray-800 hover:text-gray-600"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          Đăng nhập
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

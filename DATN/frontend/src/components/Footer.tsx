@@ -1,9 +1,37 @@
+'use client'
 // components/Footer.js
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Phone, Mail, Facebook, Youtube, Instagram } from 'lucide-react';
+import { Settings } from './cautrucdata';
+import { getImageUrl, getApiUrl } from '../config/api';
+import { useEffect, useState } from 'react';
 
 const Footer = () => {
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(getApiUrl('/settings'));
+        const settingsData = await response.json();
+        console.log('Settings data received:', settingsData);
+        const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+        setSettings(settingObj);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  console.log('settings:', settings);
+  console.log('settings.Logo:', settings?.Logo);
+
+  const logoUrl = settings?.Logo ? getImageUrl(settings.Logo) : '/images/logo.png';
+  console.log('logoUrl:', logoUrl);
+
   return (
     <footer className="bg-gray-900 text-gray-300 pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4">
@@ -12,7 +40,7 @@ const Footer = () => {
           <div>
             <div className="mb-4">
               <Image
-                src="/images/banner so 1.png"
+                src={logoUrl}
                 alt="Shop Logo"
                 width={120}
                 height={30}

@@ -33,10 +33,14 @@ const register = [upload.single('img'), async (req, res) => {
         // Mã hóa mật khẩu bằng bcrypt
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
-        // Tạo một instance mới của userModel
+        // Tạo một instance mới của userModel với đủ các trường
         const newUser = new userModel({
+            Dia_chi: req.body.Dia_chi,
+            Sdt: req.body.Sdt,
+            TenKH: req.body.TenKH,
             email: req.body.email,
-            password: hashPassword
+            password: hashPassword,
+            role: req.body.role || 'user'
         });
         // Lưu vào database bằng hàm save()
         const data = await newUser.save();
@@ -129,47 +133,4 @@ const verifyAdmin = async (req, res, next) => {
     }
 }
 
-// Lấy tất cả user
-const getAllUsers = async (req, res) => {
-  try {
-    const users = await userModel.find();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Thêm user
-const addUser = async (req, res) => {
-  try {
-    const newUser = new userModel(req.body);
-    const saved = await newUser.save();
-    res.status(201).json(saved);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Sửa user
-const updateUser = async (req, res) => {
-  try {
-    const updated = await userModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Không tìm thấy user để cập nhật' });
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Xóa user
-const deleteUser = async (req, res) => {
-  try {
-    const deleted = await userModel.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Không tìm thấy user để xóa' });
-    res.json({ message: 'Đã xóa user thành công' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, addUser, updateUser, deleteUser };
+module.exports = { register , login , getUser, verifyToken, verifyAdmin};

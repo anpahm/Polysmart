@@ -470,7 +470,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
       <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition">MUA NGAY</button>
       <div className="flex gap-4 w-[570px]">
         <Link href={`/installment/${product._id}`}>
-          <button className="flex-1 w-[280px] h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">
+          <button className="flex-1 w-[80px] h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">
             Mua trả góp 0%<br/>
             <span className='text-xs font-normal'>Qua công ty tài chính</span>
           </button>

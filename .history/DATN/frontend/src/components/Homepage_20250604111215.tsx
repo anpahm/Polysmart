@@ -366,7 +366,10 @@ useEffect(() => {
             {/* Products grid - Lưới sản phẩm */}
             <Swiper
               modules={[Navigation, Autoplay]}
-              navigation
+              navigation={{
+                prevEl: '.swiper-button-prev',
+                nextEl: '.swiper-button-next',
+              }}
               spaceBetween={20}
               slidesPerView={5}
               slidesPerGroup={5}

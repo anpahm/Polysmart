@@ -139,16 +139,15 @@ useEffect(() => {
       try {
         setLoading(true);
 
-        // Fetch flash sale products with khuyen_mai >= 10
-        const flashSaleResponse = await fetch(getApiUrl('products'));
+        // Fetch flash sale products with khuyen_mai > 0
+        const flashSaleResponse = await fetch(getApiUrl('products?khuyen_mai=1'));
         const flashSaleData = await flashSaleResponse.json();
         
-        // Lọc sản phẩm có khuyến mãi >= 10% và sắp xếp theo khuyến mãi giảm dần
+        // Sắp xếp sản phẩm theo khuyến mãi giảm dần và lấy 5 sản phẩm đầu tiên
         const sortedFlashSaleProducts = Array.isArray(flashSaleData) 
           ? flashSaleData
-              .filter(product => (product.khuyen_mai || 0) >= 10) // Lọc sản phẩm có khuyến mãi >= 10%
               .sort((a, b) => (b.khuyen_mai || 0) - (a.khuyen_mai || 0))
-              .slice(0, 20)
+              .slice(0, 5)
           : [];
 
         // Fetch iPhone products
@@ -369,35 +368,26 @@ useEffect(() => {
               navigation
               spaceBetween={20}
               slidesPerView={5}
-              slidesPerGroup={5}
               loop={true}
-              speed={1500}
-              cssMode={true}
               autoplay={{
-                delay: 10000,
+                delay: 3000,
                 disableOnInteraction: false,
-                pauseOnMouseEnter: true,
               }}
               breakpoints={{
                 320: {
                   slidesPerView: 1,
-                  slidesPerGroup: 1,
                 },
                 640: {
                   slidesPerView: 2,
-                  slidesPerGroup: 2,
                 },
                 768: {
                   slidesPerView: 3,
-                  slidesPerGroup: 3,
                 },
                 1024: {
                   slidesPerView: 4,
-                  slidesPerGroup: 4,
                 },
                 1280: {
                   slidesPerView: 5,
-                  slidesPerGroup: 5,
                 },
               }}
               className="mySwiper"

@@ -366,7 +366,10 @@ useEffect(() => {
             {/* Products grid - Lưới sản phẩm */}
             <Swiper
               modules={[Navigation, Autoplay]}
-              navigation
+              navigation={{
+                prevEl: '.swiper-button-prev',
+                nextEl: '.swiper-button-next',
+              }}
               spaceBetween={20}
               slidesPerView={5}
               slidesPerGroup={5}
@@ -485,6 +488,23 @@ useEffect(() => {
                 </SwiperSlide>
               ))}
             </Swiper>
+            {/* Nút điều hướng tùy chỉnh cho Flash Sale */}
+            <button
+              className="swiper-button-prev absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-5 shadow hover:bg-blue-100 z-10"
+              style={{ minWidth: 32 }}
+            >
+              <svg width="20" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+                <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              className="swiper-button-next absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-blue-100 z-10"
+              style={{ minWidth: 32 }}
+            >
+              <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-blue-600">
+                <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </section>

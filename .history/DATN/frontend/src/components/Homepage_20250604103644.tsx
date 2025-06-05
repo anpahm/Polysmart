@@ -8,8 +8,7 @@ import { getApiUrl } from '@/config/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/autoplay';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Navigation } from 'swiper/modules';
 import { Fullscreen } from 'lucide-react';
 
 
@@ -139,18 +138,10 @@ useEffect(() => {
       try {
         setLoading(true);
 
-        // Fetch flash sale products with khuyen_mai >= 10
-        const flashSaleResponse = await fetch(getApiUrl('products'));
+        // Fetch flash sale products with limit=5
+        const flashSaleResponse = await fetch(getApiUrl('products?khuyen_mai=1&limit=5'));
         const flashSaleData = await flashSaleResponse.json();
         
-        // Lọc sản phẩm có khuyến mãi >= 10% và sắp xếp theo khuyến mãi giảm dần
-        const sortedFlashSaleProducts = Array.isArray(flashSaleData) 
-          ? flashSaleData
-              .filter(product => (product.khuyen_mai || 0) >= 10) // Lọc sản phẩm có khuyến mãi >= 10%
-              .sort((a, b) => (b.khuyen_mai || 0) - (a.khuyen_mai || 0))
-              .slice(0, 20)
-          : [];
-
         // Fetch iPhone products
         const IPHONE_CATEGORY_ID = '681d97db2a400db1737e6de3';
         const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}&limit=10`));
@@ -168,7 +159,7 @@ useEffect(() => {
         console.log('iPhone Products Data:', iPhoneData);
 
         setData({
-          flashSaleProducts: sortedFlashSaleProducts,
+          flashSaleProducts: Array.isArray(flashSaleData) ? flashSaleData.slice(0, 5) : [],
           iPhoneProducts: Array.isArray(iPhoneData) ? iPhoneData.filter(product => 
             product.id_danhmuc === IPHONE_CATEGORY_ID
           ).slice(0, 10) : [],
@@ -213,10 +204,11 @@ useEffect(() => {
 
   // Hàm hiển thị thông tin variant
   const renderVariantInfo = (variants: ProductVariant[] | undefined) => {
-    if (!variants || variants.length === 0) return null;
+    const visibleVariants = (variants || []).filter(v => (v as any).an_hien !== false);
+    if (!visibleVariants.length) return null;
 
     // Nhóm các variants theo dung lượng
-    const variantsByStorage = variants.reduce((acc, variant) => {
+    const variantsByStorage = visibleVariants.reduce((acc, variant) => {
       if (!acc[variant.dung_luong]) {
         acc[variant.dung_luong] = [];
       }
@@ -261,8 +253,9 @@ useEffect(() => {
 
   // Hàm hiển thị giá thấp nhất và cao nhất của variants (trả về object)
   const getPriceRange = (variants: ProductVariant[] | undefined) => {
-    if (!variants || variants.length === 0) return null;
-    const prices = variants.map(v => v.gia);
+    const visibleVariants = (variants || []).filter(v => v.an_hien !== false);
+    if (!visibleVariants.length) return null;
+    const prices = visibleVariants.map(v => v.gia);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     return { minPrice, maxPrice };
@@ -364,49 +357,14 @@ useEffect(() => {
             </div>
 
             {/* Products grid - Lưới sản phẩm */}
-            <Swiper
-              modules={[Navigation, Autoplay]}
-              navigation
-              spaceBetween={20}
-              slidesPerView={5}
-              slidesPerGroup={5}
-              loop={true}
-              speed={1500}
-              cssMode={true}
-              autoplay={{
-                delay: 10000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  slidesPerGroup: 1,
-                },
-                640: {
-                  slidesPerView: 2,
-                  slidesPerGroup: 2,
-                },
-                768: {
-                  slidesPerView: 3,
-                  slidesPerGroup: 3,
-                },
-                1024: {
-                  slidesPerView: 4,
-                  slidesPerGroup: 4,
-                },
-                1280: {
-                  slidesPerView: 5,
-                  slidesPerGroup: 5,
-                },
-              }}
-              className="mySwiper"
-            >
-              {data.flashSaleProducts.map((product) => (
-                <SwiperSlide key={product._id}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {data.flashSaleProducts.map((product) => {
+                const visibleVariants = (product.variants || []).filter(v => v.an_hien !== false);
+                return (
                   <Link 
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                    key={product._id}
+                    className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                   >
                     {/* Ảnh sản phẩm */}
                     <div className="relative pt-[100%] overflow-hidden">
@@ -419,13 +377,13 @@ useEffect(() => {
                       {/* Badge khuyến mãi */}
                       <div className="absolute top-2 left-2 flex flex-col items-center">
                         <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
-                          Giảm {product.khuyen_mai}%
+                          Khuyến mãi
                         </span>
                       </div>
                       {/* Badge số lượng còn lại */}
-                      {product.variants && product.variants.length > 0 && (
+                      {visibleVariants.length > 0 && (
                         <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                          Còn {product.variants.reduce((sum, variant) => sum + (variant.so_luong_hang || 0), 0)} sản phẩm
+                          Còn {visibleVariants.reduce((sum, variant) => sum + (variant.so_luong_hang || 0), 0)} sản phẩm
                         </div>
                       )}
                     </div>
@@ -435,8 +393,8 @@ useEffect(() => {
                       {/* Tên sản phẩm kèm variant đầu tiên */}
                       <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
                         {product.TenSP}
-                        {product.variants && product.variants.length > 0 && (
-                          ` ${product.variants[0].dung_luong}`
+                        {visibleVariants.length > 0 && (
+                          ` ${visibleVariants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="space-y-2">
@@ -479,12 +437,34 @@ useEffect(() => {
                             );
                           })()}
                         </div>
+                        {/* Thanh tiến độ suất cho variant đầu tiên */}
+                        {visibleVariants.length > 0 && (() => {
+                          const variant = visibleVariants[0];
+                          const total = visibleVariants.reduce((sum, v) => sum + (v.so_luong_hang || 0), 0);
+                          const percent = total > 0 ? Math.round((variant.so_luong_hang / total) * 100) : 0;
+                          return (
+                            <>
+                              <div className="relative w-full h-6 flex items-center mb-2 mt-2">
+                                <div className="absolute left-0 top-0 h-6 rounded-full bg-gray-200 w-full"></div>
+                                {/* <div
+                                  className="absolute left-0 top-0 h-6 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center transition-all duration-500"
+                                  style={{ width: `${percent}%` }}
+                                >
+                                  <span className="flex items-center pl-2 font-semibold text-black text-[12px] h-full whitespace-nowrap">
+                                    <span className="mr-1">🔥</span>
+                                    Còn {variant.so_luong_hang}/{total} suất
+                                  </span>
+                                </div> */}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -502,79 +482,81 @@ useEffect(() => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-center">
         {data.iPhoneProducts
           .slice(iphoneSlide * productsPerSlide, (iphoneSlide + 1) * productsPerSlide)
-          .map((product) => (
-          <Link
-            href={`/product/${product._id}`}
-            key={product._id}
-            className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px]"
-          >
-            {/* Badge giảm giá */}
-            {(product.khuyen_mai ?? 0) > 0 && (
-              <div className="absolute top-3 left-3 z-10">
-                <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
-                  Giảm {product.khuyen_mai}%
-                </span>
-              </div>
-            )}
-            {/* Badge trả góp */}
-            <div className="absolute top-3 right-3 z-10">
-              <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
-                Trả góp 0%
-              </span>
-            </div>
-            {/* Ảnh sản phẩm */}
-            <div className="relative flex items-center justify-center pt-10 bg-white">
-              <Image
-                src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                alt=""
-                width="0"
-                height="0"
-                className="w-[280px] h-[280px]"
-
-              />
-            </div>
-            {/* Thông tin sản phẩm */}
-            <div className="flex flex-col pl-4">
-              <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
-                {product.TenSP}
-                {product.variants && product.variants.length > 0 && (
-                          ` ${product.variants[0].dung_luong}`
-                        )}
-              </h3>
-              <div className="flex gap-2 mb-1">
-                <span className="text-[16px] font-bold text-[#0066D6]">
-                  {(() => {
-                    const priceRange = getPriceRange(product.variants);
-                    if (priceRange) {
-                      const { minPrice } = priceRange;
-                      return formatCurrency(minPrice);
-                    }
-                    return formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0) / 100));
-                  })()}
-                </span>
-                {/* Giá gốc nếu có */}
-                {(() => {
-                  const priceRange = getPriceRange(product.variants);
-                  if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                    return (
-                      <span className="text-gray-400 line-through text-[14px]">
-                        {formatCurrency(priceRange.maxPrice)}
-                      </span>
-                    );
-                  }
-                  if (product.khuyen_mai) {
-                    return (
-                      <span className="text-gray-400 line-through text-sm">
-                        {formatCurrency(product.Gia)}
-                      </span>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            </div>
-          </Link>
-        ))}
+          .map((product) => {
+            const visibleVariants = (product.variants || []).filter(v => v.an_hien !== false);
+            return (
+              <Link
+                href={`/product/${product._id}`}
+                key={product._id}
+                className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px]"
+              >
+                {/* Badge giảm giá */}
+                {(product.khuyen_mai ?? 0) > 0 && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                      Giảm {product.khuyen_mai}%
+                    </span>
+                  </div>
+                )}
+                {/* Badge trả góp */}
+                <div className="absolute top-3 right-3 z-10">
+                  <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                    Trả góp 0%
+                  </span>
+                </div>
+                {/* Ảnh sản phẩm */}
+                <div className="relative flex items-center justify-center pt-10 bg-white">
+                  <Image
+                    src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                    alt=""
+                    width="0"
+                    height="0"
+                    className="w-[280px] h-[280px]"
+                  />
+                </div>
+                {/* Thông tin sản phẩm */}
+                <div className="flex flex-col pl-4">
+                  <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                    {product.TenSP}
+                    {visibleVariants.length > 0 && (
+                      ` ${visibleVariants[0].dung_luong}`
+                    )}
+                  </h3>
+                  <div className="flex gap-2 mb-1">
+                    <span className="text-[16px] font-bold text-[#0066D6]">
+                      {(() => {
+                        const priceRange = getPriceRange(product.variants);
+                        if (priceRange) {
+                          const { minPrice } = priceRange;
+                          return formatCurrency(minPrice);
+                        }
+                        return formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0) / 100));
+                      })()}
+                    </span>
+                    {/* Giá gốc nếu có */}
+                    {(() => {
+                      const priceRange = getPriceRange(product.variants);
+                      if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                        return (
+                          <span className="text-gray-400 line-through text-[14px]">
+                            {formatCurrency(priceRange.maxPrice)}
+                          </span>
+                        );
+                      }
+                      if (product.khuyen_mai) {
+                        return (
+                          <span className="text-gray-400 line-through text-sm">
+                            {formatCurrency(product.Gia)}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
       </div>
       {/* Nút chuyển slide iPhone section */}
       {totalSlides > 1 && (
@@ -614,71 +596,76 @@ useEffect(() => {
               Xem tất cả
             </Link>
           </div>
-
           <div className="product-grid">
-            {data.iPadProducts.map((product) => (
-              <Link 
-                href={`/product/${product._id}`}
-                key={product._id}
-                className="product-card group"
-              >
-                <div className="product-image-container">
-                  <Image
-                    src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                    alt={product.TenSP}
-                    fill
-                    className="product-image"
-                  />
-                </div>
-                <div className="product-info">
-                  <h3 className="product-title">
-                    {product.TenSP}
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="product-price">
-                      <span className="price-current">
-                        {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange) {
-                            const { minPrice, maxPrice } = priceRange;
-                            if (minPrice === maxPrice) {
+            {data.iPadProducts.map((product) => {
+              const visibleVariants = (product.variants || []).filter(v => v.an_hien !== false);
+              return (
+                <Link 
+                  href={`/product/${product._id}`}
+                  key={product._id}
+                  className="product-card group"
+                >
+                  <div className="product-image-container">
+                    <Image
+                      src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                      alt={product.TenSP}
+                      fill
+                      className="product-image"
+                    />
+                  </div>
+                  <div className="product-info">
+                    <h3 className="product-title">
+                      {product.TenSP}
+                      {visibleVariants.length > 0 && (
+                        ` ${visibleVariants[0].dung_luong}`
+                      )}
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="product-price">
+                        <span className="price-current">
+                          {(() => {
+                            const priceRange = getPriceRange(product.variants);
+                            if (priceRange) {
+                              const { minPrice, maxPrice } = priceRange;
+                              if (minPrice === maxPrice) {
+                                return (
+                                  <span className="text-lg font-bold text-red-600">
+                                    {formatCurrency(minPrice)}
+                                  </span>
+                                );
+                              }
                               return (
-                                <span className="text-lg font-bold text-red-600">
-                                  {formatCurrency(minPrice)}
-                                </span>
+                                <div className="flex flex-col items-start">
+                                  <span className="text-lg font-bold text-red-600">
+                                    {formatCurrency(minPrice)}
+                                  </span>
+                                  <span className="text-sm text-gray-400 line-through">
+                                    {formatCurrency(maxPrice)}
+                                  </span>
+                                </div>
                               );
                             }
+                            // Trường hợp không có variants, hiển thị giá khuyến mãi và giá gốc như cũ
                             return (
                               <div className="flex flex-col items-start">
                                 <span className="text-lg font-bold text-red-600">
-                                  {formatCurrency(minPrice)}
+                                  {formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0)/100))}
                                 </span>
-                                <span className="text-sm text-gray-400 line-through">
-                                  {formatCurrency(maxPrice)}
-                                </span>
+                                {product.khuyen_mai && (
+                                  <span className="text-xs text-gray-400 line-through ml-2">
+                                    {formatCurrency(product.Gia)}
+                                  </span>
+                                )}
                               </div>
                             );
-                          }
-                          // Trường hợp không có variants, hiển thị giá khuyến mãi và giá gốc như cũ
-                          return (
-                            <div className="flex flex-col items-start">
-                              <span className="text-lg font-bold text-red-600">
-                                {formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0)/100))}
-                              </span>
-                              {product.khuyen_mai && (
-                                <span className="text-xs text-gray-400 line-through ml-2">
-                                  {formatCurrency(product.Gia)}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </span>
+                          })()}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

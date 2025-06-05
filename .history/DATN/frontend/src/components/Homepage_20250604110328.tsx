@@ -371,12 +371,9 @@ useEffect(() => {
               slidesPerView={5}
               slidesPerGroup={5}
               loop={true}
-              speed={1500}
-              cssMode={true}
               autoplay={{
-                delay: 10000,
+                delay: 3000,
                 disableOnInteraction: false,
-                pauseOnMouseEnter: true,
               }}
               breakpoints={{
                 320: {

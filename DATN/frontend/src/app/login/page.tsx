@@ -44,12 +44,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetchApi(API_ENDPOINTS.LOGIN, {
+      const data = await fetchApi(API_ENDPOINTS.LOGIN, {
         method: "POST",
         body: JSON.stringify(form),
       });
-
-      const data = await response.json();
       
       // Chuyển hướng về trang chủ sau khi đăng nhập thành công
       router.push("/");

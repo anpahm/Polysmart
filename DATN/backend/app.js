@@ -29,6 +29,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log('Incoming Request:', {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    headers: req.headers
+  });
+  next();
+});
+
 // Serve static files from public directory
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/video', express.static(path.join(__dirname, 'public/video')));
@@ -36,6 +47,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors({
   origin: [
+    'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002'
   ], // Cho phép nhiều origin

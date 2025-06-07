@@ -13,7 +13,14 @@ const handleFetchError = (error: any) => {
 // Hàm fetch với xử lý lỗi
 export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log('Fetching URL:', url); // Log URL đang gọi
+  console.log('API Request Details:', {
+    baseUrl: API_BASE_URL,
+    endpoint: endpoint,
+    fullUrl: url,
+    method: options.method || 'GET',
+    headers: options.headers,
+    body: options.body
+  });
 
   try {
     const response = await fetch(url, {
@@ -21,58 +28,44 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
     });
 
-    console.log('Response status:', response.status); // Log status code
+    console.log('Response Details:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      url: response.url
+    });
 
-    // Kiểm tra content type
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Server trả về định dạng không hợp lệ');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-
-    if (!response.ok) {
-      console.error('API Error:', data); // Log chi tiết lỗi
-      throw new Error(data.message || 'Có lỗi xảy ra');
-    }
-
     return data;
   } catch (error: any) {
-    console.error('Fetch Error:', error); // Log chi tiết lỗi
-
-    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-      throw new Error(`Không thể kết nối đến server (${url}). Vui lòng kiểm tra:
-        1. Backend đã được khởi động chưa
-        2. URL backend có đúng không
-        3. Có vấn đề về CORS không
-        4. Kết nối mạng có ổn định không`);
-    }
-
-    if (error.name === 'SyntaxError' && error.message.includes('JSON')) {
-      throw new Error('Server trả về dữ liệu không hợp lệ');
-    }
-
+    console.error('Fetch Error:', error);
     throw error;
   }
 };
 
 // Các endpoint API
 export const API_ENDPOINTS = {
-  LOGIN: '/api/users/login',
-  REGISTER: '/api/users/register',
-  LOGOUT: '/api/users/logout',
-  GET_USER: '/api/users/userinfo',
-  SETTINGS: '/api/settings',
-  CATEGORIES: '/api/categories',
-  PRODUCTS: '/api/products',
+  LOGIN: '/users/login',
+  REGISTER: '/users/register',
+  LOGOUT: '/users/logout',
+  GET_USER: '/users/userinfo',
+  SETTINGS: '/settings',
+  CATEGORIES: '/categories',
+  PRODUCTS: '/products',
 };
 
 const config = {
-  API_URL: process.env.NEXT_PUBLIC_API_URL,
+  API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
   IMAGE_URL: process.env.NEXT_PUBLIC_IMAGE_URL,
   STORAGE_URL: process.env.NEXT_PUBLIC_STORAGE_URL,
 };

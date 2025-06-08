@@ -482,7 +482,31 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
   ) : (
     // Nếu còn hàng, hiển thị nút mua hàng bình thường
     <>
-      <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition">MUA NGAY</button>
+      <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
+        onClick={() => {
+          if (!product || !selectedVariant) return;
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const itemIndex = cart.findIndex((item) => item.productId === product._id && item.variantId === selectedVariant._id);
+          const colorName = selectedVariant.ten_mau || selectedVariant.mau || '';
+          if (itemIndex > -1) {
+            cart[itemIndex].quantity += 1;
+          } else {
+            cart.push({
+              productId: product._id,
+              variantId: selectedVariant._id,
+              name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+              price: selectedVariant.gia,
+              image: getImageUrl(selectedVariant.hinh || product.hinh),
+              colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+              selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+              colorName,
+              quantity: 1,
+            });
+          }
+          localStorage.setItem('cart', JSON.stringify(cart));
+          window.location.href = '/cart';
+        }}
+      >MUA NGAY</button>
       <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />

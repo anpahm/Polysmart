@@ -22,13 +22,10 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
-  // Thêm state mới
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
-  // Thêm state để quản lý tab đang active
   const [activeTab, setActiveTab] = useState<'thongso' | 'baiviet'>('thongso');
   const mainVideoRef = useRef<HTMLVideoElement>(null);
   const thumbVideoRef = useRef<HTMLVideoElement>(null);
-  // Modal đăng ký nhận thông tin khi hết hàng (phải đặt ở đầu hàm component)
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registerForm, setRegisterForm] = useState({ name: '', phone: '', email: '' });

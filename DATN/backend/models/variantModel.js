@@ -7,6 +7,8 @@ const variantSchema = new mongoose.Schema({
   gia_goc: Number,
   dung_luong: String,
   mau: String,
+  ram: String,
+  phien_ban: String,
   so_luong_hang: Number,
   an_hien: { type : Boolean, default: true }
 });

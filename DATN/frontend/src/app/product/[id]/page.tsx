@@ -3,6 +3,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductVariant, Product } from "@/components/cautrucdata";
 import Link from 'next/link';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCart } from '../../../store/cartSlice';
+import { RootState } from '../../../store/store';
 
 export function getImageUrl(url: string | string[] | undefined | null) {
   if (!url) return "/images/no-image.png";
@@ -31,6 +34,13 @@ const ProductDetailPage = () => {
   const [registerForm, setRegisterForm] = useState({ name: '', phone: '', email: '' });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState('');
+  const dispatch = useDispatch();
+  const cart = useSelector((state: RootState) => state.cart.items);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -128,6 +138,8 @@ const ProductDetailPage = () => {
       setSelectedAccessories(prev => [...prev, accessoryId]);
     }
   };
+
+  if (!isClient) return null;
 
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
   if (!product) return <div className="text-center py-20 text-red-500">Không tìm thấy sản phẩm</div>;
@@ -485,26 +497,18 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
       <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
         onClick={() => {
           if (!product || !selectedVariant) return;
-          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-          const itemIndex = cart.findIndex((item) => item.productId === product._id && item.variantId === selectedVariant._id);
-          const colorName = selectedVariant.ten_mau || selectedVariant.mau || '';
-          if (itemIndex > -1) {
-            cart[itemIndex].quantity += 1;
-          } else {
-            cart.push({
-              productId: product._id,
-              variantId: selectedVariant._id,
-              name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
-              price: selectedVariant.gia,
-              image: getImageUrl(selectedVariant.hinh || product.hinh),
-              colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
-              selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
-              colorName,
-              quantity: 1,
-            });
-          }
-          localStorage.setItem('cart', JSON.stringify(cart));
-          window.location.href = '/cart';
+          dispatch(addToCart({
+            productId: product._id,
+            variantId: selectedVariant._id,
+            name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+            price: selectedVariant.gia,
+            image: getImageUrl(selectedVariant.hinh || product.hinh),
+            colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+            selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+            colorName: selectedVariant.ten_mau || selectedVariant.mau || '',
+            quantity: 1,
+          }));
+          ;
         }}
       >MUA NGAY</button>
       <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">

@@ -1,38 +1,35 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from '../../store';
+import { removeFromCart, changeQuantity } from '../../store/cartSlice';
 
 function formatVND(num: number) {
   return num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 }
 
 export default function CartPage() {
-  const [cart, setCart] = useState<any[]>([]);
+  const cart = useSelector((state: RootState) => state.cart.items);
+  const dispatch = useDispatch();
   const [customer, setCustomer] = useState({ name: "", phone: "", gender: "Anh" });
   const [delivery, setDelivery] = useState({ method: "home", city: "", address: "", note: "", invoice: false });
   const [agree, setAgree] = useState(false);
 
+  // Thêm kiểm tra client để tránh hydration error
+  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const cartData = localStorage.getItem('cart');
-      setCart(cartData ? JSON.parse(cartData) : []);
-    }
+    setIsClient(true);
   }, []);
-
-  const updateCart = (newCart: any[]) => {
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-  };
+  if (!isClient) return null;
 
   const handleRemove = (idx: number) => {
-    const newCart = cart.filter((_, i) => i !== idx);
-    updateCart(newCart);
+    const item = cart[idx];
+    dispatch(removeFromCart({ productId: item.productId, variantId: item.variantId }));
   };
 
   const handleChangeQty = (idx: number, delta: number) => {
-    const newCart = cart.map((item, i) =>
-      i === idx ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    );
-    updateCart(newCart);
+    const item = cart[idx];
+    dispatch(changeQuantity({ productId: item.productId, variantId: item.variantId, delta }));
   };
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

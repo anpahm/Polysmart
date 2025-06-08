@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { ShoppingBag, Search, User } from 'lucide-react';
 import { Category, Settings, Logo, Product } from './cautrucdata';
 import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 const getImageUrl = (url: string | string[]) => {
   // Log để debug
@@ -63,6 +65,14 @@ const Header = () => {
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const cart = useSelector((state: RootState) => state.cart.items);
+  const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Thêm state kiểm tra đã vào client
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Fetch settings from API
   useEffect(() => {
@@ -372,9 +382,19 @@ const Header = () => {
             </button>
             <Link href="/cart" className="text-gray-300 hover:text-white relative">
               <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {cartCount}
+              {isClient && totalQty > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 bg-white text-[10px] font-bold rounded-full border border-gray-200 px-0.5 py-0.5 shadow"
+                  style={{
+                    minWidth: 12,
+                    minHeight: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                  }}
+                >
+                  {totalQty}
                 </span>
               )}
             </Link>

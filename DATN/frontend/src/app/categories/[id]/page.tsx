@@ -350,9 +350,7 @@ const CategoryDetailPage = () => {
                     <div className="p-4">
                       <h3 className="text-[16px] font-bold mb-2 min-h-[2.5rem] text-gray-800 hover:text-black-600">
                         {product.TenSP}
-                        {visibleVariants.length > 0 && (
-                          ` ${visibleVariants[0].dung_luong}`
-                        )}
+                        {visibleVariants[0]?.dung_luong ? ` ${visibleVariants[0].dung_luong}` : ""}
                       </h3>
                       {/* Giá */}
                       <div className="flex gap-2 items-start mb-1">

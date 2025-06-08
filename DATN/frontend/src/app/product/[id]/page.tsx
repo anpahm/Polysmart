@@ -132,9 +132,9 @@ const ProductDetailPage = () => {
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
   if (!product) return <div className="text-center py-20 text-red-500">Không tìm thấy sản phẩm</div>;
 
-  // Lấy các variant khác nhau về dung lượng, màu sắc
-  const storages = Array.from(new Set(product.variants?.map(v => v.dung_luong) || []));
-  const colors = Array.from(new Set(product.variants?.map(v => v.mau) || []));
+  // Lấy các variant khác nhau về dung lượng, màu sắc (lọc giá trị rỗng/null)
+  const storages = Array.from(new Set((product.variants?.map(v => v.dung_luong) || []).filter(Boolean)));
+  const colors = Array.from(new Set((product.variants?.map(v => v.mau) || []).filter(Boolean)));
   const images = selectedVariant?.hinh && Array.isArray(selectedVariant.hinh)
   ? selectedVariant.hinh
   : Array.isArray(product.hinh) ? product.hinh : product.hinh ? [product.hinh] : ["/images/no-image.png"];
@@ -176,6 +176,11 @@ const ProductDetailPage = () => {
   };
   const SpecSection = () => {
     if (!product?.thong_so_ky_thuat) return null;
+    
+    // Kiểm tra xem có thông số kỹ thuật nào không
+    const hasSpecs = Object.values(product.thong_so_ky_thuat).some(value => value !== null && value !== undefined && value !== '');
+    if (!hasSpecs) return null;
+
     const thongso = product.thong_so_ky_thuat;
 
     const specs = [
@@ -190,7 +195,16 @@ const ProductDetailPage = () => {
       { label: "Kích thước màn hình", value: thongso.Kich_thuoc_man_hinh },
       { label: "Kích thước, khối lượng", value: thongso.Kich_thuoc_khoi_luong },
       { label: "Độ phân giải", value: thongso.Do_phan_giai },
-    ];
+    ].filter(
+      spec =>
+        spec.value !== null &&
+        spec.value !== undefined &&
+        !(typeof spec.value === 'string' && spec.value.trim() === '') &&
+        !(Array.isArray(spec.value) && spec.value.length === 0)
+    );
+
+    // Nếu không có thông số nào, return null
+    if (specs.length === 0) return null;
 
     const renderValue = (val: any) => {
       if (Array.isArray(val)) {
@@ -200,7 +214,7 @@ const ProductDetailPage = () => {
               <span key={idx}>{item}</span>
             ))}
           </div>
-          );
+        );
       }
       return <span>{val}</span>;
     };
@@ -377,44 +391,48 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               </span>
             )}
           </div>
-          <div className="mb-4">
-            <div className="mb-3 text-[13px]">Dung lượng:</div>
-            <div className="flex gap-2">
-              {storages.map((s, idx) => (
-                <button
-                  key={idx}
-                  className={`px-4 py-2 border rounded text-[13px] ${selectedVariant?.dung_luong === s ? "bg-blue-600 text-white border-blue-600 font-bold" : "hover:bg-blue-50"}`}
-                  onClick={() => {
-                    // Luôn chọn variant đầu tiên có dung lượng này (mặc định màu đầu tiên)
-                    const v = product.variants?.find(v => v.dung_luong === s);
-                    if (v) setSelectedVariant(v);
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
+          {/* Chỉ hiển thị phần chọn dung lượng nếu có biến thể và có giá trị hợp lệ */}
+          {product.variants && product.variants.length > 0 && storages.length > 0 && (
+            <div className="mb-4">
+              <div className="mb-3 text-[13px]">Dung lượng:</div>
+              <div className="flex gap-2">
+                {storages.map((s, idx) => (
+                  <button
+                    key={idx}
+                    className={`px-4 py-2 border rounded text-[13px] ${selectedVariant?.dung_luong === s ? "bg-blue-600 text-white border-blue-600 font-bold" : "hover:bg-blue-50"}`}
+                    onClick={() => {
+                      const v = product.variants?.find(v => v.dung_luong === s);
+                      if (v) setSelectedVariant(v);
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="mb-6">
-            <div className="mb-4 text-[13px]">Màu sắc:</div>
-            <div className="flex gap-2">
-              {colors.map((c, idx) => (
-                <button
-                  key={idx}
-                  className={`w-7 h-7 rounded-full border-2 inline-block ${selectedVariant?.mau === c ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-300"}`}
-                  style={{ background: c }}
-                  onClick={() => {
-                    // Chọn variant cùng dung lượng hiện tại (nếu có), hoặc variant đầu tiên có màu này
-                    const v = product.variants?.find(v =>
-                      v.mau === c && (!selectedVariant?.dung_luong || v.dung_luong === selectedVariant.dung_luong)
-                    ) || product.variants?.find(v => v.mau === c);
-                    if (v) setSelectedVariant(v);
-                  }}
-                  title={c}
-                ></button>
-              ))}
+          )}
+          {/* Chỉ hiển thị phần chọn màu sắc nếu có biến thể và có giá trị hợp lệ */}
+          {product.variants && product.variants.length > 0 && colors.length > 0 && (
+            <div className="mb-6">
+              <div className="mb-4 text-[13px]">Màu sắc:</div>
+              <div className="flex gap-2">
+                {colors.map((c, idx) => (
+                  <button
+                    key={idx}
+                    className={`w-7 h-7 rounded-full border-2 inline-block ${selectedVariant?.mau === c ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-300"}`}
+                    style={{ background: c }}
+                    onClick={() => {
+                      const v = product.variants?.find(v =>
+                        v.mau === c && (!selectedVariant?.dung_luong || v.dung_luong === selectedVariant.dung_luong)
+                      ) || product.variants?.find(v => v.mau === c);
+                      if (v) setSelectedVariant(v);
+                    }}
+                    title={c}
+                  ></button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           {/* Ưu đãi*/}
           <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm w-[569px]">
             <div className="flex items-center mb-2">
@@ -465,16 +483,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
     // Nếu còn hàng, hiển thị nút mua hàng bình thường
     <>
       <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition">MUA NGAY</button>
-      <div className="flex gap-4 w-[570px]">
-        <Link href={`/installment/${product._id}`}>
-          <button className="flex-1 w-[280px] h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">
-            Mua trả góp 0%<br/>
-            <span className='text-xs font-normal'>Qua công ty tài chính</span>
-          </button>
-        </Link>
-        <button className="flex-1 h-[54px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-[17px] hover:bg-blue-50 transition">Trả góp 0% qua thẻ<br/><span className='text-xs font-normal'>Visa, Mastercard, JCB, Amex</span></button>
-      </div>
-      <button className="w-[570px] h-[48px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
+      <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
         </svg>

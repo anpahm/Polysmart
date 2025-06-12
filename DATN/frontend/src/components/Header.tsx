@@ -119,7 +119,7 @@ const Header = () => {
   // Add debug effect
   useEffect(() => {
     if (settings?.Logo) {
-    
+
     }
   }, [settings]);
 
@@ -184,29 +184,29 @@ const Header = () => {
   // Hàm lọc sản phẩm theo từ khóa
   const filterProducts = (products: any[], searchTerm: string) => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
-    
+
     // Tách số từ chuỗi tìm kiếm (ví dụ: "iPhone 15" -> 15)
     const numberInSearch = parseInt(normalizedTerm.match(/\d+/)?.[0] || "0");
     const baseSearchTerm = normalizedTerm.replace(/\d+/g, '').trim(); // Lấy phần chữ (ví dụ: "iPhone 15" -> "iPhone")
-    
+
     return products.filter(product => {
       if (!product.TenSP) return false;
-      
+
       const productName = product.TenSP.trim().toLowerCase();
       const productNumber = parseInt(productName.match(/\d+/)?.[0] || "0");
-      
+
       // Nếu tìm kiếm có số (ví dụ: iPhone 15)
       if (numberInSearch > 0) {
         // Kiểm tra xem tên sản phẩm có chứa phần chữ của từ khóa không
         const hasBaseTerm = productName.includes(baseSearchTerm);
-        
+
         // Kiểm tra điều kiện số
         const numberMatches = productNumber >= numberInSearch;
-        
+
         // Chỉ trả về true nếu cả hai điều kiện đều đúng
         return hasBaseTerm && numberMatches;
       }
-      
+
       return productName.includes(normalizedTerm);
     });
   };
@@ -232,10 +232,10 @@ const Header = () => {
               const searchTermLower = searchTerm.toLowerCase();
               const aContains = aName.includes(searchTermLower);
               const bContains = bName.includes(searchTermLower);
-              
+
               if (aContains && !bContains) return -1;
               if (!aContains && bContains) return 1;
-              
+
               // Nếu cả hai đều chứa hoặc không chứa, sắp xếp theo độ tương đồng
               return aName.localeCompare(bName);
             })
@@ -367,7 +367,7 @@ const Header = () => {
                 </div>
               </div>
             </div>
-            <Link href="/newsfeed" className="text-gray-300 hover:text-white px-2 py-1 rounded-md text-sm font-medium">
+            <Link href="/news" className="text-gray-300 hover:text-white px-2 py-1 rounded-md text-sm font-medium">
               Tin tức
             </Link>
           </nav>
@@ -416,15 +416,15 @@ const Header = () => {
                   <div className="px-4 py-3">
                     {user ? (
                       <>
-                        <Link 
-                          href="/profile" 
+                        <Link
+                          href="/profile"
                           className="block py-2 text-sm text-gray-800 hover:text-gray-600"
                           onClick={() => setShowUserDropdown(false)}
                         >
                           Thông tin cá nhân
                         </Link>
-                        <Link 
-                          href="/orders" 
+                        <Link
+                          href="/orders"
                           className="block py-2 text-sm text-gray-800 hover:text-gray-600"
                           onClick={() => setShowUserDropdown(false)}
                         >
@@ -440,16 +440,16 @@ const Header = () => {
                       </>
                     ) : (
                       <>
-                        <Link 
-                          href="/register" 
+                        <Link
+                          href="/register"
                           className="block py-2 text-sm text-gray-800 hover:text-gray-600"
                           onClick={() => setShowUserDropdown(false)}
                         >
                           Tạo tài khoản ngay
                         </Link>
                         <div className="my-1 border-t border-gray-200"></div>
-                        <Link 
-                          href="/login" 
+                        <Link
+                          href="/login"
                           className="block py-2 text-sm text-gray-800 hover:text-gray-600"
                           onClick={() => setShowUserDropdown(false)}
                         >

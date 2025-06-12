@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 mongoose
   .connect("mongodb://127.0.0.1:27017/DB_ShopTao")
-  .then(() => console.log("MongoDB connected"))
+  .then(() => console.log("MongoDB đã kết nối hẹ hẹ hẹ http://localhost:3000/ "))
   .catch((err) => console.log(err));
 
 var cors = require("cors");
@@ -18,6 +18,8 @@ var productsRouter = require("./routes/products");
 const variantRoutes = require("./routes/variants");
 const settingsRouter = require("./routes/settings");
 const flashsalesRouter = require('./routes/flashsales');
+const newsCategoryRouter = require("./routes/newsCategories");
+const newsRouter = require("./routes/news");
 var app = express();
 
 // view engine setup
@@ -61,6 +63,8 @@ app.use("/api/products", productsRouter);
 app.use("/api/variants", variantRoutes);
 app.use("/api/settings", settingsRouter);
 app.use('/api/flashsales', flashsalesRouter);
+app.use("/api/newscategory", newsCategoryRouter);
+app.use("/api/news", newsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

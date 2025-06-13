@@ -412,7 +412,7 @@ const Header = () => {
               >
                 <User className="w-5 h-5" />
                 {user && (
-                  <span className="text-sm">{user.TenKH}</span>
+                  <span className="text-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">{user.TenKH}</span>
                 )}
               </button>
 

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser } = require('../controllers/userController');
+const { register, login, verifyToken, getUser, getAllUsers } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
@@ -23,5 +23,8 @@ router.get('/userinfo', verifyToken, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+//Lấy tất cả users
+router.get('/', getAllUsers);
 
 module.exports = router;

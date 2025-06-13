@@ -13,13 +13,17 @@ const handleFetchError = (error: any) => {
 // Hàm fetch với xử lý lỗi
 export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
   console.log('API Request Details:', {
     baseUrl: API_BASE_URL,
     endpoint: endpoint,
     fullUrl: url,
     method: options.method || 'GET',
     headers: options.headers,
-    body: options.body
+    body: options.body,
+    tokenPresent: !!token // Để debug: kiểm tra xem token có tồn tại không
   });
 
   try {
@@ -29,6 +33,7 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }), // Thêm token vào header nếu có
         ...options.headers,
       },
     });

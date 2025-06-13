@@ -18,7 +18,7 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         const response = await fetchApi(API_ENDPOINTS.GET_USER);
-        if (response.ok) {
+        if (response) {
           router.push('/');
         }
       } catch (error: any) {
@@ -49,6 +49,13 @@ export default function LoginPage() {
         body: JSON.stringify(form),
       });
       
+      // Lưu token vào localStorage
+      if (data && data.token) {
+        localStorage.setItem('token', data.token);
+      } else if (typeof data === 'string') { // Trường hợp token được trả về trực tiếp dưới dạng chuỗi
+        localStorage.setItem('token', data);
+      }
+
       // Chuyển hướng về trang chủ sau khi đăng nhập thành công
       router.push("/");
       router.refresh();

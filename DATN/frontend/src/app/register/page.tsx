@@ -15,15 +15,10 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     TenKH: "",
     gender: "",
-    day: "",
-    month: "",
-    year: "",
     Sdt: "",
-    Dia_chi: "",
     email: "",
     password: "",
     confirmPassword: "",
-    username: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -63,10 +58,6 @@ export default function RegisterPage() {
     }
     if (!form.Sdt.trim()) {
       setError("Vui lòng nhập số điện thoại");
-      return;
-    }
-    if (!form.Dia_chi.trim()) {
-      setError("Vui lòng nhập địa chỉ");
       return;
     }
     if (!form.password) {
@@ -142,16 +133,6 @@ export default function RegisterPage() {
               />
             </div>
             <div className="mb-3">
-              <label className="block mb-1 text-sm">Địa chỉ:</label>
-              <input 
-                name="Dia_chi" 
-                value={form.Dia_chi} 
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2" 
-                required 
-              />
-            </div>
-            <div className="mb-3">
               <label className="block mb-1 text-sm">Điện thoại:</label>
               <input 
                 name="Sdt" 
@@ -182,44 +163,6 @@ export default function RegisterPage() {
                 /> Nữ
               </label>
             </div>
-            <div className="mb-3 flex gap-2">
-              <div>
-                <label className="block mb-1 text-sm">Ngày sinh:</label>
-                <select 
-                  name="day" 
-                  value={form.day}
-                  onChange={handleChange}
-                  className="border rounded px-2 py-1"
-                >
-                  <option value="">Ngày</option>
-                  {[...Array(31)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1 text-sm">&nbsp;</label>
-                <select 
-                  name="month" 
-                  value={form.month}
-                  onChange={handleChange}
-                  className="border rounded px-2 py-1"
-                >
-                  <option value="">Tháng</option>
-                  {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1 text-sm">&nbsp;</label>
-                <select 
-                  name="year" 
-                  value={form.year}
-                  onChange={handleChange}
-                  className="border rounded px-2 py-1"
-                >
-                  <option value="">Năm</option>
-                  {Array.from({length: 100}, (_, i) => 2024 - i).map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
             <div className="mb-3">
               <label className="block mb-1 text-sm">E-mail:</label>
               <input 
@@ -231,15 +174,7 @@ export default function RegisterPage() {
                 required 
               />
             </div>
-            <div className="mb-3">
-              <label className="block mb-1 text-sm">Username:</label>
-              <input 
-                name="username" 
-                value={form.username || ''}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2" 
-              />
-            </div>
+        
             <div className="mb-3">
               <label className="block mb-1 text-sm">Mật khẩu:</label>
               <input 

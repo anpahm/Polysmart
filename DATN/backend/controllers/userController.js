@@ -133,4 +133,14 @@ const verifyAdmin = async (req, res, next) => {
     }
 }
 
-module.exports = { register , login , getUser, verifyToken, verifyAdmin};
+//Lấy tất cả users
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({}, { password: 0 }); // Exclude password field
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers };

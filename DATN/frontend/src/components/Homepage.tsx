@@ -165,7 +165,7 @@ useEffect(() => {
 
         // Fetch iPhone products
         const IPHONE_CATEGORY_ID = '681d97db2a400db1737e6de3';
-        const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}&limit=10`));
+        const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}&limit=12`));
         const iPhoneData = await iPhoneResponse.json();
         
         // Fetch iPad products
@@ -438,7 +438,7 @@ useEffect(() => {
                           src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                           alt={product.TenSP}
                           fill
-                          className="object-contain p-4"
+                          className="object-contain p-5"
                         />
                         {/* Badge giá flash sale */}
                         <div className="absolute top-2 left-2 flex flex-col items-center">
@@ -488,18 +488,14 @@ useEffect(() => {
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
               slidesPerView={4}
               slidesPerGroup={4}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
+           
               breakpoints={{
                 320: {
                   slidesPerView: 1,
@@ -609,18 +605,13 @@ useEffect(() => {
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
               slidesPerView={4}
               slidesPerGroup={4}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
               breakpoints={{
                 320: {
                   slidesPerView: 1,
@@ -730,18 +721,14 @@ useEffect(() => {
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
               slidesPerView={4}
               slidesPerGroup={4}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
+          
               breakpoints={{
                 320: {
                   slidesPerView: 1,

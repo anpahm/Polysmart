@@ -13,16 +13,24 @@ import { Navigation, Autoplay } from 'swiper/modules';
 import { Fullscreen } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 
+interface FlashSaleVariantInHomepage {
+  id_variant: string;
+  gia_flash_sale: number;
+  so_luong: number;
+  da_ban: number;
+  product_name?: string;
+  variant_details?: string;
+  product_id: string;
+  product_image: string | string[];
+}
+
 interface FlashSale {
   _id: string;
-  id_san_pham: Product;
-  id_variant: ProductVariant;
-  gia_flash_sale: number;
-  so_luong_flash_sale: number;
-  da_ban: number;
-  start_time: string;
-  end_time: string;
-  trang_thai: boolean;
+  ten_su_kien: string;
+  thoi_gian_bat_dau: string;
+  thoi_gian_ket_thuc: string;
+  an_hien: boolean;
+  flashSaleVariants: FlashSaleVariantInHomepage[];
 }
 
 interface NewsItem {
@@ -85,13 +93,13 @@ const HomePage = () => {
     flashSaleProducts: FlashSale[];
     iPhoneProducts: Product[];
     iPadProducts: Product[];
-    WatchProducts: Product[];
+    MacProducts: Product[];
     categories: Category[];
   }>({
     flashSaleProducts: [],
     iPhoneProducts: [],
     iPadProducts: [],
-    WatchProducts: [],
+    MacProducts: [],
     categories: []
   });
   const [loading, setLoading] = useState(true);
@@ -104,30 +112,34 @@ const HomePage = () => {
   const totalSlides = Math.ceil(data.iPhoneProducts.length / productsPerSlide);
   const [news, setNews] = useState<NewsItem[]>([]);
 
-  // Tính thời gian kết thúc flash sale 
-useEffect(() => {
-  const endDate = new Date();
-  endDate.setHours(endDate.getHours() + 2); 
+  // Tính thời gian kết thúc flash sale
+  useEffect(() => {
+    let endDate: Date;
 
-  const updateCountdown = () => {
-    const now = new Date();
-    const diff = endDate.getTime() - now.getTime();
-    if (diff <= 0) {
-      setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      return;
+    if (data.flashSaleProducts && data.flashSaleProducts.length > 0) {
+      endDate = new Date(data.flashSaleProducts[0].thoi_gian_ket_thuc);
+    } else {
+      endDate = new Date(); // Set to now if no flash sale products to show 00:00:00
     }
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
-    const seconds = Math.floor((diff / 1000) % 60);
-    setCountdown({ days, hours, minutes, seconds });
-  };
 
-  updateCountdown();
-  const interval = setInterval(updateCountdown, 1000);
-  return () => clearInterval(interval);
-}, []);
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = endDate.getTime() - now.getTime();
+      if (diff <= 0) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setCountdown({ days, hours, minutes, seconds });
+    };
 
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [data.flashSaleProducts]);
 
   // Fetch settings and create banner objects
   useEffect(() => {
@@ -183,10 +195,10 @@ useEffect(() => {
         const iPadResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPAD_CATEGORY_ID}&limit=10`));
         const iPadData = await iPadResponse.json();
 
-        // Fetch Watch products
-        const WATCH_CATEGORY_ID = '681d97db2a400db1737e6de6';
-        const WatchResponse = await fetch(getApiUrl(`products?id_danhmuc=${WATCH_CATEGORY_ID}&limit=10`));
-        const WatchData = await WatchResponse.json();
+        // Fetch Mac products
+        const MAC_CATEGORY_ID = '681d97db2a400db1737e6de5';
+        const MacResponse = await fetch(getApiUrl(`products?id_danhmuc=${MAC_CATEGORY_ID}&limit=12`));
+        const MacData = await MacResponse.json();
         
         // Fetch categories
         const categoriesResponse = await fetch(getApiUrl('categories'));
@@ -202,8 +214,8 @@ useEffect(() => {
           iPadProducts: Array.isArray(iPadData) ? iPadData.filter(product => 
             product.id_danhmuc === IPAD_CATEGORY_ID
           ).slice(0, 10) : [],
-          WatchProducts: Array.isArray(WatchData) ? WatchData.filter(product => 
-            product.id_danhmuc === WATCH_CATEGORY_ID
+          MacProducts: Array.isArray(MacData) ? MacData.filter(product => 
+            product.id_danhmuc === MAC_CATEGORY_ID
           ).slice(0, 10) : [],
           categories: categoriesData || []
         });
@@ -213,7 +225,7 @@ useEffect(() => {
           flashSaleProducts: [],
           iPhoneProducts: [],
           iPadProducts: [],
-          WatchProducts: [],
+          MacProducts: [],
           categories: []
         });
       } finally {
@@ -293,7 +305,8 @@ useEffect(() => {
   // Hàm hiển thị giá thấp nhất và cao nhất của variants (trả về object)
   const getPriceRange = (variants: ProductVariant[] | undefined) => {
     if (!variants || variants.length === 0) return null;
-    const prices = variants.map(v => v.gia);
+    const prices = variants.map(v => v.gia).filter(price => typeof price === 'number' && !isNaN(price));
+    if (prices.length === 0) return null; // No valid prices found
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     return { minPrice, maxPrice };
@@ -316,8 +329,8 @@ useEffect(() => {
 
   return (
     <div className="mt-0">
-      {/* Banner Slider */}
-      <div className="container mx-auto overflow-hidden">
+  {/* Banner Slider */}
+  <div className="container mx-auto overflow-hidden">
         <div className="relative w-full" style={{ height: '475px' }}>
           <div className="flex transition-transform duration-700 ease-in-out h-full"
             style={{
@@ -372,10 +385,9 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
       {/* Flash Sale Section */}
       <section className="py-0 pt-10">
-        <div className="container mx-auto px-40">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative">
             {/* Background pattern - Thêm họa tiết nền */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32 animate-pulse"></div>
@@ -405,9 +417,9 @@ useEffect(() => {
             <Swiper
               modules={[Navigation, Autoplay]}
               navigation
-              spaceBetween={20}
-              slidesPerView={5}
-              slidesPerGroup={5}
+              spaceBetween={10}
+              slidesPerView={1}
+              slidesPerGroup={1}
               loop={true}
               speed={1500}
               cssMode={true}
@@ -420,40 +432,47 @@ useEffect(() => {
                 320: {
                   slidesPerView: 1,
                   slidesPerGroup: 1,
+                  spaceBetween: 10,
                 },
-                640: {
+                480: {
                   slidesPerView: 2,
                   slidesPerGroup: 2,
+                  spaceBetween: 15,
                 },
                 768: {
                   slidesPerView: 3,
                   slidesPerGroup: 3,
+                  spaceBetween: 20,
                 },
                 1024: {
                   slidesPerView: 4,
                   slidesPerGroup: 4,
+                  spaceBetween: 20,
                 },
                 1280: {
                   slidesPerView: 5,
                   slidesPerGroup: 5,
+                  spaceBetween: 20,
                 },
               }}
               className="mySwiper"
             >
               {data.flashSaleProducts.map((flashSale) => {
-                const product = flashSale.id_san_pham;
-                const variant = flashSale.id_variant;
+                // Đảm bảo rằng flashSaleVariants có ít nhất một phần tử
+                const firstVariant = flashSale.flashSaleVariants[0];
+                if (!firstVariant) return null; // Bỏ qua nếu không có biến thể
+
                 return (
                   <SwiperSlide key={flashSale._id}>
                     <Link 
-                      href={`/product/${product._id}`}
+                      href={`/product/${firstVariant?.product_id || ''}`}
                       className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
                     >
                       {/* Ảnh sản phẩm */}
                       <div className="relative pt-[100%] overflow-hidden">
                         <Image
-                          src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                          alt={product.TenSP}
+                          src={getImageUrl(firstVariant?.product_image || '')}
+                          alt={firstVariant?.product_name || 'Sản phẩm Flash Sale'}
                           fill
                           className="object-contain p-4"
                         />
@@ -465,23 +484,27 @@ useEffect(() => {
                         </div>
                         {/* Số lượng còn lại */}
                         <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                          Còn {flashSale.so_luong_flash_sale - flashSale.da_ban} sản phẩm
+                          Còn {firstVariant.so_luong - firstVariant.da_ban} sản phẩm
                         </div>
                       </div>
                       
                       {/* Thông tin sản phẩm */}
-                      <div className="p-4">
+                      <div className="p-5">
                         <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
-                          {product.TenSP} {variant.dung_luong}
+                          {firstVariant?.product_name} {firstVariant?.variant_details?.split(' - ')[0]}
                         </h3>
                         <div className="space-y-2">
                           <div className="flex flex-col items-start space-y-1">
                             <span className="text-lg font-bold text-red-600">
-                              {formatCurrency(flashSale.gia_flash_sale)}
+                              {formatCurrency(firstVariant.gia_flash_sale)}
                             </span>
-                            <span className="text-sm text-gray-400 line-through">
-                              {formatCurrency(variant.gia)}
-                            </span>
+                            {/* Giá gốc được lấy từ variant_details, cần parse hoặc có thể truyền thêm giá gốc từ backend */}
+                            {/* Tạm thời hiển thị giá gốc từ variant_details nếu giá flash sale khác giá gốc */}
+                            {firstVariant.variant_details && firstVariant.gia_flash_sale !== parseFloat(firstVariant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
+                                <span className="text-sm text-gray-400 line-through">
+                                  {formatCurrency(parseFloat(firstVariant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
+                                </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -495,45 +518,44 @@ useEffect(() => {
       </section>
 
       {/* iPhone Section */}
-      <section className="section">
-        <div className="container mx-auto px-40">
-          <div className="section-header flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold">iPhone</h2>
-            <Link href="/" className="section-link text-blue-600 font-semibold hover:underline">
-              Xem tất cả
+      <section className="section py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
+          <div className="section-header flex justify-between items-center mb-8">
+            <div className="flex items-center space-x-3">
+              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                iPhone
+              </h2>
+              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+            </div>
+            <Link 
+              href="/iphone" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
-              slidesPerView={4}
-              slidesPerGroup={4}
+              slidesPerView={1}
+              slidesPerGroup={1}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
               breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  slidesPerGroup: 1,
-                },
-                640: {
-                  slidesPerView: 2,
-                  slidesPerGroup: 2,
-                },
-                768: {
-                  slidesPerView: 3,
-                  slidesPerGroup: 3,
-                },
-                1024: {
-                  slidesPerView: 4,
-                  slidesPerGroup: 4,
-                }
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
               className="mySwiper"
             >
@@ -541,65 +563,66 @@ useEffect(() => {
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
                   >
-                    {/* Badge giảm giá */}
+                    {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
                       <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                           Giảm {product.khuyen_mai}%
                         </span>
                       </div>
                     )}
-                    {/* Badge trả góp */}
+                    {/* Installment Badge */}
                     <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
                     </div>
-                    {/* Ảnh sản phẩm */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                    {/* Product Image */}
+                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt=""
-                        width="0"
-                        height="0"
-                        className="w-[280px] h-[280px]"
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    {/* Thông tin sản phẩm */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                    {/* Product Info */}
+                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                        <span className="text-base sm:text-lg font-bold text-blue-600">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
-                              const { minPrice } = priceRange;
-                              return formatCurrency(minPrice);
+                              return formatCurrency(priceRange.minPrice);
                             }
-                            return formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0) / 100));
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
                           })()}
                         </span>
-                        {/* Giá gốc nếu có */}
                         {(() => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-[14px]">
+                              <span className="text-gray-400 line-through text-sm">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
                           }
-                          if (product.khuyen_mai) {
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
                             return (
                               <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(product.Gia)}
+                                {formatCurrency(originalPrice)}
                               </span>
                             );
                           }
@@ -616,45 +639,44 @@ useEffect(() => {
       </section>
 
       {/* iPad Section */}
-      <section className="section">
-        <div className="container mx-auto px-40">
-          <div className="section-header flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold">iPad</h2>
-            <Link href="/" className="section-link text-blue-600 font-semibold hover:underline">
-              Xem tất cả
+      <section className="section py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
+          <div className="section-header flex justify-between items-center mb-8">
+            <div className="flex items-center space-x-3">
+              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                iPad
+              </h2>
+              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+            </div>
+            <Link 
+              href="/ipad" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
-              slidesPerView={4}
-              slidesPerGroup={4}
+              slidesPerView={1}
+              slidesPerGroup={1}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
               breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  slidesPerGroup: 1,
-                },
-                640: {
-                  slidesPerView: 2,
-                  slidesPerGroup: 2,
-                },
-                768: {
-                  slidesPerView: 3,
-                  slidesPerGroup: 3,
-                },
-                1024: {
-                  slidesPerView: 4,
-                  slidesPerGroup: 4,
-                }
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
               className="mySwiper"
             >
@@ -662,65 +684,66 @@ useEffect(() => {
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
                   >
-                    {/* Badge giảm giá */}
+                    {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
                       <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                           Giảm {product.khuyen_mai}%
                         </span>
                       </div>
                     )}
-                    {/* Badge trả góp */}
+                    {/* Installment Badge */}
                     <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
                     </div>
-                    {/* Ảnh sản phẩm */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                    {/* Product Image */}
+                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt=""
-                        width="0"
-                        height="0"
-                        className="w-[280px] h-[280px]"
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    {/* Thông tin sản phẩm */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                    {/* Product Info */}
+                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                        <span className="text-base sm:text-lg font-bold text-blue-600">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
-                              const { minPrice } = priceRange;
-                              return formatCurrency(minPrice);
+                              return formatCurrency(priceRange.minPrice);
                             }
-                            return formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0) / 100));
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
                           })()}
                         </span>
-                        {/* Giá gốc nếu có */}
                         {(() => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-[14px]">
+                              <span className="text-gray-400 line-through text-sm">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
                           }
-                          if (product.khuyen_mai) {
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
                             return (
                               <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(product.Gia)}
+                                {formatCurrency(originalPrice)}
                               </span>
                             );
                           }
@@ -736,112 +759,112 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Watch Section */}
-      <section className="section">
-        <div className="container mx-auto px-40">
-          <div className="section-header flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold">Watch</h2>
-            <Link href="/" className="section-link text-blue-600 font-semibold hover:underline">
-              Xem tất cả
+      {/* Mac Section */}
+      <section className="section py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
+          <div className="section-header flex justify-between items-center mb-8">
+            <div className="flex items-center space-x-3">
+              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                Mac
+              </h2>
+              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+            </div>
+            <Link 
+              href="/mac" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
           <div className="relative">
             <Swiper
-              modules={[Navigation, Autoplay]}
+              modules={[Navigation]}
               navigation
               spaceBetween={20}
-              slidesPerView={4}
-              slidesPerGroup={4}
+              slidesPerView={1}
+              slidesPerGroup={1}
               loop={true}
               speed={800}
-              autoplay={{
-                delay: 5000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
               breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  slidesPerGroup: 1,
-                },
-                640: {
-                  slidesPerView: 2,
-                  slidesPerGroup: 2,
-                },
-                768: {
-                  slidesPerView: 3,
-                  slidesPerGroup: 3,
-                },
-                1024: {
-                  slidesPerView: 4,
-                  slidesPerGroup: 4,
-                }
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
               className="mySwiper"
             >
-              {data.WatchProducts.map((product) => (
+              {data.MacProducts.map((product) => (
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
                   >
-                    {/* Badge giảm giá */}
+                    {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
                       <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                           Giảm {product.khuyen_mai}%
                         </span>
                       </div>
                     )}
-                    {/* Badge trả góp */}
+                    {/* Installment Badge */}
                     <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
                     </div>
-                    {/* Ảnh sản phẩm */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                    {/* Product Image */}
+                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt=""
-                        width="0"
-                        height="0"
-                        className="w-[280px] h-[280px]"
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    {/* Thông tin sản phẩm */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                    {/* Product Info */}
+                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                        <span className="text-base sm:text-lg font-bold text-blue-600">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
-                              const { minPrice } = priceRange;
-                              return formatCurrency(minPrice);
+                              return formatCurrency(priceRange.minPrice);
                             }
-                            return formatCurrency(product.Gia * (1 - (product.khuyen_mai || 0) / 100));
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
                           })()}
                         </span>
-                        {/* Giá gốc nếu có */}
                         {(() => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-[14px]">
+                              <span className="text-gray-400 line-through text-sm">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
                           }
-                          if (product.khuyen_mai) {
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
                             return (
                               <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(product.Gia)}
+                                {formatCurrency(originalPrice)}
                               </span>
                             );
                           }
@@ -859,9 +882,9 @@ useEffect(() => {
 
       {/* Newsfeed Section */}
       <section className="mt-16 mb-10">
-        <div className="container mx-auto px-40">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <h2 className="text-2xl font-bold text-center mb-6">Tin Tức</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {news
               .sort((a, b) => (b.luot_xem || 0) - (a.luot_xem || 0))
               .slice(0, 3)

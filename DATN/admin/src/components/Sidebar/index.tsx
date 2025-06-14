@@ -65,8 +65,8 @@ const menuGroups = [
             />
           </svg>
         ),
-        label: "Thời gian",
-        route: "/calendar",
+        label: "Flash Sale",
+        route: "/flashsale",
       },
       {
         icon: (

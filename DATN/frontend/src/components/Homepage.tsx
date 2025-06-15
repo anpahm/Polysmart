@@ -331,7 +331,7 @@ const HomePage = () => {
     <div className="mt-0">
   {/* Banner Slider */}
   <div className="container mx-auto overflow-hidden">
-        <div className="relative w-full" style={{ height: '475px' }}>
+        <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
           <div className="flex transition-transform duration-700 ease-in-out h-full"
             style={{
               width: `${banners.length * 100}%`,
@@ -355,21 +355,20 @@ const HomePage = () => {
           </div>
           {/* Nút chuyển slide banner */}
           <button
-            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow z-10"
+            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 rounded-full p-1 sm:p-2 shadow z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             onClick={() => setCurrentSlide((prev) => prev === 0 ? banners.length - 1 : prev - 1)}
             aria-label="Previous slide"
           >
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600">
-            
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
               <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <button
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow z-10"
+            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 rounded-full p-1 sm:p-2 shadow z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             onClick={() => setCurrentSlide((prev) => prev === banners.length - 1 ? 0 : prev + 1)}
             aria-label="Next slide"
           >
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
               <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
@@ -388,7 +387,7 @@ const HomePage = () => {
       {/* Flash Sale Section */}
       <section className="py-0 pt-10">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-          <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative">
+          <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
             {/* Background pattern - Thêm họa tiết nền */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32 animate-pulse"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32 animate-pulse"></div>
@@ -416,13 +415,16 @@ const HomePage = () => {
             {/* Products grid - Lưới sản phẩm */}
             <Swiper
               modules={[Navigation, Autoplay]}
-              navigation
+              navigation={{
+                nextEl: '.flash-sale-next',
+                prevEl: '.flash-sale-prev',
+              }}
               spaceBetween={10}
               slidesPerView={1}
               slidesPerGroup={1}
               loop={true}
               speed={1500}
-              cssMode={true}
+              cssMode={false}
               autoplay={{
                 delay: 10000,
                 disableOnInteraction: false,
@@ -513,12 +515,23 @@ const HomePage = () => {
                 );
               })}
             </Swiper>
+            {/* Custom Navigation Buttons for Flash Sale Swiper */}
+            <div className="flash-sale-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="flash-sale-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
           </div>
         </div>
       </section>
 
       {/* iPhone Section */}
-      <section className="section py-16 bg-gradient-to-b from-white to-gray-50">
+      <section className="section py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="section-header flex justify-between items-center mb-8">
             <div className="flex items-center space-x-3">
@@ -542,10 +555,13 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative">
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
-              navigation
+              navigation={{
+                nextEl: '.iphone-next',
+                prevEl: '.iphone-prev',
+              }}
               spaceBetween={20}
               slidesPerView={1}
               slidesPerGroup={1}
@@ -557,7 +573,7 @@ const HomePage = () => {
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
-              className="mySwiper"
+              className="mySwiper bg-white"
             >
               {data.iPhoneProducts.map((product) => (
                 <SwiperSlide key={product._id}>
@@ -586,12 +602,12 @@ const HomePage = () => {
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
                       />
                     </div>
                     {/* Product Info */}
                     <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
@@ -634,12 +650,22 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
+            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
           </div>
         </div>
       </section>
 
       {/* iPad Section */}
-      <section className="section py-16 bg-gradient-to-b from-gray-50 to-white">
+      <section className="section py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="section-header flex justify-between items-center mb-8">
             <div className="flex items-center space-x-3">
@@ -663,10 +689,13 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative">
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
-              navigation
+              navigation={{
+                nextEl: '.ipad-next',
+                prevEl: '.ipad-prev',
+              }}
               spaceBetween={20}
               slidesPerView={1}
               slidesPerGroup={1}
@@ -678,7 +707,7 @@ const HomePage = () => {
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
-              className="mySwiper"
+              className="mySwiper bg-white"
             >
               {data.iPadProducts.map((product) => (
                 <SwiperSlide key={product._id}>
@@ -707,12 +736,12 @@ const HomePage = () => {
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
                       />
                     </div>
                     {/* Product Info */}
                     <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
@@ -755,12 +784,22 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
+            <div className="ipad-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="ipad-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Mac Section */}
-      <section className="section py-16 bg-gradient-to-b from-white to-gray-50">
+      <section className="section py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="section-header flex justify-between items-center mb-8">
             <div className="flex items-center space-x-3">
@@ -784,10 +823,13 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative">
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
-              navigation
+              navigation={{
+                nextEl: '.mac-next',
+                prevEl: '.mac-prev',
+              }}
               spaceBetween={20}
               slidesPerView={1}
               slidesPerGroup={1}
@@ -799,7 +841,7 @@ const HomePage = () => {
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
               }}
-              className="mySwiper"
+              className="mySwiper bg-white"
             >
               {data.MacProducts.map((product) => (
                 <SwiperSlide key={product._id}>
@@ -828,12 +870,12 @@ const HomePage = () => {
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform group-hover:scale-105 transition-transform duration-300"
+                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
                       />
                     </div>
                     {/* Product Info */}
                     <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && (
                           ` ${product.variants[0].dung_luong}`
@@ -876,6 +918,16 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
+            <div className="mac-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="mac-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
           </div>
         </div>
       </section>

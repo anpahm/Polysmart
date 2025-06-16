@@ -92,11 +92,74 @@ const CategoryDetailPage = () => {
   const [videoScale, setVideoScale] = useState(1);
   const [current, setCurrent] = useState(0);
   const [sortBy, setSortBy] = useState("hot");
-  const [minPriceFilter, setMinPriceFilter] = useState('');
-  const [maxPriceFilter, setMaxPriceFilter] = useState('');
-  const [selectedStorage, setSelectedStorage] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
   const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
+  const [allCategoriesData, setAllCategoriesData] = useState<BaseCategory[]>([]);
+
+  // New state variables for filter section visibility
+  const [showPriceFilter, setShowPriceFilter] = useState(true);
+  const [showStorageFilter, setShowStorageFilter] = useState(true);
+  const [showColorFilter, setShowColorFilter] = useState(true);
+  const [showPromotionFilter, setShowPromotionFilter] = useState(true);
+  const [showTypeFilter, setShowTypeFilter] = useState(true);
+  const [showMaterialFilter, setShowMaterialFilter] = useState(true);
+
+  // New state for price range selection
+  const [selectedPriceRange, setSelectedPriceRange] = useState("all");
+
+  // New state for selected sizes and colors (checkboxes)
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedCategoryType, setSelectedCategoryType] = useState<string>("");
+  const [selectedProductStorage, setSelectedProductStorage] = useState<string>("");
+
+  // Mapping of color codes to Vietnamese names
+  const colorNameMap: { [key: string]: string } = {
+    "#000000": "Đen",
+    "#1F72F2": "Xanh dương",
+    "#505153": "Xám đậm",
+    "#505865": "Xám xanh đậm",
+    "#88ADC6": "Xanh da trời",
+    "#A3B5F7": "Xanh tím nhạt",
+    "#B5D999": "Xanh lá nhạt",
+    "#B9D9D6": "Xanh ngọc",
+    "#BFA48F": "Nâu đồng",
+    "#C1BDB2": "Be",
+    "#C2BCB2": "Nâu đất",
+    "#DA3C3A": "Đỏ gạch",
+    "#E9DFA7": "Vàng be",
+    "#EFCFD2": "Hồng pastel",
+    "#F3F2ED": "Kem",
+    "#F4B8DE": "Hồng sen",
+    "#FDEB66": "Vàng sáng",
+    "#174C6F": "Xanh đậm",
+    "#3BC6FF": "Xanh nhạt",
+    "#767479": "Xám",
+    "#9D9D9D": "Xám nhạt",
+    "#B1B3B6": "Bạc",
+    "#BAB4E7": "Tím nhạt",
+    "#C0C0C0": "Trắng xám",
+    "#D9E7E8": "Xanh lam nhạt",
+    "#E3E5E3": "Trắng ngà",
+    "#EBB9B0": "Nâu nhạt",
+    "#F4E9D4": "Vàng kem",
+    "#FBD96E": "Vàng",
+    "#FFC1CC": "Hồng nhạt",
+    "#FFFF99": "Vàng chanh",
+    "#FFFFFF": "Trắng",
+    "#2D2D2D": "Xám tối",
+    "#2E3641": "Xanh đen",
+    "#A7A7A7": "Xám trung bình",
+    "#C7D8E0": "Xanh nhạt",
+    "#F0E5D3": "Be nhạt",
+  };
+
+  const priceRanges = [
+    { label: "Tất cả", value: "all", min: 0, max: Infinity },
+    { label: "10 triệu - 20 triệu", value: "10-20m", min: 10000000, max: 20000000 },
+    { label: "20 triệu - 30 triệu", value: "20-30m", min: 20000000, max: 30000000 },
+    { label: "30 triệu - 50 triệu", value: "30-50m", min: 30000000, max: 50000000 },
+    { label: "Trên 50 triệu", value: "50m-plus", min: 50000000, max: Infinity },
+  ];
 
   const sortOptions = [
     { label: "Mới ra mắt", value: "ngay_tao" },
@@ -120,42 +183,93 @@ const CategoryDetailPage = () => {
     const colors = new Set<string>();
     products.forEach(product => {
       product.variants?.forEach(v => {
-        if (v.mau) colors.add(v.mau);
+        if (v.mau) colors.add(v.mau.toUpperCase());
       });
     });
-    return Array.from(colors).sort();
+    // Map hex codes to names for display
+    return Array.from(colors).map(hex => ({ hex, name: colorNameMap[hex] || hex })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [products]);
+
+  // New list of available sizes for filter options
+  const allSizes = React.useMemo(() => {
+    const sizes = new Set<string>();
+    products.forEach(product => {
+      product.variants?.forEach(v => {
+        if (v.kich_thuoc) sizes.add(v.kich_thuoc);
+      });
+    });
+    return Array.from(sizes).sort();
+  }, [products]);
+
+  // List of all unique types (categories) for filter options
+  const allTypes = React.useMemo(() => {
+    // Use allCategoriesData to get distinct category names for filtering
+    return allCategoriesData.map(cat => cat.ten_danh_muc).sort();
+  }, [allCategoriesData]);
+
+  // List of all unique product storages for filter options
+  const allProductStorages = React.useMemo(() => {
+    const productStorages = new Set<string>();
+    products.forEach(product => {
+      product.variants?.forEach(v => {
+        if (v.dung_luong) productStorages.add(v.dung_luong);
+      });
+    });
+    
+    // Helper function to convert storage string to a comparable number (in bytes)
+    const parseStorage = (storage: string): number => {
+      const lowerStorage = storage.toLowerCase();
+      const value = parseFloat(lowerStorage);
+      if (lowerStorage.includes("kb")) return value * 1024;
+      if (lowerStorage.includes("mb")) return value * 1024 * 1024;
+      if (lowerStorage.includes("gb")) return value * 1024 * 1024 * 1024;
+      if (lowerStorage.includes("tb")) return value * 1024 * 1024 * 1024 * 1024;
+      return value; // Fallback for pure numbers, though not expected for storage
+    };
+
+    return Array.from(productStorages).sort((a, b) => parseStorage(a) - parseStorage(b));
   }, [products]);
 
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = [...products];
 
     // Filter by price range
-    const minP = parseFloat(minPriceFilter);
-    const maxP = parseFloat(maxPriceFilter);
-    if (!isNaN(minP) && minP >= 0) {
+    const selectedRange = priceRanges.find(range => range.value === selectedPriceRange);
+    if (selectedRange && selectedRange.value !== "all") {
       filtered = filtered.filter(product => {
         const minVariantPrice = Math.min(...(product.variants?.map(v => v.gia) || [product.Gia]));
-        return minVariantPrice >= minP;
-      });
-    }
-    if (!isNaN(maxP) && maxP >= 0) {
-      filtered = filtered.filter(product => {
-        const minVariantPrice = Math.min(...(product.variants?.map(v => v.gia) || [product.Gia]));
-        return minVariantPrice <= maxP;
+        return minVariantPrice >= selectedRange.min && minVariantPrice <= selectedRange.max;
       });
     }
 
-    // Filter by selected storage
-    if (selectedStorage) {
+    // Filter by selected sizes (Kích thước)
+    if (selectedSizes.length > 0) {
       filtered = filtered.filter(product =>
-        product.variants?.some(v => v.dung_luong === selectedStorage)
+        product.variants?.some(v => selectedSizes.includes(v.kich_thuoc || ''))
       );
     }
 
     // Filter by selected color
-    if (selectedColor) {
+    if (selectedColors.length > 0) {
       filtered = filtered.filter(product =>
-        product.variants?.some(v => v.mau === selectedColor)
+        product.variants?.some(v => selectedColors.includes(v.mau || ''))
+      );
+    }
+
+    // Filter by selected category type (Loại)
+    if (selectedCategoryType) {
+      const selectedCat = allCategoriesData.find(cat => cat.ten_danh_muc === selectedCategoryType);
+      if (selectedCat) {
+        filtered = filtered.filter(product =>
+          product.id_danhmuc === selectedCat._id
+        );
+      }
+    }
+
+    // Filter by selected product storage
+    if (selectedProductStorage) {
+      filtered = filtered.filter(product =>
+        product.variants?.some(v => v.dung_luong === selectedProductStorage)
       );
     }
 
@@ -197,7 +311,7 @@ const CategoryDetailPage = () => {
         break;
     }
     return filtered;
-  }, [products, minPriceFilter, maxPriceFilter, selectedStorage, selectedColor, showPromotionsOnly, sortBy]);
+  }, [products, selectedPriceRange, selectedSizes, selectedColors, showPromotionsOnly, sortBy, selectedCategoryType, selectedProductStorage, allCategoriesData]);
 
   const handlePlayPause = () => {
     if (!videoRef.current) return;
@@ -229,6 +343,14 @@ const CategoryDetailPage = () => {
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // New useEffect to fetch all categories
+  useEffect(() => {
+    fetch("http://localhost:3000/api/categories")
+      .then(res => res.json())
+      .then(data => setAllCategoriesData(data))
+      .catch(err => console.error("Error fetching all categories:", err));
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -339,67 +461,264 @@ const CategoryDetailPage = () => {
               <h3 className="text-xl font-bold mb-4">Bộ lọc</h3>
 
               {/* Lọc theo giá */}
-              <div className="mb-6">
-                <label className="block text-base font-semibold mb-2">Giá:</label>
-                <div className="flex items-center">
-                  <input
-                    type="number"
-                    placeholder="Từ"
-                    value={minPriceFilter}
-                    onChange={e => setMinPriceFilter(e.target.value)}
-                    className="border rounded-lg px-3 py-2 w-full"
-                  />
-                  <span className="mx-2">-</span>
-                  <input
-                    type="number"
-                    placeholder="Đến"
-                    value={maxPriceFilter}
-                    onChange={e => setMaxPriceFilter(e.target.value)}
-                    className="border rounded-lg px-3 py-2 w-full"
-                  />
-                </div>
+              <div className="mb-4 border-b pb-4">
+                <button
+                  className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                  onClick={() => setShowPriceFilter(!showPriceFilter)}
+                >
+                  Khoảng giá
+                  <svg
+                    className={`w-4 h-4 transform transition-transform duration-300 ${
+                      showPriceFilter ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </button>
+                {showPriceFilter && (
+                  <div className="flex flex-col space-y-2">
+                    {priceRanges.map((range) => (
+                      <label key={range.value} className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          className="form-radio h-4 w-4 text-blue-600"
+                          name="priceRange"
+                          value={range.value}
+                          checked={selectedPriceRange === range.value}
+                          onChange={() => setSelectedPriceRange(range.value)}
+                        />
+                        <span className="ml-2 text-gray-700">{range.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Lọc theo dung lượng */}
-              <div className="mb-6">
-                <label className="block text-base font-semibold mb-2">Dung lượng:</label>
-                <select
-                  value={selectedStorage}
-                  onChange={e => setSelectedStorage(e.target.value)}
-                  className="border rounded-lg px-3 py-2 bg-white text-black font-semibold w-full"
+              {/* Lọc theo loại (Category Type) */}
+              {category?.ten_danh_muc !== "iPhone" && category?.ten_danh_muc !== "iPad" && category?.ten_danh_muc !== "Mac" && (
+                <div className="mb-4 border-b pb-4">
+                  <button
+                    className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                    onClick={() => setShowTypeFilter(!showTypeFilter)}
+                  >
+                    Loại
+                    <svg
+                      className={`w-4 h-4 transform transition-transform duration-300 ${
+                        showTypeFilter ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                  {showTypeFilter && (
+                    <select
+                      value={selectedCategoryType}
+                      onChange={(e) => setSelectedCategoryType(e.target.value)}
+                      className="border rounded-lg px-3 py-2 bg-white text-black font-semibold w-full"
+                    >
+                      <option value="">Tất cả</option>
+                      {allTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+
+              {/* Lọc theo dung lượng sản phẩm */}
+              <div className="mb-4 border-b pb-4">
+                <button
+                  className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                  onClick={() => setShowMaterialFilter(!showMaterialFilter)}
                 >
-                  <option value="">Tất cả</option>
-                  {allStorages.map(storage => (
-                    <option key={storage} value={storage}>{storage}</option>
-                  ))}
-                </select>
+                  Dung lượng sản phẩm
+                  <svg
+                    className={`w-4 h-4 transform transition-transform duration-300 ${
+                      showMaterialFilter ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </button>
+                {showMaterialFilter && (
+                  <select
+                    value={selectedProductStorage}
+                    onChange={(e) => setSelectedProductStorage(e.target.value)}
+                    className="border rounded-lg px-3 py-2 bg-white text-black font-semibold w-full"
+                  >
+                    <option value="">Tất cả</option>
+                    {allProductStorages.map((storage) => (
+                      <option key={storage} value={storage}>
+                        {storage}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
+
+              {/* Lọc theo Kích thước */}
+              {category?.ten_danh_muc !== "iPhone" && category?.ten_danh_muc !== "iPad" && category?.ten_danh_muc !== "Mac" && (
+                <div className="mb-4 border-b pb-4">
+                  <button
+                    className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                    onClick={() => setShowStorageFilter(!showStorageFilter)}
+                  >
+                    Kích thước
+                    <svg
+                      className={`w-4 h-4 transform transition-transform duration-300 ${
+                        showStorageFilter ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                  {showStorageFilter && (
+                    <div className="flex flex-col space-y-2">
+                      {allSizes.map((size) => (
+                        <label key={size} className="inline-flex items-center">
+                          <input
+                            type="checkbox"
+                            className="form-checkbox h-4 w-4 text-blue-600"
+                            checked={selectedSizes.includes(size)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedSizes([...selectedSizes, size]);
+                              } else {
+                                setSelectedSizes(selectedSizes.filter((s) => s !== size));
+                              }
+                            }}
+                          />
+                          <span className="ml-2 text-gray-700">{size}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Lọc theo màu sắc */}
-              <div className="mb-6">
-                <label className="block text-base font-semibold mb-2">Màu sắc:</label>
-                <select
-                  value={selectedColor}
-                  onChange={e => setSelectedColor(e.target.value)}
-                  className="border rounded-lg px-3 py-2 bg-white text-black font-semibold w-full"
+              <div className="mb-4 border-b pb-4">
+                <button
+                  className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                  onClick={() => setShowColorFilter(!showColorFilter)}
                 >
-                  <option value="">Tất cả</option>
-                  {allColors.map(color => (
-                    <option key={color} value={color}>{color}</option>
-                  ))}
-                </select>
+                  Màu sắc
+                  <svg
+                    className={`w-4 h-4 transform transition-transform duration-300 ${
+                      showColorFilter ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </button>
+                {showColorFilter && (
+                  <div className="flex flex-col space-y-2">
+                    {allColors.map((color) => (
+                      <label key={color.hex} className="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          className="form-checkbox h-4 w-4 text-blue-600"
+                          checked={selectedColors.includes(color.hex)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedColors([...selectedColors, color.hex]);
+                            } else {
+                              setSelectedColors(selectedColors.filter((c) => c !== color.hex));
+                            }
+                          }}
+                        />
+                        <span className="ml-2 text-gray-700">{color.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Lọc theo khuyến mãi */}
-              <div className="flex items-center mb-6">
-                <input
-                  type="checkbox"
-                  id="promotionsOnly"
-                  checked={showPromotionsOnly}
-                  onChange={e => setShowPromotionsOnly(e.target.checked)}
-                  className="form-checkbox h-5 w-5 text-blue-600"
-                />
-                <label htmlFor="promotionsOnly" className="text-base font-semibold ml-2">Chỉ hiển thị khuyến mãi</label>
+              <div className="mb-4 pb-4">
+                <button
+                  className="flex justify-between items-center w-full text-base font-semibold mb-2 cursor-pointer"
+                  onClick={() => setShowPromotionFilter(!showPromotionFilter)}
+                >
+                  Khuyến mãi
+                  <svg
+                    className={`w-4 h-4 transform transition-transform duration-300 ${
+                      showPromotionFilter ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </button>
+                {showPromotionFilter && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="promotionsOnly"
+                      checked={showPromotionsOnly}
+                      onChange={(e) => setShowPromotionsOnly(e.target.checked)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                    <label htmlFor="promotionsOnly" className="text-base font-semibold ml-2">
+                      Chỉ hiển thị khuyến mãi
+                    </label>
+                  </div>
+                )}
               </div>
           </div>
 
@@ -428,7 +747,32 @@ const CategoryDetailPage = () => {
                     {filteredAndSortedProducts.map((product) => {
                       // Lọc các variant đang hiện
                       const visibleVariants = (product.variants || []).filter(v => v.an_hien !== false);
-                      const firstVariant = visibleVariants[0];
+                      // Chọn biến thể để hiển thị dựa trên bộ lọc dung lượng và màu sắc
+                      let displayVariant = visibleVariants[0]; // Mặc định là biến thể đầu tiên
+                      
+                      if (selectedProductStorage && selectedColors.length > 0) {
+                        // Ưu tiên tìm biến thể khớp cả dung lượng và màu sắc
+                        const matchingVariant = visibleVariants.find(v => 
+                          v.dung_luong === selectedProductStorage && 
+                          selectedColors.includes((v.mau || '').toUpperCase())
+                        );
+                        if (matchingVariant) {
+                          displayVariant = matchingVariant;
+                        }
+                      } else if (selectedProductStorage) {
+                        // Nếu chỉ có dung lượng được chọn
+                        const matchingVariant = visibleVariants.find(v => v.dung_luong === selectedProductStorage);
+                        if (matchingVariant) {
+                          displayVariant = matchingVariant;
+                        }
+                      } else if (selectedColors.length > 0) {
+                        // Nếu chỉ có màu sắc được chọn
+                        const matchingVariant = visibleVariants.find(v => selectedColors.includes((v.mau || '').toUpperCase()));
+                        if (matchingVariant) {
+                          displayVariant = matchingVariant;
+                        }
+                      }
+                      
                       // Tính giá min/max
                       const prices = visibleVariants.map(v => v.gia);
                       const minPrice = prices.length ? Math.min(...prices) : product.Gia;
@@ -441,9 +785,9 @@ const CategoryDetailPage = () => {
                       const discount = getDiscountPercent(originPrice, salePrice);
                       // Tổng số lượng còn lại
                       const totalStock = visibleVariants.reduce((sum, v) => sum + (v.so_luong_hang || 0), 0);
-                      // Dung lượng và màu của variant đầu tiên
-                      const dungLuong = firstVariant?.dung_luong || "";
-                      const mau = firstVariant?.mau || "";
+                      // Dung lượng và màu của variant được chọn để hiển thị
+                      const dungLuongDisplay = displayVariant?.dung_luong || "";
+                      const mauDisplay = displayVariant?.mau || "";
                       return (
                         <div
                           key={product._id}
@@ -473,7 +817,7 @@ const CategoryDetailPage = () => {
                             {/* Ảnh sản phẩm */}
                             <div className="relative pt-[100%] overflow-hidden">
                               <img
-                                src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                                src={getImageUrl(Array.isArray(displayVariant?.hinh) ? displayVariant?.hinh[0] : displayVariant?.hinh || product.hinh)}
                                 alt={product.TenSP}
                                 className="object-contain p-4 absolute top-0 left-0 w-full h-full"
                               />
@@ -482,7 +826,7 @@ const CategoryDetailPage = () => {
                             <div className="p-4">
                               <h3 className="text-[16px] font-bold mb-2 min-h-[2.5rem] text-gray-800 hover:text-black-600">
                                 {product.TenSP}
-                                {visibleVariants[0]?.dung_luong ? ` ${visibleVariants[0].dung_luong}` : ""}
+                                {dungLuongDisplay ? ` ${dungLuongDisplay}` : ""}
                               </h3>
                               {/* Giá */}
                               <div className="flex gap-2 items-start mb-1">
@@ -560,5 +904,3 @@ const CategoryDetailPage = () => {
 };
 
 export default CategoryDetailPage;
-
-

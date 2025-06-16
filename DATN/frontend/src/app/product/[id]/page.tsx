@@ -303,6 +303,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                 autoPlay
                 loop
                 playsInline
+                muted
                 className="absolute inset-0 w-full h-full object-contain"
                 poster={getImageUrl(images[0])}
               />

@@ -27,13 +27,21 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   try {
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+
+    // Nếu body không phải là FormData, đặt Content-Type là application/json
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(url, {
       ...options,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }), // Thêm token vào header nếu có
+        ...headers,
         ...options.headers,
       },
     });
@@ -64,6 +72,7 @@ export const API_ENDPOINTS = {
   REGISTER: '/users/register',
   LOGOUT: '/users/logout',
   GET_USER: '/users/userinfo',
+  UPDATE_USER: '/users/update',
   SETTINGS: '/settings',
   CATEGORIES: '/categories',
   PRODUCTS: '/products',

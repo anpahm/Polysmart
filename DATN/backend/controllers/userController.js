@@ -35,12 +35,16 @@ const register = [upload.single('img'), async (req, res) => {
         const hashPassword = await bcrypt.hash(req.body.password, salt);
         // Tạo một instance mới của userModel với đủ các trường
         const newUser = new userModel({
-            Dia_chi: req.body.Dia_chi,
+            Dia_chi: req.body.dia_chi,
             Sdt: req.body.Sdt,
             TenKH: req.body.TenKH,
             email: req.body.email,
             password: hashPassword,
-            role: req.body.role || 'user'
+            role: req.body.role || 'user',
+            gioi_tinh: req.body.gioi_tinh,
+            sinh_nhat: req.body.sinh_nhat,
+            username: req.body.username,
+            avatar: req.body.avatar,
         });
         // Lưu vào database bằng hàm save()
         const data = await newUser.save();
@@ -103,7 +107,15 @@ const verifyToken = (req, res, next) => {
 //lấy thông tin user khi có token
 const getUser = async (req, res) => {
     try {
-        const user = await userModel.findById(req.userId, { password: 0 });
+        const user = await userModel.findById(req.userId, {
+            password: 0,
+            // Loại trừ các trường cũ nếu chúng vẫn tồn tại trong database
+            dateOfBirth: 0,
+            gender: 0,
+            address: 0,
+            name: 0, // Trường tên cũ
+            phoneNumber: 0 // Trường số điện thoại cũ
+        });
         if (!user) {
             throw new Error('Không tìm thấy user');
         }
@@ -112,6 +124,52 @@ const getUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+// Cập nhật thông tin user
+const updateUser = [upload.single('avatar'), async (req, res) => {
+    try {
+        const { TenKH, Sdt, gioi_tinh, sinh_nhat, dia_chi, username } = req.body;
+        const userId = req.userId; // Lấy userId từ verifyToken
+
+        const user = await userModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
+        }
+
+        // Cập nhật các trường
+        user.TenKH = TenKH !== undefined ? TenKH : user.TenKH;
+        user.Sdt = Sdt !== undefined ? Sdt : user.Sdt;
+        user.gioi_tinh = gioi_tinh !== undefined ? gioi_tinh : user.gioi_tinh;
+        user.sinh_nhat = sinh_nhat !== undefined ? sinh_nhat : user.sinh_nhat;
+        user.dia_chi = dia_chi !== undefined ? dia_chi : user.dia_chi;
+        user.username = username !== undefined ? username : user.username;
+
+        if (req.file) {
+            user.avatar = `/images/${req.file.filename}`;
+        }
+
+        const updatedUser = await user.save();
+
+        // Trả về thông tin người dùng đã cập nhật, chỉ bao gồm các trường trong schema mới
+        const userResponse = {
+            _id: updatedUser._id,
+            TenKH: updatedUser.TenKH,
+            email: updatedUser.email,
+            Sdt: updatedUser.Sdt,
+            gioi_tinh: updatedUser.gioi_tinh,
+            sinh_nhat: updatedUser.sinh_nhat,
+            dia_chi: updatedUser.dia_chi,
+            username: updatedUser.username,
+            avatar: updatedUser.avatar,
+            role: updatedUser.role,
+        };
+
+        res.json({ message: 'Cập nhật thông tin người dùng thành công', user: userResponse });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}];
 
 //xác thực admin 
 const verifyAdmin = async (req, res, next) => {
@@ -143,4 +201,4 @@ const getAllUsers = async (req, res) => {
     }
 }
 
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers };
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload };

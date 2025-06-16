@@ -14,6 +14,7 @@ export interface ProductVariant {
   gia_goc: number;
   dung_luong: string;
   mau: string;
+  kich_thuoc?: string;
   so_luong_hang: number;
   an_hien: boolean;
 }
@@ -46,6 +47,7 @@ export interface Product {
   id_danhmuc: string;
   Soluong: number;
   variants?: ProductVariant[];
+  chat_lieu?: string;
 }
 
 // Định nghĩa Response types

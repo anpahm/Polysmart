@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchApi, API_ENDPOINTS } from "@/config/api";
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../store/userSlice';
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -12,13 +14,23 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   // Kiểm tra nếu đã đăng nhập thì chuyển về trang chủ
   useEffect(() => {
     const checkSession = async () => {
       try {
         const response = await fetchApi(API_ENDPOINTS.GET_USER);
-        if (response) {
+        if (response && response.user) {
+          dispatch(setUser({
+            TenKH: response.user.TenKH,
+            email: response.user.email,
+            Sdt: response.user.Sdt,
+            gioi_tinh: response.user.gioi_tinh,
+            sinh_nhat: response.user.sinh_nhat,
+            dia_chi: response.user.dia_chi,
+            avatar: response.user.avatar,
+          }));
           router.push('/');
         }
       } catch (error: any) {
@@ -28,7 +40,7 @@ export default function LoginPage() {
     };
 
     checkSession();
-  }, [router]);
+  }, [router, dispatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,6 +66,23 @@ export default function LoginPage() {
         localStorage.setItem('token', data.token);
       } else if (typeof data === 'string') { // Trường hợp token được trả về trực tiếp dưới dạng chuỗi
         localStorage.setItem('token', data);
+      }
+
+      // Giả định API trả về thông tin người dùng cùng với token hoặc có thể gọi GET_USER sau đó
+      // Nếu API_ENDPOINTS.LOGIN không trả về tên, bạn cần gọi API_ENDPOINTS.GET_USER sau đó.
+      const userResponse = await fetchApi(API_ENDPOINTS.GET_USER);
+      if (userResponse && userResponse.user) {
+        console.log("Login: User data from API:", userResponse.user);
+        localStorage.setItem('user', JSON.stringify(userResponse.user)); // Lưu thông tin user vào localStorage
+        dispatch(setUser({
+          TenKH: userResponse.user.TenKH,
+          email: userResponse.user.email,
+          Sdt: userResponse.user.Sdt,
+          gioi_tinh: userResponse.user.gioi_tinh,
+          sinh_nhat: userResponse.user.sinh_nhat,
+          dia_chi: userResponse.user.dia_chi,
+          avatar: userResponse.user.avatar,
+        }));
       }
 
       // Chuyển hướng về trang chủ sau khi đăng nhập thành công

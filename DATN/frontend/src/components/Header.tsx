@@ -410,7 +410,15 @@ const Header = () => {
                 onClick={() => setShowUserDropdown(!showUserDropdown)}
                 className="text-gray-300 hover:text-white flex items-center gap-2"
               >
-                <User className="w-5 h-5" />
+                {user && user.avatar ? (
+                  <img
+                    src={getImageUrl(user.avatar)}
+                    alt="User Avatar"
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
                 {user && (
                   <span className="text-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">{user.TenKH}</span>
                 )}

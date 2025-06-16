@@ -14,8 +14,6 @@ const getImageUrl = (url: string | string[]) => {
 export default function RegisterPage() {
   const [form, setForm] = useState({
     TenKH: "",
-    gender: "",
-    Sdt: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -56,10 +54,6 @@ export default function RegisterPage() {
       setError("Vui lòng nhập email");
       return;
     }
-    if (!form.Sdt.trim()) {
-      setError("Vui lòng nhập số điện thoại");
-      return;
-    }
     if (!form.password) {
       setError("Vui lòng nhập mật khẩu");
       return;
@@ -81,8 +75,6 @@ export default function RegisterPage() {
         body: JSON.stringify({
           TenKH: form.TenKH,
           email: form.email,
-          Sdt: form.Sdt,
-          Dia_chi: form.Dia_chi,
           password: form.password,
           role: "user"
         }),
@@ -133,37 +125,6 @@ export default function RegisterPage() {
               />
             </div>
             <div className="mb-3">
-              <label className="block mb-1 text-sm">Điện thoại:</label>
-              <input 
-                name="Sdt" 
-                value={form.Sdt} 
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2" 
-                required 
-              />
-            </div>
-            <div className="mb-3 flex items-center gap-4">
-              <label className="text-sm">Giới tính:</label>
-              <label className="flex items-center gap-1 text-sm">
-                <input 
-                  type="radio" 
-                  name="gender" 
-                  value="Nam" 
-                  checked={form.gender === "Nam"}
-                  onChange={handleChange}
-                /> Nam
-              </label>
-              <label className="flex items-center gap-1 text-sm">
-                <input 
-                  type="radio" 
-                  name="gender" 
-                  value="Nữ" 
-                  checked={form.gender === "Nữ"}
-                  onChange={handleChange}
-                /> Nữ
-              </label>
-            </div>
-            <div className="mb-3">
               <label className="block mb-1 text-sm">E-mail:</label>
               <input 
                 name="email" 
@@ -174,7 +135,6 @@ export default function RegisterPage() {
                 required 
               />
             </div>
-        
             <div className="mb-3">
               <label className="block mb-1 text-sm">Mật khẩu:</label>
               <input 

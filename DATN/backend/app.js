@@ -47,14 +47,23 @@ app.use('/images', express.static('public/images'));
 app.use('/video', express.static(path.join(__dirname, 'public/video')));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(cors({
+// Explicitly define CORS options
+const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002'
-  ], // Cho phép nhiều origin
-  credentials: true
-}));
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  allowedHeaders: 'Content-Type,Authorization',
+};
+
+// Handle preflight requests for CORS
+app.options('*', cors(corsOptions)); // Enable pre-flight for all routes with specific options
+
+// Apply CORS for all routes
+app.use(cors(corsOptions));
 
 app.use("/api", indexRouter);
 app.use("/api/users", usersRouter);

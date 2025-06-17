@@ -94,12 +94,20 @@ const HomePage = () => {
     iPhoneProducts: Product[];
     iPadProducts: Product[];
     MacProducts: Product[];
-    categories: Category[];
+    WatchProducts: Product[];
+    PhuKienProducts: Product[];
+    AmThanhProducts: Product[];
+    CameraProducts: Product[];
+    categories: Category[];   
   }>({
     flashSaleProducts: [],
     iPhoneProducts: [],
     iPadProducts: [],
     MacProducts: [],
+    WatchProducts: [],
+    PhuKienProducts: [],
+    AmThanhProducts: [],
+    CameraProducts: [],
     categories: []
   });
   const [loading, setLoading] = useState(true);
@@ -200,6 +208,26 @@ const HomePage = () => {
         const MacResponse = await fetch(getApiUrl(`products?id_danhmuc=${MAC_CATEGORY_ID}&limit=12`));
         const MacData = await MacResponse.json();
         
+        // Fetch Watch products
+        const WATCH_CATEGORY_ID = '681d97db2a400db1737e6de6';
+        const WatchResponse = await fetch(getApiUrl(`products?id_danhmuc=${WATCH_CATEGORY_ID}&limit=10`));
+        const WatchData = await WatchResponse.json();
+
+        // Fetch Phu kien products
+        const PHUKIEN_CATEGORY_ID = '681d97db2a400db1737e6de7';
+        const PhuKienResponse = await fetch(getApiUrl(`products?id_danhmuc=${PHUKIEN_CATEGORY_ID}&limit=10`));
+        const PhuKienData = await PhuKienResponse.json();
+
+        // Fetch Am thanh products
+        const AMTHANH_CATEGORY_ID = '68219963d5680e4c448c7891';
+        const AmThanhResponse = await fetch(getApiUrl(`products?id_danhmuc=${AMTHANH_CATEGORY_ID}&limit=10`));
+        const AmThanhData = await AmThanhResponse.json();   
+
+        // Fetch Camera products
+        const CAMERA_CATEGORY_ID = '68219980d5680e4c448c7892';
+        const CameraResponse = await fetch(getApiUrl(`products?id_danhmuc=${CAMERA_CATEGORY_ID}&limit=10`));
+        const CameraData = await CameraResponse.json();
+
         // Fetch categories
         const categoriesResponse = await fetch(getApiUrl('categories'));
         const categoriesData = await categoriesResponse.json();
@@ -217,6 +245,18 @@ const HomePage = () => {
           MacProducts: Array.isArray(MacData) ? MacData.filter(product => 
             product.id_danhmuc === MAC_CATEGORY_ID
           ).slice(0, 10) : [],
+          WatchProducts: Array.isArray(WatchData) ? WatchData.filter(product => 
+            product.id_danhmuc === WATCH_CATEGORY_ID
+          ).slice(0, 10) : [],
+          PhuKienProducts: Array.isArray(PhuKienData) ? PhuKienData.filter(product => 
+            product.id_danhmuc === PHUKIEN_CATEGORY_ID
+          ).slice(0, 10) : [],
+          AmThanhProducts: Array.isArray(AmThanhData) ? AmThanhData.filter(product => 
+            product.id_danhmuc === AMTHANH_CATEGORY_ID
+          ).slice(0, 10) : [],
+          CameraProducts: Array.isArray(CameraData) ? CameraData.filter(product => 
+            product.id_danhmuc === CAMERA_CATEGORY_ID
+          ).slice(0, 10) : [],
           categories: categoriesData || []
         });
       } catch (error) {
@@ -226,6 +266,10 @@ const HomePage = () => {
           iPhoneProducts: [],
           iPadProducts: [],
           MacProducts: [],
+          WatchProducts: [],
+          PhuKienProducts: [],
+          AmThanhProducts: [],
+          CameraProducts: [],
           categories: []
         });
       } finally {
@@ -533,16 +577,10 @@ const HomePage = () => {
       </section>
 
       {/* iPhone Section */}
-
-
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
-
-      
-
-
             <Link 
               href="/iphone" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -668,15 +706,10 @@ const HomePage = () => {
       </section>
 
       {/* iPad Section */}
-
-
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
-
-     
-
             <Link 
               href="/ipad" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -802,8 +835,6 @@ const HomePage = () => {
       </section>
 
       {/* Mac Section */}
-
-
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
@@ -926,6 +957,393 @@ const HomePage = () => {
                 </svg>
             </div>
             <div className="mac-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+          {/* Am thanh Section */}
+      <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+            <h2 className="section-title text-2xl font-bold">Âm thanh</h2>
+            <Link 
+              href="/amthanh" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="relative group bg-white">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{
+                nextEl: '.iphone-next',
+                prevEl: '.iphone-prev',
+              }}
+              spaceBetween={20}
+              slidesPerView={1}
+              slidesPerGroup={1}
+              loop={true}
+              speed={800}
+              breakpoints={{
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
+              }}
+              className="mySwiper bg-white"
+            >
+              {data.AmThanhProducts.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link
+                    href={`/product/${product._id}`}
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                  >
+                    {/* Discount Badge */}
+                    {(product.khuyen_mai ?? 0) > 0 && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
+                      </div>
+                    )}
+                    {/* Installment Badge */}
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                        Trả góp 0%
+                      </span>
+                    </div>
+                    {/* Product Image */}
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <Image
+                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[280px] h-[280px]"
+                      />
+                    </div>
+                    {/* Product Info */}
+                    <div className="flex flex-col pl-4">
+                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                        {product.TenSP}
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
+                          ` ${product.variants[0].dung_luong}`
+                        )}
+                      </h3>
+                      <div className="flex gap-2 mb-1">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
+                          {(() => {
+                            const priceRange = getPriceRange(product.variants);
+                            if (priceRange) {
+                              return formatCurrency(priceRange.minPrice);
+                            }
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
+                          })()}
+                        </span>
+                        {(() => {
+                          const priceRange = getPriceRange(product.variants);
+                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                            return (
+                              <span className="text-gray-400 line-through text-[14px]">
+                                {formatCurrency(priceRange.maxPrice)}
+                              </span>
+                            );
+                          }
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
+                            return (
+                              <span className="text-gray-400 line-through text-sm">
+                                {formatCurrency(originalPrice)}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+          {/* Phu kien Section */}
+          <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+            <h2 className="section-title text-2xl font-bold">Phụ kiện</h2>
+            <Link 
+              href="/phukien" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="relative group bg-white">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{
+                nextEl: '.iphone-next',
+                prevEl: '.iphone-prev',
+              }}
+              spaceBetween={20}
+              slidesPerView={1}
+              slidesPerGroup={1}
+              loop={true}
+              speed={800}
+              breakpoints={{
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
+              }}
+              className="mySwiper bg-white"
+            >
+              {data.PhuKienProducts.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link
+                    href={`/product/${product._id}`}
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                  >
+                    {/* Discount Badge */}
+                    {(product.khuyen_mai ?? 0) > 0 && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
+                      </div>
+                    )}
+                    {/* Installment Badge */}
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                        Trả góp 0%
+                      </span>
+                    </div>
+                    {/* Product Image */}
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <Image
+                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[280px] h-[280px]"
+                      />
+                    </div>
+                    {/* Product Info */}
+                    <div className="flex flex-col pl-4">
+                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                        {product.TenSP}
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
+                          ` ${product.variants[0].dung_luong}`
+                        )}
+                      </h3>
+                      <div className="flex gap-2 mb-1">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
+                          {(() => {
+                            const priceRange = getPriceRange(product.variants);
+                            if (priceRange) {
+                              return formatCurrency(priceRange.minPrice);
+                            }
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
+                          })()}
+                        </span>
+                        {(() => {
+                          const priceRange = getPriceRange(product.variants);
+                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                            return (
+                              <span className="text-gray-400 line-through text-[14px]">
+                                {formatCurrency(priceRange.maxPrice)}
+                              </span>
+                            );
+                          }
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
+                            return (
+                              <span className="text-gray-400 line-through text-sm">
+                                {formatCurrency(originalPrice)}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Camera Section */}  
+      <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+              <h2 className="section-title text-2xl font-bold">Camera</h2>
+            <Link 
+              href="/camera" 
+              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
+            >
+              <span>Xem tất cả</span>
+              <svg 
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="relative group bg-white">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{
+                nextEl: '.iphone-next',
+                prevEl: '.iphone-prev',
+              }}
+              spaceBetween={20}
+              slidesPerView={1}
+              slidesPerGroup={1}
+              loop={true}
+              speed={800}
+              breakpoints={{
+                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
+              }}
+              className="mySwiper bg-white"
+            >
+              {data.CameraProducts.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link
+                    href={`/product/${product._id}`}
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                  >
+                    {/* Discount Badge */}
+                    {(product.khuyen_mai ?? 0) > 0 && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
+                      </div>
+                    )}
+                    {/* Installment Badge */}
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                        Trả góp 0%
+                      </span>
+                    </div>
+                    {/* Product Image */}
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <Image
+                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                        alt={product.TenSP}
+                        width="0" 
+                        height="0" 
+                        className="w-[280px] h-[280px]"
+                      />
+                    </div>
+                    {/* Product Info */}
+                    <div className="flex flex-col pl-4">
+                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                        {product.TenSP}
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
+                          ` ${product.variants[0].dung_luong}`
+                        )}
+                      </h3>
+                      <div className="flex gap-2 mb-1">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
+                          {(() => {
+                            const priceRange = getPriceRange(product.variants);
+                            if (priceRange) {
+                              return formatCurrency(priceRange.minPrice);
+                            }
+                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                            return formatCurrency(price * (1 - discount / 100));
+                          })()}
+                        </span>
+                        {(() => {
+                          const priceRange = getPriceRange(product.variants);
+                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                            return (
+                              <span className="text-gray-400 line-through text-[14px]">
+                                {formatCurrency(priceRange.maxPrice)}
+                              </span>
+                            );
+                          }
+                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                          if (product.khuyen_mai && originalPrice > 0) {
+                            return (
+                              <span className="text-gray-400 line-through text-sm">
+                                {formatCurrency(originalPrice)}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </div>
+            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>

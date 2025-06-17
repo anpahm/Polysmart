@@ -9,12 +9,11 @@ import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
+
 import { logout } from '../store/userSlice';
 
-const getImageUrl = (url: string | string[]) => {
-  // Log để debug
-  console.log('Original image URL:', url);
 
+const getImageUrl = (url: string | string[]) => {
   // Nếu url là mảng, lấy phần tử đầu tiên
   if (Array.isArray(url)) {
     url = url[0];
@@ -66,11 +65,17 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const cart = useSelector((state: RootState) => state.cart.items);
-  const user = useSelector((state: RootState) => state.user.user);
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
   const router = useRouter();
   const dispatch = useDispatch();
+
+  // Debugging: Log user state from Redux
+  useEffect(() => {
+    console.log('Header Component - Redux User State:', user);
+  }, [user]);
+
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -135,7 +140,12 @@ const Header = () => {
       });
       // Xóa token khỏi localStorage
       localStorage.removeItem('token');
+
       dispatch(logout()); // Dispatch logout action để xóa user khỏi Redux store
+
+      // Xóa user khỏi localStorage
+      localStorage.removeItem('user');
+      dispatch({ type: 'user/logout' });
       setShowUserDropdown(false);
       router.push("/");
     } catch (error: any) {

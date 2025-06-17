@@ -71,6 +71,7 @@ export default function LoginPage() {
       // Giả định API trả về thông tin người dùng cùng với token hoặc có thể gọi GET_USER sau đó
       // Nếu API_ENDPOINTS.LOGIN không trả về tên, bạn cần gọi API_ENDPOINTS.GET_USER sau đó.
       const userResponse = await fetchApi(API_ENDPOINTS.GET_USER);
+      console.log("Login: Full userResponse from GET_USER API:", userResponse);
       if (userResponse) {
         console.log("Login: User data from API:", userResponse);
         localStorage.setItem('user', JSON.stringify(userResponse)); // Lưu thông tin user vào localStorage

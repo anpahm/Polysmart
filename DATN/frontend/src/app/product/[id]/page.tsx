@@ -529,8 +529,9 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
           <h2 className="text-2xl font-bold mb-6">Sản phẩm mua kèm</h2>
           <div className="flex items-stretch gap-6">
             {/* Sản phẩm chính */}
-            <div className="flex flex-col items-center min-w-[220px] bg-white rounded-xl shadow p-4">
-              <img src={getImageUrl(images[0])} alt={product.TenSP} className="w-28 h-28 object-contain mb-2" />
+            <div className="flex flex-col items-center w-[200px] bg-#F8F9FA">
+              <img src={getImageUrl(images[0])} alt={product.TenSP} className="w-28 h-28 object-contain mb-2"
+              style={{ backgroundColor: '#F8F9FA' }}/>
               <div className="font-medium text-center mb-1">{product.TenSP}{variantName && ` ${variantName}`}</div>
               <div className="text-blue-600 font-bold mb-1 text-lg">{price.toLocaleString()}₫</div>
               {originPrice > price && (
@@ -543,14 +544,14 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               <span className="text-4xl text-gray-400 font-bold">+</span>
             </div>
             {/* Sản phẩm mua kèm */}
-            <div className="relative" style={{ width: 600, overflow: 'hidden' }}>
+            <div className="relative" style={{ width: 580, overflow: 'hidden' }}>
               {/* Nút scroll trái */}
               <button
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
                 style={{ marginLeft: '2px' }}
                 onClick={() => {
                   const container = document.getElementById('accessories-slider');
-                  if (container) container.scrollLeft -= 240;
+                  if (container) container.scrollLeft -= 196;
                 }}
                 type="button"
               >
@@ -562,13 +563,12 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               <div
                 id="accessories-slider"
                 className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
-                style={{
-                  width: 680, // Hiển thị 2,5 sản phẩm (mỗi sản phẩm ~220px + gap)
+               style={{
+                  width: 700,
                   scrollBehavior: 'smooth'
-                }}
-              >
+                }}>
                 {accessories.map((acc) => (
-                  <div key={acc._id} className="min-w-[220px] max-w-[220px] bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative">
+                  <div key={acc._id} className="min-w-[180px] max-w-[180px] bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative">
                     {/* Thêm icon tích khi được chọn */}
                     {selectedAccessories.includes(acc._id) && (
                       <div className="absolute top-2 right-2">
@@ -590,7 +590,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                       } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
                       onClick={() => toggleAccessory(acc._id)}
                     >
-                      {selectedAccessories.includes(acc._id) ? "Bỏ chọn sản phẩm" : "Chọn sản phẩm"}
+                      {selectedAccessories.includes(acc._id) ? "Bỏ chọn" : "Chọn sản phẩm"}
                     </button>
                   </div>
                 ))}
@@ -601,7 +601,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                 style={{ marginRight: '2px' }}
                 onClick={() => {
                   const container = document.getElementById('accessories-slider');
-                  if (container) container.scrollLeft += 240;
+                  if (container) container.scrollLeft += 196;
                 }}
                 type="button"
               >

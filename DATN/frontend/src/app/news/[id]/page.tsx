@@ -50,48 +50,52 @@ export default function NewsCategoryPage() {
   if (!category) return <div>Đang tải...</div>;
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
-      {/* Sidebar */}
-      <aside className="w-60 bg-white border-r min-h-screen py-8 px-4">
-        <div className="font-bold mb-4">Tin tức</div>
-        <ul className="space-y-2">
-          {categories.map(cat => (
-            <li key={cat._id}>
-              <button
-                className={`w-full text-left px-3 py-2 rounded ${cat._id === categoryId ? "bg-blue-100 text-blue-700 font-semibold" : "hover:bg-gray-100"}`}
-                onClick={() => router.push(`/news/${cat._id}`)}
-              >
-                {cat.ten_danh_muc}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-      {/* Main content */}
-      <main className="flex-1 px-8 py-8">
-        <h1 className="text-2xl font-bold mb-4">{category.ten_danh_muc}</h1>
-        <input
-          className="border px-3 py-2 rounded mb-6 w-full max-w-md"
-          placeholder="Tìm kiếm"
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {pagedNews.map(item => <NewsCard key={item._id} item={item} />)}
-        </div>
-        {/* Pagination */}
-        <div className="flex justify-center mt-8 gap-2">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`px-3 py-1 rounded ${page === i + 1 ? "bg-blue-500 text-white" : "bg-white border"}`}
-              onClick={() => setPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </main>
+    <div className="bg-gray-50 min-h-screen w-full">
+      <div className="max-w-6xl mx-auto w-full flex py-4">
+        {/* Sidebar */}
+        <aside className="w-60 bg-gray rounded-lg shadow-sm min-h-[calc(100vh-2rem)] py-8 px-4">
+          <div className="font-bold mb-4">Tin tức</div>
+          <ul className="space-y-2">
+            {categories.map(cat => (
+              <li key={cat._id}>
+                <button
+                  className={`w-full text-left px-3 py-2 rounded ${cat._id === categoryId ? "bg-blue-100 text-blue-700 font-semibold" : "hover:bg-gray-100"}`}
+                  onClick={() => router.push(`/news/${cat._id}`)}
+                >
+                  {cat.ten_danh_muc}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+        {/* Main content */}
+        <main className="flex-1 py-8">
+          <div className="max-w-5xl mx-auto">
+            <h1 className="text-2xl font-bold mb-4">{category.ten_danh_muc}</h1>
+            <input
+              className="border px-3 py-2 rounded mb-6 w-full max-w-md"
+              placeholder="Tìm kiếm"
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {pagedNews.map(item => <NewsCard key={item._id} item={item} />)}
+            </div>
+            {/* Pagination */}
+            <div className="flex justify-center mt-8 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  className={`px-3 py-1 rounded ${page === i + 1 ? "bg-blue-500 text-white" : "bg-white border"}`}
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

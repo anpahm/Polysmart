@@ -20,6 +20,7 @@ const settingsRouter = require("./routes/settings");
 const flashsalesRouter = require('./routes/flashsales');
 const newsCategoryRouter = require("./routes/newsCategories");
 const newsRouter = require("./routes/news");
+const voucherRouter = require('./routes/vouchers');
 var app = express();
 
 // view engine setup
@@ -74,6 +75,7 @@ app.use("/api/settings", settingsRouter);
 app.use('/api/flashsales', flashsalesRouter);
 app.use("/api/newscategory", newsCategoryRouter);
 app.use("/api/news", newsRouter);
+app.use('/api/vouchers', voucherRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

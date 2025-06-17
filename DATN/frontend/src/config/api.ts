@@ -54,8 +54,24 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const contentType = response.headers.get('Content-Type');
+      let errorBody: any = {};
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorBody = await response.json();
+        } catch (jsonError) {
+          console.warn('Could not parse error response as JSON, falling back to text:', jsonError);
+          errorBody = await response.text();
+        }
+      } else {
+        errorBody = await response.text();
+      }
+
+      const errorMessage = typeof errorBody === 'object' && errorBody !== null && errorBody.message
+        ? errorBody.message
+        : (typeof errorBody === 'string' ? errorBody : `HTTP error! status: ${response.status}`);
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

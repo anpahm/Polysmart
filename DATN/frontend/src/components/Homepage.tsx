@@ -12,6 +12,7 @@ import 'swiper/css/autoplay';
 import { Navigation, Autoplay } from 'swiper/modules';
 import { Fullscreen } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
+import LuckyWheel from './LuckyWheel';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -44,7 +45,6 @@ interface NewsItem {
 
 const getImageUrl = (url: string | string[]) => {
   // Log để debug
-  console.log('Original image URL:', url);
   
   // Nếu url là mảng, lấy phần tử đầu tiên
   if (Array.isArray(url)) {
@@ -329,8 +329,10 @@ const HomePage = () => {
 
   return (
     <div className="mt-0">
-  {/* Banner Slider */}
-  <div className="container mx-auto overflow-hidden">
+      {/* Lucky Wheel Section */}
+      <LuckyWheel />
+      {/* Banner Slider */}
+      <div className="container mx-auto overflow-hidden">
         <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
           <div className="flex transition-transform duration-700 ease-in-out h-full"
             style={{
@@ -385,7 +387,7 @@ const HomePage = () => {
         </div>
       </div>
       {/* Flash Sale Section */}
-      <section className="py-0 pt-10">
+      <section className="py-0 pt-10 bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
             {/* Background pattern - Thêm họa tiết nền */}
@@ -531,15 +533,14 @@ const HomePage = () => {
       </section>
 
       {/* iPhone Section */}
-      <section className="section py-16 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-          <div className="section-header flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-3">
-              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                iPhone
-              </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
-            </div>
+
+      <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+            <h2 className="section-title text-2xl font-bold">iPhone</h2>
+
+      
+
             <Link 
               href="/iphone" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -579,7 +580,7 @@ const HomePage = () => {
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
@@ -596,25 +597,25 @@ const HomePage = () => {
                       </span>
                     </div>
                     {/* Product Image */}
-                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
+                        className="w-[280px] h-[280px]"
                       />
                     </div>
                     {/* Product Info */}
-                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
+                    <div className="flex flex-col pl-4">
+                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
                         {product.TenSP}
-                        {product.variants && product.variants.length > 0 && (
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-base sm:text-lg font-bold text-blue-600">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
@@ -629,7 +630,7 @@ const HomePage = () => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-sm">
+                              <span className="text-gray-400 line-through text-[14px]">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
@@ -665,15 +666,13 @@ const HomePage = () => {
       </section>
 
       {/* iPad Section */}
-      <section className="section py-16 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-          <div className="section-header flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-3">
-              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                iPad
-              </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
-            </div>
+
+      <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+              <h2 className="section-title text-2xl font-bold">iPad</h2>
+
+     
             <Link 
               href="/ipad" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -713,7 +712,7 @@ const HomePage = () => {
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
@@ -730,25 +729,25 @@ const HomePage = () => {
                       </span>
                     </div>
                     {/* Product Image */}
-                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
+                    <div className="relative flex items-center justify-center pt-8 bg-white">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
+                        className="w-[280px] h-[280px]"
                       />
                     </div>
                     {/* Product Info */}
-                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
+                    <div className="flex flex-col justify-between px-4 py-2 w-[265px]">
+                      <h3 className="text-[18px] font-bold mb-1 text-black min-h-[2.5rem]">
                         {product.TenSP}
-                        {product.variants && product.variants.length > 0 && (
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-base sm:text-lg font-bold text-blue-600">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
@@ -763,7 +762,7 @@ const HomePage = () => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-sm">
+                              <span className="text-gray-400 line-through text-[14px]">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
@@ -799,15 +798,12 @@ const HomePage = () => {
       </section>
 
       {/* Mac Section */}
-      <section className="section py-16 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-          <div className="section-header flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-3">
-              <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                Mac
-              </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
-            </div>
+
+      <section className="section bg-white">
+        <div className="container mx-auto px-40 bg-white">
+          <div className="section-header flex justify-between items-center mb-6 bg-white">
+              <h2 className="section-title text-2xl font-bold">Mac</h2>
+         
             <Link 
               href="/mac" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -847,7 +843,7 @@ const HomePage = () => {
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group relative h-[300px] sm:h-[330px] block"
+                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
@@ -870,19 +866,19 @@ const HomePage = () => {
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] object-contain transform transition-transform duration-300"
+                       className="w-[280px] h-[280px]"
                       />
                     </div>
                     {/* Product Info */}
-                    <div className="flex flex-col p-4 bg-gradient-to-b from-white to-gray-50">
-                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-gray-800 min-h-[2.5rem] line-clamp-2 transition-colors">
+                    <div className="flex flex-col justify-between px-4 py-14 min-h-[100px] w-[300px]">
+                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
                         {product.TenSP}
-                        {product.variants && product.variants.length > 0 && (
+                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-base sm:text-lg font-bold text-blue-600">
+                        <span className="text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
@@ -897,7 +893,7 @@ const HomePage = () => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-sm">
+                              <span className="text-gray-400 line-through text-[14px]">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
@@ -933,7 +929,7 @@ const HomePage = () => {
       </section>
 
       {/* Newsfeed Section */}
-      <section className="mt-16 mb-10">
+      <section className="section bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <h2 className="text-2xl font-bold text-center mb-6">Tin Tức</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">

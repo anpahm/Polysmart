@@ -9,11 +9,9 @@ import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 
 const getImageUrl = (url: string | string[]) => {
-  // Log để debug
-  console.log('Original image URL:', url);
-
   // Nếu url là mảng, lấy phần tử đầu tiên
   if (Array.isArray(url)) {
     url = url[0];
@@ -65,10 +63,16 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const user = useSelector((state: RootState) => state.user.user);
   const cart = useSelector((state: RootState) => state.cart.items);
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
   const router = useRouter();
+  const dispatch = useDispatch();
+
+  // Debugging: Log user state from Redux
+  useEffect(() => {
+    console.log('Header Component - Redux User State:', user);
+  }, [user]);
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -125,21 +129,6 @@ const Header = () => {
     }
   }, [settings]);
 
-  // Kiểm tra session khi component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const userData = await fetchApi(API_ENDPOINTS.GET_USER);
-        setUser(userData);
-      } catch (error: any) {
-        console.log('Chưa đăng nhập');
-        setUser(null); // Đảm bảo user là null nếu không đăng nhập
-      }
-    };
-
-    checkSession();
-  }, []); // Dependency array rỗng để chỉ chạy một lần khi component mount
-
   // Xử lý đăng xuất
   const handleLogout = async () => {
     try {
@@ -148,15 +137,15 @@ const Header = () => {
       });
       // Xóa token khỏi localStorage
       localStorage.removeItem('token');
-      setUser(null);
+      // Xóa user khỏi localStorage
+      localStorage.removeItem('user');
+      dispatch({ type: 'user/logout' });
       setShowUserDropdown(false);
       router.push("/");
-      router.refresh();
     } catch (error: any) {
       console.error('Lỗi đăng xuất:', error);
       // Vẫn chuyển hướng về trang đăng nhập nếu có lỗi
       router.push("/");
-      router.refresh();
     }
   };
 

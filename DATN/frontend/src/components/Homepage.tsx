@@ -534,12 +534,14 @@ const HomePage = () => {
 
       {/* iPhone Section */}
 
+
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
 
       
+
 
             <Link 
               href="/iphone" 
@@ -667,12 +669,14 @@ const HomePage = () => {
 
       {/* iPad Section */}
 
+
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
 
      
+
             <Link 
               href="/ipad" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -799,11 +803,13 @@ const HomePage = () => {
 
       {/* Mac Section */}
 
+
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
          
+
             <Link 
               href="/mac" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"

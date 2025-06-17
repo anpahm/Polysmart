@@ -46,7 +46,7 @@ const Footer = () => {
                 height={30}
               />
             </div>
-            <p className="text-sm mb-4">
+            <p className="text-sm mb-3">
               Đại lý ủy quyền Apple chính thức tại Việt Nam
             </p>
             <div className="flex items-center mb-2">
@@ -61,8 +61,8 @@ const Footer = () => {
             </div>
             <div className="flex items-center mb-4">
               <Mail className="w-4 h-4 mr-2" />
-              <a href="mailto:info@shopdunk.com" className="text-sm hover:text-white">
-                info@shopdunk.com
+              <a href="mailto:info@polysmart.com" className="text-sm hover:text-white">
+                info@polysmart.com
               </a>
             </div>
             <div className="flex space-x-4">
@@ -179,7 +179,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-xs text-center">
-          <p>© 2025 ShopTech. Tất cả quyền được bảo lưu.</p>
+          <p>© 2025 PolySmart. Tất cả quyền được bảo lưu.</p>
           <p className="mt-2">
             Công ty Cổ phần Công nghệ ShopTech - GPĐKKD: 0123456789 do Sở KHĐT TP.HCM cấp ngày 01/01/2020
           </p>

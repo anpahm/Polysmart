@@ -538,7 +538,7 @@ const HomePage = () => {
               <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 iPhone
               </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+              {/* <span className="text-sm text-gray-500">Mới nhất 2024</span> */}
             </div>
             <Link 
               href="/iphone" 
@@ -672,7 +672,7 @@ const HomePage = () => {
               <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 iPad
               </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+              {/* <span className="text-sm text-gray-500">Mới nhất 2024</span> */}
             </div>
             <Link 
               href="/ipad" 
@@ -806,7 +806,7 @@ const HomePage = () => {
               <h2 className="section-title text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 Mac
               </h2>
-              <span className="text-sm text-gray-500">Mới nhất 2024</span>
+              {/* <span className="text-sm text-gray-500">Mới nhất 2024</span> */}
             </div>
             <Link 
               href="/mac" 

@@ -6,9 +6,10 @@ import Image from 'next/image';
 import { ShoppingBag, Search, User } from 'lucide-react';
 import { Category, Settings, Logo, Product } from './cautrucdata';
 import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
+import { logout } from '../store/userSlice';
 
 const getImageUrl = (url: string | string[]) => {
   // Log để debug
@@ -65,10 +66,11 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const cart = useSelector((state: RootState) => state.cart.items);
+  const user = useSelector((state: RootState) => state.user.user);
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -125,21 +127,6 @@ const Header = () => {
     }
   }, [settings]);
 
-  // Kiểm tra session khi component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const userData = await fetchApi(API_ENDPOINTS.GET_USER);
-        setUser(userData);
-      } catch (error: any) {
-        console.log('Chưa đăng nhập');
-        setUser(null); // Đảm bảo user là null nếu không đăng nhập
-      }
-    };
-
-    checkSession();
-  }, []); // Dependency array rỗng để chỉ chạy một lần khi component mount
-
   // Xử lý đăng xuất
   const handleLogout = async () => {
     try {
@@ -148,10 +135,9 @@ const Header = () => {
       });
       // Xóa token khỏi localStorage
       localStorage.removeItem('token');
-      setUser(null);
+      dispatch(logout()); // Dispatch logout action để xóa user khỏi Redux store
       setShowUserDropdown(false);
       router.push("/");
-      router.refresh();
     } catch (error: any) {
       console.error('Lỗi đăng xuất:', error);
       // Vẫn chuyển hướng về trang đăng nhập nếu có lỗi

@@ -71,23 +71,22 @@ export default function LoginPage() {
       // Giả định API trả về thông tin người dùng cùng với token hoặc có thể gọi GET_USER sau đó
       // Nếu API_ENDPOINTS.LOGIN không trả về tên, bạn cần gọi API_ENDPOINTS.GET_USER sau đó.
       const userResponse = await fetchApi(API_ENDPOINTS.GET_USER);
-      if (userResponse && userResponse.user) {
-        console.log("Login: User data from API:", userResponse.user);
-        localStorage.setItem('user', JSON.stringify(userResponse.user)); // Lưu thông tin user vào localStorage
+      if (userResponse) {
+        console.log("Login: User data from API:", userResponse);
+        localStorage.setItem('user', JSON.stringify(userResponse)); // Lưu thông tin user vào localStorage
         dispatch(setUser({
-          TenKH: userResponse.user.TenKH,
-          email: userResponse.user.email,
-          Sdt: userResponse.user.Sdt,
-          gioi_tinh: userResponse.user.gioi_tinh,
-          sinh_nhat: userResponse.user.sinh_nhat,
-          dia_chi: userResponse.user.dia_chi,
-          avatar: userResponse.user.avatar,
+          TenKH: userResponse.TenKH,
+          email: userResponse.email,
+          Sdt: userResponse.Sdt,
+          gioi_tinh: userResponse.gioi_tinh,
+          sinh_nhat: userResponse.sinh_nhat,
+          dia_chi: userResponse.dia_chi,
+          avatar: userResponse.avatar,
         }));
       }
 
       // Chuyển hướng về trang chủ sau khi đăng nhập thành công
       router.push("/");
-      router.refresh();
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra khi đăng nhập");
     } finally {

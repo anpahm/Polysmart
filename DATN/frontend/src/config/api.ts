@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
   LOGOUT: '/users/logout',
   GET_USER: '/users/userinfo',
   UPDATE_USER: '/users/update',
+  CHANGE_PASSWORD: '/users/change-password',
   SETTINGS: '/settings',
   CATEGORIES: '/categories',
   PRODUCTS: '/products',

@@ -171,6 +171,37 @@ const updateUser = [upload.single('avatar'), async (req, res) => {
     }
 }];
 
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.userId; // Lấy userId từ verifyToken
+
+        const user = await userModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Người dùng không tìm thấy.' });
+        }
+
+        // So sánh mật khẩu cũ
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Mật khẩu cũ không đúng.' });
+        }
+
+        // Mã hóa mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashNewPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashNewPassword;
+        await user.save();
+
+        res.json({ message: 'Đổi mật khẩu thành công!' });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 //xác thực admin 
 const verifyAdmin = async (req, res, next) => {
     try {
@@ -201,4 +232,4 @@ const getAllUsers = async (req, res) => {
     }
 }
 
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload };
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword };

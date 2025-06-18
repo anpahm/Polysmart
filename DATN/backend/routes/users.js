@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload } = require('../controllers/userController');
+const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
@@ -28,6 +28,15 @@ router.get('/userinfo', verifyToken, async (req, res) => {
 router.put('/update', verifyToken, upload.single('avatar'), async (req, res) => {
     try {
         await updateUser[1](req, res);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+//Đổi mật khẩu
+router.post('/change-password', verifyToken, async (req, res) => {
+    try {
+        await changePassword(req, res);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

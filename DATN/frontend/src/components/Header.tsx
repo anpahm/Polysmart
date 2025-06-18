@@ -6,10 +6,10 @@ import Image from 'next/image';
 import { ShoppingBag, Search, User } from 'lucide-react';
 import { Category, Settings, Logo, Product } from './cautrucdata';
 import { getApiUrl, fetchApi, API_ENDPOINTS } from '@/config/api';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
+import { setUser } from '../store/userSlice';
 
 const getImageUrl = (url: string | string[]) => {
   // Nếu url là mảng, lấy phần tử đầu tiên
@@ -68,11 +68,6 @@ const Header = () => {
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
   const router = useRouter();
   const dispatch = useDispatch();
-
-  // Debugging: Log user state from Redux
-  useEffect(() => {
-    console.log('Header Component - Redux User State:', user);
-  }, [user]);
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -137,9 +132,7 @@ const Header = () => {
       });
       // Xóa token khỏi localStorage
       localStorage.removeItem('token');
-      // Xóa user khỏi localStorage
-      localStorage.removeItem('user');
-      dispatch({ type: 'user/logout' });
+      dispatch(setUser(null));
       setShowUserDropdown(false);
       router.push("/");
     } catch (error: any) {

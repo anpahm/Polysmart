@@ -82,4 +82,24 @@ exports.deleteNews = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+exports.getNewsById = async (req, res) => {
+  try {
+    const news = await News.findById(req.params.id)
+      .populate('id_danh_muc', 'ten_danh_muc')
+      .populate('nguoi_dang', 'TenKH');
+
+    if (!news) {
+      return res.status(404).json({ message: 'Không tìm thấy tin tức' });
+    }
+
+    // Tăng lượt xem
+    news.luot_xem += 1;
+    await news.save();
+
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
 }; 

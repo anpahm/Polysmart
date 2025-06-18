@@ -6,6 +6,7 @@ export interface NewsItem {
   mo_ta: string;
   hinh: string;
   ngay: string;
+  nguoi_dang?: { TenKH: string };
   id_danh_muc?: { ten_danh_muc: string };
 }
 
@@ -17,7 +18,7 @@ export default function NewsCard({ item }: { item: NewsItem }) {
       <img
         src={imageUrl}
         alt={item.tieu_de}
-        className="w-full h-50 object-cover rounded-t-2xl"
+        className="w-full h-40 object-cover rounded-t-2xl"
       />
       <div className="flex-1 flex flex-col px-4 py-3">
         <h3 className="font-bold text-xl mb-2 line-clamp-2">{item.tieu_de}</h3>
@@ -27,6 +28,8 @@ export default function NewsCard({ item }: { item: NewsItem }) {
           </svg>
           {new Date(item.ngay).toLocaleDateString()}
         </div>
+        {/* <div className="text-gray-600 text-base line-clamp-2">Người đăng: {item.nguoi_dang?.TenKH}</div> <br /> */}
+
         <div className="text-gray-600 text-base line-clamp-2">{item.mo_ta}</div>
       </div>
     </div>

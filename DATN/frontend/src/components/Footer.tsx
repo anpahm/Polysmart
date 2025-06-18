@@ -47,7 +47,7 @@ const Footer = () => {
               />
             </div>
             <p className="text-sm mb-3">
-              Đại lý ủy quyền Apple chính thức tại Việt Nam
+              Đại lý ủy quyền Apple chính thức tại VN
             </p>
             <div className="flex items-center mb-2">
               <MapPin className="w-4 h-4 mr-2" />

@@ -34,6 +34,7 @@ const ProductDetailPage = () => {
   const [registerForm, setRegisterForm] = useState({ name: '', phone: '', email: '' });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState('');
+  const [showCartSuccess, setShowCartSuccess] = useState(false);
   const dispatch = useDispatch();
   const cart = useSelector((state: RootState) => state.cart.items);
   const [isClient, setIsClient] = useState(false);
@@ -495,9 +496,12 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
   ) : (
     // Nếu còn hàng, hiển thị nút mua hàng bình thường
     <>
-      <button className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
+      <button 
+        className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
         onClick={() => {
           if (!product || !selectedVariant) return;
+          
+          // Thêm sản phẩm chính vào giỏ hàng
           dispatch(addToCart({
             productId: product._id,
             variantId: selectedVariant._id,
@@ -506,12 +510,36 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
             image: getImageUrl(selectedVariant.hinh || product.hinh),
             colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
             selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
-            colorName: selectedVariant.ten_mau || selectedVariant.mau || '',
+            colorName: selectedVariant.mau || '',
             quantity: 1,
           }));
-          ;
+          
+          // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng
+          selectedAccessories.forEach(accessoryId => {
+            const accessory = accessories.find(acc => acc._id === accessoryId);
+            if (accessory) {
+              const accessoryVariant = accessory.variants?.[0];
+              dispatch(addToCart({
+                productId: accessory._id,
+                variantId: accessoryVariant?._id || accessory._id,
+                name: accessory.TenSP,
+                price: accessory.gia ?? accessoryVariant?.gia ?? 0,
+                image: getImageUrl(accessory.hinh),
+                colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
+                selectedColor: 0,
+                colorName: accessoryVariant?.mau || '',
+                quantity: 1,
+              }));
+            }
+          });
+          
+          // Hiển thị thông báo thành công
+          setShowCartSuccess(true);
+          setTimeout(() => setShowCartSuccess(false), 3000);
         }}
-      >MUA NGAY</button>
+      >
+        Mua {selectedAccessories.length + 1} sản phẩm
+      </button>
       <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
@@ -615,7 +643,48 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               <div className="text-2xl font-bold text-blue-700 mb-4">
                 {calculateTotal().toLocaleString()}₫
               </div>
-              <button className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition">
+              <button 
+                className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
+                onClick={() => {
+                  if (!product || !selectedVariant) return;
+                  
+                  // Thêm sản phẩm chính vào giỏ hàng
+                  dispatch(addToCart({
+                    productId: product._id,
+                    variantId: selectedVariant._id,
+                    name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+                    price: selectedVariant.gia,
+                    image: getImageUrl(selectedVariant.hinh || product.hinh),
+                    colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+                    selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+                    colorName: selectedVariant.mau || '',
+                    quantity: 1,
+                  }));
+
+                  // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng
+                  selectedAccessories.forEach(accessoryId => {
+                    const accessory = accessories.find(acc => acc._id === accessoryId);
+                    if (accessory) {
+                      const accessoryVariant = accessory.variants?.[0];
+                      dispatch(addToCart({
+                        productId: accessory._id,
+                        variantId: accessoryVariant?._id || accessory._id,
+                        name: accessory.TenSP,
+                        price: accessory.gia ?? accessoryVariant?.gia ?? 0,
+                        image: getImageUrl(accessory.hinh),
+                        colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
+                        selectedColor: 0,
+                        colorName: accessoryVariant?.mau || '',
+                        quantity: 1,
+                      }));
+                    }
+                  });
+                  
+                  // Hiển thị thông báo thành công
+                  setShowCartSuccess(true);
+                  setTimeout(() => setShowCartSuccess(false), 3000);
+                }}
+              >
                 Mua {selectedAccessories.length + 1} sản phẩm
               </button>
             </div>
@@ -803,6 +872,17 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
           Quay lại danh sách sản phẩm
         </button>
       </div>
+    </div>
+  </div>
+)}
+{/* Thông báo thêm vào giỏ hàng thành công */}
+{showCartSuccess && (
+  <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+    <div className="flex items-center gap-2">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+      <span>Đã thêm vào giỏ hàng thành công!</span>
     </div>
   </div>
 )}

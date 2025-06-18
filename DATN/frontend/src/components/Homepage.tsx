@@ -155,13 +155,8 @@ const HomePage = () => {
       try {
         const response = await fetch(getApiUrl('settings'));
         const settingsData = await response.json();
-        console.log('settingsData:', settingsData);
         const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
-        setSettings(settingObj);
-        
-        console.log('settingsData[0]:', settingObj);
-        console.log('Banner:', settingObj?.Banner);
-        
+        setSettings(settingObj);        
         if (settingObj && settingObj.Banner) {
           const bannerImages = settingObj.Banner.split('|');
           setBanners(bannerImages.map((img: string, index: number) => ({
@@ -195,72 +190,69 @@ const HomePage = () => {
 
         // Fetch iPhone products
         const IPHONE_CATEGORY_ID = '681d97db2a400db1737e6de3';
-        const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}&limit=10`));
+        const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}`));
         const iPhoneData = await iPhoneResponse.json();
         
         // Fetch iPad products
         const IPAD_CATEGORY_ID = '681d97db2a400db1737e6de4';
-        const iPadResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPAD_CATEGORY_ID}&limit=10`));
+        const iPadResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPAD_CATEGORY_ID}`));
         const iPadData = await iPadResponse.json();
 
         // Fetch Mac products
         const MAC_CATEGORY_ID = '681d97db2a400db1737e6de5';
-        const MacResponse = await fetch(getApiUrl(`products?id_danhmuc=${MAC_CATEGORY_ID}&limit=12`));
+        const MacResponse = await fetch(getApiUrl(`products?id_danhmuc=${MAC_CATEGORY_ID}`));
         const MacData = await MacResponse.json();
         
         // Fetch Watch products
         const WATCH_CATEGORY_ID = '681d97db2a400db1737e6de6';
-        const WatchResponse = await fetch(getApiUrl(`products?id_danhmuc=${WATCH_CATEGORY_ID}&limit=10`));
+        const WatchResponse = await fetch(getApiUrl(`products?id_danhmuc=${WATCH_CATEGORY_ID}`));
         const WatchData = await WatchResponse.json();
 
         // Fetch Phu kien products
         const PHUKIEN_CATEGORY_ID = '681d97db2a400db1737e6de7';
-        const PhuKienResponse = await fetch(getApiUrl(`products?id_danhmuc=${PHUKIEN_CATEGORY_ID}&limit=10`));
+        const PhuKienResponse = await fetch(getApiUrl(`products?id_danhmuc=${PHUKIEN_CATEGORY_ID}`));
         const PhuKienData = await PhuKienResponse.json();
 
         // Fetch Am thanh products
         const AMTHANH_CATEGORY_ID = '68219963d5680e4c448c7891';
-        const AmThanhResponse = await fetch(getApiUrl(`products?id_danhmuc=${AMTHANH_CATEGORY_ID}&limit=10`));
+        const AmThanhResponse = await fetch(getApiUrl(`products?id_danhmuc=${AMTHANH_CATEGORY_ID}`));
         const AmThanhData = await AmThanhResponse.json();   
 
         // Fetch Camera products
         const CAMERA_CATEGORY_ID = '68219980d5680e4c448c7892';
-        const CameraResponse = await fetch(getApiUrl(`products?id_danhmuc=${CAMERA_CATEGORY_ID}&limit=10`));
+        const CameraResponse = await fetch(getApiUrl(`products?id_danhmuc=${CAMERA_CATEGORY_ID}`));
         const CameraData = await CameraResponse.json();
 
         // Fetch categories
         const categoriesResponse = await fetch(getApiUrl('categories'));
         const categoriesData = await categoriesResponse.json();
 
-        console.log('iPhone Products Data:', iPhoneData);
-
         setData({
           flashSaleProducts: flashSaleProducts,
           iPhoneProducts: Array.isArray(iPhoneData) ? iPhoneData.filter(product => 
             product.id_danhmuc === IPHONE_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           iPadProducts: Array.isArray(iPadData) ? iPadData.filter(product => 
             product.id_danhmuc === IPAD_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           MacProducts: Array.isArray(MacData) ? MacData.filter(product => 
             product.id_danhmuc === MAC_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           WatchProducts: Array.isArray(WatchData) ? WatchData.filter(product => 
             product.id_danhmuc === WATCH_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           PhuKienProducts: Array.isArray(PhuKienData) ? PhuKienData.filter(product => 
             product.id_danhmuc === PHUKIEN_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           AmThanhProducts: Array.isArray(AmThanhData) ? AmThanhData.filter(product => 
             product.id_danhmuc === AMTHANH_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           CameraProducts: Array.isArray(CameraData) ? CameraData.filter(product => 
             product.id_danhmuc === CAMERA_CATEGORY_ID
-          ).slice(0, 10) : [],
+          ).slice(0, 40) : [],
           categories: categoriesData || []
         });
       } catch (error) {
-        console.error('Error fetching data:', error);
         setData({
           flashSaleProducts: [],
           iPhoneProducts: [],
@@ -989,8 +981,8 @@ const HomePage = () => {
             <Swiper
               modules={[Navigation]}
               navigation={{
-                nextEl: '.iphone-next',
-                prevEl: '.iphone-prev',
+                nextEl: '.amthanh-next',
+                prevEl: '.amthanh-prev',
               }}
               spaceBetween={20}
               slidesPerView={1}
@@ -1080,12 +1072,12 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
-            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="amthanh-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             </div>
-            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="amthanh-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -1095,7 +1087,7 @@ const HomePage = () => {
       </section>
 
           {/* Phu kien Section */}
-          <section className="section bg-white">
+      <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">Phụ kiện</h2>
@@ -1118,8 +1110,8 @@ const HomePage = () => {
             <Swiper
               modules={[Navigation]}
               navigation={{
-                nextEl: '.iphone-next',
-                prevEl: '.iphone-prev',
+                nextEl: '.phukien-next',
+                prevEl: '.phukien-prev',
               }}
               spaceBetween={20}
               slidesPerView={1}
@@ -1209,12 +1201,12 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
-            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="phukien-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             </div>
-            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="phukien-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -1247,8 +1239,8 @@ const HomePage = () => {
             <Swiper
               modules={[Navigation]}
               navigation={{
-                nextEl: '.iphone-next',
-                prevEl: '.iphone-prev',
+                nextEl: '.camera-next',
+                prevEl: '.camera-prev',
               }}
               spaceBetween={20}
               slidesPerView={1}
@@ -1338,12 +1330,12 @@ const HomePage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
-            <div className="iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="camera-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             </div>
-            <div className="iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="camera-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
                     <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>

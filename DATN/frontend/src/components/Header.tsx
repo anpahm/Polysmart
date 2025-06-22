@@ -81,7 +81,6 @@ const Header = () => {
       try {
         const response = await fetch(getApiUrl('settings'));
         const settingsData = await response.json();
-        console.log('Settings data received:', settingsData);
         const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
         setSettings(settingObj);
       } catch (error) {

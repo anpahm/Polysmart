@@ -37,15 +37,10 @@ exports.createVoucher = async (req, res) => {
 
 // Cập nhật voucher
 exports.updateVoucher = async (req, res) => {
-  const { id } = req.params;
-  const { used } = req.body;
   try {
-    const update = { used };
-    const voucher = await Voucher.findByIdAndUpdate(
-      id,
-      update,
-      { new: true }
-    );
+    const { id } = req.params;
+    const voucher = await Voucher.findByIdAndUpdate(id, req.body, { new: true });
+    if (!voucher) return res.status(404).json({ success: false, message: 'Voucher not found' });
     res.json({ success: true, data: voucher });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

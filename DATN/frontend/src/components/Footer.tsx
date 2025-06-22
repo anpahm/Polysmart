@@ -16,7 +16,6 @@ const Footer = () => {
       try {
         const response = await fetch(getApiUrl('/settings'));
         const settingsData = await response.json();
-        console.log('Settings data received:', settingsData);
         const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
         setSettings(settingObj);
       } catch (error) {
@@ -26,13 +25,7 @@ const Footer = () => {
 
     fetchSettings();
   }, []);
-
-  console.log('settings:', settings);
-  console.log('settings.Logo:', settings?.Logo);
-
   const logoUrl = settings?.Logo ? getImageUrl(settings.Logo) : '/images/logo.png';
-  console.log('logoUrl:', logoUrl);
-
   return (
     <footer className="bg-gray-900 text-gray-300 pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4">

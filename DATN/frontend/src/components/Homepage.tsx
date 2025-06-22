@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Category, Product, ProductVariant, Banner, HomePageData } from './cautrucdata';
@@ -13,6 +13,7 @@ import { Navigation, Autoplay } from 'swiper/modules';
 import { Fullscreen } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import LuckyWheel from './LuckyWheel';
+import GiftVoucher from './GiftVoucher';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -119,18 +120,83 @@ const HomePage = () => {
   const productsPerSlide = 4;
   const totalSlides = Math.ceil(data.iPhoneProducts.length / productsPerSlide);
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [showFlashSale, setShowFlashSale] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    try {
-      // setLoading(true); // Optional: you might not want a full loader on refresh
+  // Tính thời gian kết thúc flash sale và kiểm tra trạng thái hiển thị
+  useEffect(() => {
+    let endDate: Date;
 
-      // Fetch flash sale products
-      const flashSaleResponse = await fetch(getApiUrl('flashsales'));
-      const flashSaleData = await flashSaleResponse.json();
-      const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+    if (data.flashSaleProducts && data.flashSaleProducts.length > 0) {
+      // Lấy Flash Sale đầu tiên (đã được backend filter là đang hoạt động)
+      endDate = new Date(data.flashSaleProducts[0].thoi_gian_ket_thuc);
+      setShowFlashSale(true);
+    } else {
+      endDate = new Date();
+      setShowFlashSale(false);
+    }
 
-      // Fetch other products only on initial load if needed, to optimize
-      if (data.iPhoneProducts.length === 0) {
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = endDate.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setShowFlashSale(false);
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setCountdown({ days, hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [data.flashSaleProducts]);
+
+  // Fetch settings and create banner objects
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(getApiUrl('settings'));
+        const settingsData = await response.json();
+        const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+        setSettings(settingObj);        
+        if (settingObj && settingObj.Banner) {
+          const bannerImages = settingObj.Banner.split('|');
+          setBanners(bannerImages.map((img: string, index: number) => ({
+            id: index + 1,
+            image: getImageUrl(img),
+            title: '',
+            subtitle: '',
+            link: '/mac/macbook-air',
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
+    fetchSettings();
+  }, []);
+
+  const [banners, setBanners] = useState<Banner[]>([]);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch active flash sale products từ backend mới
+        const flashSaleResponse = await fetch(getApiUrl('flashsales/active'));
+        const flashSaleData = await flashSaleResponse.json();
+        const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+
+        // Fetch iPhone products
         const IPHONE_CATEGORY_ID = '681d97db2a400db1737e6de3';
         const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}`));
         const iPhoneData = await iPhoneResponse.json();
@@ -194,90 +260,47 @@ const HomePage = () => {
           ).slice(0, 40) : [],
           categories: categoriesData || []
         });
-      } else {
-        // Only update flash sale products on subsequent fetches
-        setData(prevData => ({ ...prevData, flashSaleProducts }));
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setData(prevData => ({ ...prevData, flashSaleProducts: [] }));
-    } finally {
-      // setLoading(false);
-    }
-  }, [data.iPhoneProducts]);
-
-  // Tính thời gian kết thúc flash sale
-  useEffect(() => {
-    if (!data.flashSaleProducts || data.flashSaleProducts.length === 0) {
-      setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      return;
-    }
-
-    const endDate = new Date(data.flashSaleProducts[0].thoi_gian_ket_thuc);
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = endDate.getTime() - now.getTime();
-      
-      if (diff <= 0) {
-        clearInterval(interval);
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        fetchData(); // Refetch data when countdown ends
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-      setCountdown({ days, hours, minutes, seconds });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [data.flashSaleProducts, fetchData]);
-
-  // Fetch settings and create banner objects
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(getApiUrl('settings'));
-        const settingsData = await response.json();
-        const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
-        setSettings(settingObj);        
-        if (settingObj && settingObj.Banner) {
-          const bannerImages = settingObj.Banner.split('|');
-          setBanners(bannerImages.map((img: string, index: number) => ({
-            id: index + 1,
-            image: getImageUrl(img),
-            title: '',
-            subtitle: '',
-            link: '/mac/macbook-air',
-          })));
-        }
       } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-    
-    fetchSettings();
-  }, []);
-
-  const [banners, setBanners] = useState<Banner[]>([]);
-
-  // Fetch data from API on initial load
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        await fetchData();
-      } catch (error) {
-        console.error("Error on initial fetch:", error);
+        setData({
+          flashSaleProducts: [],
+          iPhoneProducts: [],
+          iPadProducts: [],
+          MacProducts: [],
+          WatchProducts: [],
+          PhuKienProducts: [],
+          AmThanhProducts: [],
+          CameraProducts: [],
+          categories: []
+        });
       } finally {
         setLoading(false);
       }
     };
-    fetchInitialData();
-  }, [fetchData]);
+
+    fetchData();
+  }, []);
+
+  // Auto refresh Flash Sale data every minute to check for expired events
+  useEffect(() => {
+    const refreshFlashSaleData = async () => {
+      try {
+        const flashSaleResponse = await fetch(getApiUrl('flashsales/active'));
+        const flashSaleData = await flashSaleResponse.json();
+        const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+        
+        setData(prevData => ({
+          ...prevData,
+          flashSaleProducts: flashSaleProducts
+        }));
+      } catch (error) {
+        console.error('Error refreshing flash sale data:', error);
+      }
+    };
+
+    // Refresh every minute
+    const interval = setInterval(refreshFlashSaleData, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto chuyển slide sau 5 giây
   useEffect(() => {
@@ -430,147 +453,151 @@ const HomePage = () => {
         </div>
       </div>
       {/* Flash Sale Section */}
-      {data.flashSaleProducts && data.flashSaleProducts.length > 0 && (
-      <section className="py-0 pt-10 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-          <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
-            {/* Background pattern - Thêm họa tiết nền */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32 animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32 animate-pulse"></div>
+      {showFlashSale && data.flashSaleProducts.length > 0 && (
+        <section className="py-0 pt-10 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
+            <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
+              {/* Background pattern - Thêm họa tiết nền */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32 animate-pulse"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32 animate-pulse"></div>
 
-            {/* Header with timer - Phần tiêu đề và đếm ngược */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-              <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                <div className="flex items-center">
-                  <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
-                  <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wider mx-3">FLASH SALE</h2>
-                  <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
+              {/* Header with timer - Phần tiêu đề và đếm ngược */}
+              <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+                <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                  <div className="flex items-center">
+                    <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
+                    <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wider mx-3">FLASH SALE</h2>
+                    <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
+                  </div>
+                  <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2 flex flex-col items-center">
+                    <span className="text-white text-sm mb-1">Kết thúc sau</span>
+                    <span className="text-white text-lg font-bold tracking-widest">
+                      {countdown.days}d : {countdown.hours}h : {countdown.minutes}m : {countdown.seconds}s
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2 flex flex-col items-center">
-                  <span className="text-white text-sm mb-1">Kết thúc sau</span>
-                  <span className="text-white text-lg font-bold tracking-widest">
-                    {countdown.days}d : {countdown.hours}h : {countdown.minutes}m : {countdown.seconds}s
-                  </span>
-                </div>
+                <Link href="/flash-sale" className="bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300">
+                  Xem tất cả
+                </Link>
               </div>
-              <Link href="/flash-sale" className="bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300">
-                Xem tất cả
-              </Link>
-            </div>
 
-            {/* Products grid - Lưới sản phẩm */}
-            <Swiper
-              modules={[Navigation, Autoplay]}
-              navigation={{
-                nextEl: '.flash-sale-next',
-                prevEl: '.flash-sale-prev',
-              }}
-              spaceBetween={10}
-              slidesPerView={1}
-              slidesPerGroup={1}
-              loop={true}
-              speed={1500}
-              cssMode={false}
-              autoplay={{
-                delay: 10000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  slidesPerGroup: 1,
-                  spaceBetween: 10,
-                },
-                480: {
-                  slidesPerView: 2,
-                  slidesPerGroup: 2,
-                  spaceBetween: 15,
-                },
-                768: {
-                  slidesPerView: 3,
-                  slidesPerGroup: 3,
-                  spaceBetween: 20,
-                },
-                1024: {
-                  slidesPerView: 4,
-                  slidesPerGroup: 4,
-                  spaceBetween: 20,
-                },
-                1280: {
-                  slidesPerView: 5,
-                  slidesPerGroup: 5,
-                  spaceBetween: 20,
-                },
-              }}
-              className="mySwiper"
-            >
-              {data.flashSaleProducts.flatMap(fs => fs.flashSaleVariants).map((variant) => {
-                return (
-                  <SwiperSlide key={variant.id_variant}>
-                    <Link 
-                      href={`/product/${variant?.product_id || ''}`}
-                      className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
-                    >
-                      {/* Ảnh sản phẩm */}
-                      <div className="relative pt-[100%] overflow-hidden">
-                        <Image
-                          src={getImageUrl(variant?.product_image || '')}
-                          alt={variant?.product_name || 'Sản phẩm Flash Sale'}
-                          fill
-                          className="object-contain p-4"
-                        />
-                        {/* Badge giá flash sale */}
-                        <div className="absolute top-2 left-2 flex flex-col items-center">
-                          <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
-                            Flash Sale
-                          </span>
-                        </div>
-                        {/* Số lượng còn lại */}
-                        <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                          Còn {variant.so_luong - variant.da_ban} sản phẩm
-                        </div>
-                      </div>
-                      
-                      {/* Thông tin sản phẩm */}
-                      <div className="p-5">
-                        <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
-                          {variant?.product_name} {variant?.variant_details?.split(' - ')[0]}
-                        </h3>
-                        <div className="space-y-2">
-                          <div className="flex flex-col items-start space-y-1">
-                            <span className="text-lg font-bold text-red-600">
-                              {formatCurrency(variant.gia_flash_sale)}
-                            </span>
-                            {/* Giá gốc được lấy từ variant_details, cần parse hoặc có thể truyền thêm giá gốc từ backend */}
-                            {/* Tạm thời hiển thị giá gốc từ variant_details nếu giá flash sale khác giá gốc */}
-                            {variant.variant_details && variant.gia_flash_sale !== parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
-                                <span className="text-sm text-gray-400 line-through">
-                                  {formatCurrency(parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
-                                </span>
-                            )}
+              {/* Products grid - Lưới sản phẩm */}
+              <Swiper
+                modules={[Navigation, Autoplay]}
+                navigation={{
+                  nextEl: '.flash-sale-next',
+                  prevEl: '.flash-sale-prev',
+                }}
+                spaceBetween={10}
+                slidesPerView={1}
+                slidesPerGroup={1}
+                loop={true}
+                speed={1500}
+                cssMode={false}
+                autoplay={{
+                  delay: 10000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1,
+                    slidesPerGroup: 1,
+                    spaceBetween: 10,
+                  },
+                  480: {
+                    slidesPerView: 2,
+                    slidesPerGroup: 2,
+                    spaceBetween: 15,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    slidesPerGroup: 3,
+                    spaceBetween: 20,
+                  },
+                  1024: {
+                    slidesPerView: 4,
+                    slidesPerGroup: 4,
+                    spaceBetween: 20,
+                  },
+                  1280: {
+                    slidesPerView: 5,
+                    slidesPerGroup: 5,
+                    spaceBetween: 20,
+                  },
+                }}
+                className="mySwiper"
+              >
+                {data.flashSaleProducts
+                  .flatMap((flashSale) => flashSale.flashSaleVariants)
+                  .map((variant) => {
+                    if (!variant) return null; // Bỏ qua nếu không có biến thể
+
+                    return (
+                      <SwiperSlide key={variant.id_variant}>
+                        <Link
+                          href={`/product/${variant?.product_id || ''}`}
+                          className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                        >
+                          {/* Ảnh sản phẩm */}
+                          <div className="relative pt-[100%] overflow-hidden">
+                            <Image
+                              src={getImageUrl(variant?.product_image || '')}
+                              alt={variant?.product_name || 'Sản phẩm Flash Sale'}
+                              fill
+                              className="object-contain p-4"
+                            />
+                            {/* Badge giá flash sale */}
+                            <div className="absolute top-2 left-2 flex flex-col items-center">
+                              <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
+                                Flash Sale
+                              </span>
+                            </div>
+                            {/* Số lượng còn lại */}
+                            <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                              Còn {variant.so_luong - variant.da_ban} sản phẩm
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                );
-              })}
-            </Swiper>
-            {/* Custom Navigation Buttons for Flash Sale Swiper */}
-            <div className="flash-sale-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-            <div className="flash-sale-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+
+                          {/* Thông tin sản phẩm */}
+                          <div className="p-5">
+                            <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
+                              {variant?.product_name} {variant?.variant_details?.split(' - ')[0]}
+                            </h3>
+                            <div className="space-y-2">
+                              <div className="flex flex-col items-start space-y-1">
+                                <span className="text-lg font-bold text-red-600">
+                                  {formatCurrency(variant.gia_flash_sale)}
+                                </span>
+                                {/* Giá gốc được lấy từ variant_details, cần parse hoặc có thể truyền thêm giá gốc từ backend */}
+                                {/* Tạm thời hiển thị giá gốc từ variant_details nếu giá flash sale khác giá gốc */}
+                                {variant.variant_details && variant.gia_flash_sale !== parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
+                                    <span className="text-sm text-gray-400 line-through">
+                                      {formatCurrency(parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
+                                    </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      </SwiperSlide>
+                    );
+                  })}
+              </Swiper>
+              {/* Custom Navigation Buttons for Flash Sale Swiper */}
+              <div className="flash-sale-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                      <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+              </div>
+              <div className="flash-sale-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                      <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
       )}
 
       {/* iPhone Section */}
@@ -1510,6 +1537,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      <GiftVoucher />
     </div>
   );
 };

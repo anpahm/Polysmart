@@ -3,7 +3,7 @@ const router = express.Router();
 const flashsalesController = require('../controllers/flashSaleController');
 
 router.get('/', flashsalesController.getAllFlashSales);
-router.get('/all', flashsalesController.getAllFlashSalesForAdmin);
+router.get('/active', flashsalesController.getActiveFlashSales);
 router.post('/', flashsalesController.createFlashSale);
 router.get('/:id', flashsalesController.getFlashSaleById);
 router.put('/:id', flashsalesController.updateFlashSale);

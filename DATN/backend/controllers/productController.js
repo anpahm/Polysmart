@@ -141,4 +141,51 @@ const editPro = async (req, res) => {
   }
 };
 
-module.exports = { getAllProducts, getProductById, addPro, uploadImage, deletePro, editPro };
+// Tìm kiếm sản phẩm theo từ khóa (tên hoặc mô tả)
+const searchProducts = async (req, res) => {
+  try {
+    const { keyword } = req.query;
+    if (!keyword || !keyword.trim()) {
+      return res.status(400).json({ message: "Thiếu từ khóa tìm kiếm" });
+    }
+
+    // Tách từ khóa thành các từ riêng lẻ và tạo regex cho mỗi từ
+    const keywords = keyword.split(' ').filter(k => k);
+    const regexes = keywords.map(k => new RegExp(k.replace(/([.*+?^${}()|[\\]\\\\])/g, '\\$1'), "i"));
+
+    // Tạo điều kiện tìm kiếm: Yêu cầu TẤT CẢ các từ khóa phải xuất hiện trong TenSP
+    const searchConditions = {
+      $and: regexes.map(regex => ({ TenSP: regex }))
+    };
+    
+    const productsList = await products.find(searchConditions);
+
+    if (!productsList.length) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm phù hợp" });
+    }
+    // Lấy variants và categories tương tự getAllProducts
+    const productIds = productsList.map((product) => product._id.toString());
+    const categoryIds = productsList.map((product) => product.id_danhmuc.toString());
+    const variantAll = await variants.find({ id_san_pham: { $in: productIds } });
+    const categoryAll = await categories.find(
+      { _id: { $in: categoryIds } },
+      "ten_danh_muc banner_dm"
+    );
+    const productsWithCategories = productsList.map((product) => {
+      const productObj = product.toObject();
+      productObj.categories = categoryAll
+        .filter((category) => category._id.toString() === product.id_danhmuc.toString())
+        .map((category) => category.toObject());
+      productObj.variants = variantAll
+        .filter((variant) => variant.id_san_pham === product._id.toString())
+        .map((variant) => variant.toObject());
+      return productObj;
+    });
+    res.status(200).json(productsWithCategories);
+  } catch (error) {
+    console.error("Lỗi khi tìm kiếm sản phẩm:", error);
+    res.status(500).json({ message: "Lỗi máy chủ: " + error.message });
+  }
+};
+
+module.exports = { getAllProducts, getProductById, addPro, uploadImage, deletePro, editPro, searchProducts };

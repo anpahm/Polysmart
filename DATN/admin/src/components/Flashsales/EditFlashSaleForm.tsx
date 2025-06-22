@@ -44,10 +44,33 @@ interface EditFlashSaleFormProps {
   onSuccess: () => void;
 }
 
+const formatDateTimeForInput = (isoString: string) => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    // Pad numbers to ensure two digits
+    const pad = (num: number) => num.toString().padStart(2, '0');
+    
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    
+    // Check if date is valid before returning
+    if (isNaN(year)) return '';
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch (error) {
+    console.error("Invalid date string:", isoString, error);
+    return '';
+  }
+};
+
 const EditFlashSaleForm: React.FC<EditFlashSaleFormProps> = ({ flashSale, onClose, onSuccess }) => {
   const [tenSuKien, setTenSuKien] = useState<string>(flashSale.ten_su_kien);
-  const [thoiGianBatDau, setThoiGianBatDau] = useState<string>(flashSale.thoi_gian_bat_dau);
-  const [thoiGianKetThuc, setThoiGianKetThuc] = useState<string>(flashSale.thoi_gian_ket_thuc);
+  const [thoiGianBatDau, setThoiGianBatDau] = useState<string>(formatDateTimeForInput(flashSale.thoi_gian_bat_dau));
+  const [thoiGianKetThuc, setThoiGianKetThuc] = useState<string>(formatDateTimeForInput(flashSale.thoi_gian_ket_thuc));
   const [anHien, setAnHien] = useState<boolean>(flashSale.an_hien);
   const [selectedVariants, setSelectedVariants] = useState<FlashSaleVariantData[]>(flashSale.flashSaleVariants || []);
   const [products, setProducts] = useState<Product[]>([]);

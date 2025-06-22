@@ -37,43 +37,22 @@ const FlashSaleManagement = () => {
     const endTime = new Date(flashSale.thoi_gian_ket_thuc);
 
     if (!flashSale.an_hien) {
-      return {
-        text: 'Ẩn',
-        className: 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200',
-      };
-    }
-
-    if (now > endTime) {
-      return {
-        text: 'Đã kết thúc',
-        className: 'bg-red-200 text-red-800 dark:bg-red-500 dark:text-white',
-      };
-    }
-
-    if (now >= startTime && now <= endTime) {
-      return {
-        text: 'Đang diễn ra',
-        className: 'bg-green-200 text-green-800 dark:bg-green-500 dark:text-white',
-      };
+      return { text: 'Ẩn', className: 'bg-gray-200 text-gray-800' };
     }
 
     if (now < startTime) {
-      return {
-        text: 'Sắp diễn ra',
-        className: 'bg-blue-200 text-blue-800 dark:bg-blue-500 dark:text-white',
-      };
+      return { text: 'Sắp diễn ra', className: 'bg-yellow-200 text-yellow-800' };
+    } else if (now >= startTime && now <= endTime) {
+      return { text: 'Đang chạy', className: 'bg-green-200 text-green-800' };
+    } else {
+      return { text: 'Kết thúc', className: 'bg-red-200 text-red-800' };
     }
-
-    return {
-      text: 'Không xác định',
-      className: 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200',
-    };
   };
 
   const fetchFlashSales = async () => {
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl('flashsales/all'));
+      const response = await fetch(getApiUrl('flashsales'));
       const data = await response.json();
       setFlashSales(Array.isArray(data.data) ? data.data : data);
     } catch (error) {

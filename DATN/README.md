@@ -1,3 +1,59 @@
+# Polysmart - Flash Sale Auto Hide Feature
+
+## Tính năng Flash Sale tự động ẩn khi hết thời gian
+
+### Các thay đổi đã thực hiện:
+
+#### Backend Changes:
+
+1. **Thêm endpoint mới trong `flashSaleController.js`:**
+   - `getActiveFlashSales()`: Chỉ trả về các Flash Sale đang hoạt động
+   - Kiểm tra điều kiện: `an_hien: true`, `thoi_gian_bat_dau <= now`, `thoi_gian_ket_thuc >= now`
+
+2. **Cập nhật routes trong `flashsales.js`:**
+   - Thêm route: `GET /flashsales/active` để lấy Flash Sale đang hoạt động
+
+#### Frontend Changes:
+
+1. **Cập nhật `Homepage.tsx`:**
+   - Thêm state `showFlashSale` để kiểm soát việc hiển thị Flash Sale section
+   - Sử dụng endpoint `/flashsales/active` thay vì `/flashsales`
+   - Thêm logic countdown timer tự động ẩn Flash Sale khi hết thời gian
+   - Thêm auto-refresh mỗi phút để kiểm tra Flash Sale mới/hết hạn
+   - Điều kiện hiển thị: `showFlashSale && data.flashSaleProducts.length > 0`
+
+### Cách hoạt động:
+
+1. **Khi trang được load:**
+   - Frontend gọi API `/flashsales/active` để lấy Flash Sale đang hoạt động
+   - Backend filter theo thời gian hiện tại và trạng thái `an_hien`
+   - Nếu có Flash Sale đang hoạt động, hiển thị section Flash Sale
+
+2. **Countdown timer:**
+   - Tính thời gian còn lại của Flash Sale
+   - Khi hết thời gian, tự động ẩn Flash Sale section
+   - Cập nhật mỗi giây
+
+3. **Auto-refresh:**
+   - Mỗi phút tự động gọi lại API để kiểm tra Flash Sale mới
+   - Đảm bảo tính năng hoạt động chính xác khi có Flash Sale mới hoặc hết hạn
+
+### API Endpoints:
+
+- `GET /flashsales` - Lấy tất cả Flash Sale (cho admin)
+- `GET /flashsales/active` - Lấy chỉ Flash Sale đang hoạt động (cho frontend)
+- `GET /flashsales/:id` - Lấy Flash Sale theo ID
+- `POST /flashsales` - Tạo Flash Sale mới
+- `PUT /flashsales/:id` - Cập nhật Flash Sale
+- `DELETE /flashsales/:id` - Xóa Flash Sale
+
+### Lợi ích:
+
+1. **Tự động hóa:** Không cần can thiệp thủ công để ẩn Flash Sale
+2. **Hiệu suất:** Chỉ load Flash Sale đang hoạt động
+3. **Trải nghiệm người dùng:** Flash Sale biến mất tự nhiên khi hết thời gian
+4. **Độ tin cậy:** Auto-refresh đảm bảo dữ liệu luôn cập nhật
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

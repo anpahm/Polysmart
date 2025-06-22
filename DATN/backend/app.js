@@ -22,7 +22,9 @@ const flashsalesRouter = require('./routes/flashsales');
 const newsCategoryRouter = require("./routes/newsCategories");
 const newsRouter = require("./routes/news");
 const voucherRouter = require('./routes/vouchers');
+const giftVoucherRouter = require('./routes/giftVouchers');
 const ordersRouter = require('./routes/orders');
+const chatAiRouter = require('./routes/chat-ai');
 var app = express();
 
 // view engine setup
@@ -30,8 +32,8 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(cookieParser());
 
 // Add request logging middleware
@@ -78,7 +80,9 @@ app.use('/api/flashsales', flashsalesRouter);
 app.use("/api/newscategory", newsCategoryRouter);
 app.use("/api/news", newsRouter);
 app.use('/api/vouchers', voucherRouter);
+app.use('/api/gift-vouchers', giftVoucherRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api', chatAiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

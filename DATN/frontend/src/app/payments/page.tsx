@@ -1,15 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
+import { getApiUrl } from "@/config/api";
 
 // Create a client-only component for the cart items
-const CartItems = dynamic(() => Promise.resolve(({ cart, formatVND }: { cart: any[], formatVND: (num: number) => string }) => (
+const CartItems = dynamic(() => Promise.resolve(({ items, formatVND }: { items: any[], formatVND: (num: number) => string }) => (
   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thin">
-    {cart.map((item, idx) => (
-      <div key={item.productId + "-" + item.variantId} className="flex items-center py-2">
+    {items.map((item) => (
+      <div key={item.variantId} className="flex items-center py-2">
         <div className="relative mr-3">
           <img src={item.image} alt={item.name} className="w-16 h-16 object-contain" />
           <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-sm font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -19,21 +20,25 @@ const CartItems = dynamic(() => Promise.resolve(({ cart, formatVND }: { cart: an
         <div className="flex-1">
           <div className="font-semibold text-gray-800 text-sm line-clamp-2">{item.name}</div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            {item.colorName && !item.colorName.startsWith('#') ? (
-              <span>Màu: {item.colorName}</span>
-            ) : (
-              <span>Màu đã chọn</span>
-            )}
-            {item.colors && item.selectedColor !== undefined && item.colors[item.selectedColor] && (
-              <span
-                className="w-5 h-5 rounded-full ring-2 ring-blue-500 ring-offset-2"
-                style={{ background: item.colors[item.selectedColor] }}
-              />
-            )}
+             {item.colorName && (
+              <div className="flex items-center gap-2">
+                <span className="font-normal">Màu:</span>
+                <span
+                  className="w-4 h-4 rounded-full border"
+                  style={{ backgroundColor: item.colorName }}
+                  title={item.colorName}
+                />
+              </div>
+             )}
           </div>
         </div>
-        <div className="text-right text-blue-600 font-semibold text-base">
-          {formatVND(item.price * item.quantity)}
+        <div className="text-right text-base">
+           <div className="font-semibold text-blue-600">{formatVND(item.lineTotal)}</div>
+           {item.hasFlashSale && (
+             <div className="text-gray-500 line-through text-sm">
+               {formatVND(item.originalItemPrice * item.quantity)}
+             </div>
+           )}
         </div>
       </div>
     ))}
@@ -66,6 +71,8 @@ export default function PaymentsPage() {
   const cart = useSelector((state: RootState) => state.cart.items);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [activeFlashSales, setActiveFlashSales] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -73,17 +80,37 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     setMounted(true);
+    setLoading(true);
 
-    const fetchProvinces = async () => {
+    const fetchAllData = async () => {
       try {
-        const response = await fetch('https://provinces.open-api.vn/api/?depth=2');
-        const data = await response.json();
-        setProvinces(data);
+        const [provincesRes, flashSalesRes] = await Promise.all([
+          fetch('https://provinces.open-api.vn/api/?depth=2'),
+          fetch(getApiUrl('flashsales/active'))
+        ]);
+        
+        const provincesData = await provincesRes.json();
+        setProvinces(provincesData);
+
+        const flashSalesData = await flashSalesRes.json();
+        if (flashSalesData.data) {
+          const allFlashSaleVariants = flashSalesData.data.flatMap((sale: any) =>
+            sale.flashSaleVariants.map((variant: any) => ({
+              ...variant,
+              id_flash_sale: sale._id,
+              ten_su_kien: sale.ten_su_kien
+            }))
+          );
+          setActiveFlashSales(allFlashSaleVariants);
+        }
       } catch (error) {
-        console.error("Error fetching provinces:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProvinces();
+    
+    fetchAllData();
   }, []);
 
   useEffect(() => {
@@ -111,7 +138,55 @@ export default function PaymentsPage() {
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
-  const totalAmount = mounted ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0) : 0;
+  const flashSaleMap = useMemo(() => {
+    const map = new Map<string, { price: number; available: number }>();
+    if (activeFlashSales.length > 0) {
+      activeFlashSales.forEach(variant => {
+        map.set(variant.id_variant, {
+          price: variant.gia_flash_sale,
+          available: variant.so_luong - variant.da_ban,
+        });
+      });
+    }
+    return map;
+  }, [activeFlashSales]);
+
+  const cartDetails = useMemo(() => {
+    const itemsWithDetails = cart.map(item => {
+      const flashSaleInfo = flashSaleMap.get(item.variantId);
+      const originalPrice = item.originPrice || item.price;
+      let lineTotal = originalPrice * item.quantity;
+      let hasFlashSale = false;
+
+      if (flashSaleInfo && flashSaleInfo.available > 0) {
+        const qtyWithDiscount = Math.min(item.quantity, flashSaleInfo.available);
+        const qtyAtRegularPrice = item.quantity - qtyWithDiscount;
+        
+        if (qtyWithDiscount > 0) {
+           lineTotal = (qtyWithDiscount * flashSaleInfo.price) + (qtyAtRegularPrice * originalPrice);
+           hasFlashSale = true;
+        }
+      }
+      
+      return {
+        ...item,
+        lineTotal,
+        hasFlashSale,
+        originalItemPrice: originalPrice,
+      };
+    });
+
+    const total = itemsWithDetails.reduce((sum, item) => sum + item.lineTotal, 0);
+    return { items: itemsWithDetails, total };
+  }, [cart, flashSaleMap]);
+
+  if (loading || !mounted) {
+     return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500 text-lg">Đang tải trang thanh toán...</p>
+      </div>
+     )
+  }
 
   const handlePlaceOrder = () => {
     // Validate required fields
@@ -123,8 +198,8 @@ export default function PaymentsPage() {
     // Create order data
     const orderData = {
       customerInfo,
-      items: cart,
-      totalAmount,
+      items: cartDetails.items,
+      totalAmount: cartDetails.total,
       paymentMethod,
     };
 
@@ -260,38 +335,29 @@ export default function PaymentsPage() {
         </div>
 
         {/* Right Column - Order Summary */}
-        <div className="w-2/5 bg-gray-50 p-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            Đơn hàng {mounted && `(${cart.length} sản phẩm)`}
-          </h2>
-          {mounted && <CartItems cart={cart} formatVND={formatVND} />}
+        <div className="w-2/5 bg-[#F8F9FA] p-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Đơn hàng ({cartDetails.items.length} sản phẩm)</h2>
 
-          <hr className="my-6" />
+          <CartItems items={cartDetails.items} formatVND={formatVND} />
+
+          <div className="border-t my-6"></div>
 
           {/* Discount Code */}
           <div className="flex mb-6">
-            <input type="text" placeholder="Nhập mã giảm giá" className="flex-1 p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <button className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-r-lg hover:bg-gray-400">Áp dụng</button>
+            <input type="text" placeholder="Nhập mã giảm giá" className="w-full p-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button className="px-6 bg-gray-300 text-gray-700 font-semibold rounded-r-lg hover:bg-gray-400">Áp dụng</button>
           </div>
 
-          {/* Totals */}
-          {mounted && <OrderTotals totalAmount={totalAmount} formatVND={formatVND} />}
+          <OrderTotals totalAmount={cartDetails.total} formatVND={formatVND} />
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => router.push('/cart')}
-              className="w-full py-3 text-blue-600 font-semibold rounded-lg border border-blue-600 hover:bg-blue-50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline-block mr-2 -mt-0.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+          <div className="flex items-center justify-between mt-8">
+            <button onClick={() => router.push('/cart')} className="text-blue-600 font-semibold flex items-center gap-2 hover:underline">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
               </svg>
               Quay về giỏ hàng
             </button>
-            <button
-              onClick={handlePlaceOrder}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
-            >
+            <button onClick={handlePlaceOrder} className="bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors">
               Đặt hàng
             </button>
           </div>

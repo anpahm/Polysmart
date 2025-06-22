@@ -4,8 +4,18 @@ import { useParams, useSearchParams } from "next/navigation";
 import { ProductVariant, Product } from "@/components/cautrucdata";
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../../../store/cartSlice';
-import { RootState } from '../../../store/store';
+import { addToCart } from '@/store/cartSlice';
+import { RootState } from '@/store';
+import { getApiUrl } from "@/config/api"; // Import getApiUrl
+
+// Interface for FlashSale data
+interface FlashSaleVariantInHomepage {
+  id_variant: string;
+  gia_flash_sale: number;
+}
+interface FlashSale {
+  flashSaleVariants: FlashSaleVariantInHomepage[];
+}
 
 export function getImageUrl(url: string | string[] | undefined | null) {
   if (!url) return "/images/no-image.png";
@@ -38,6 +48,7 @@ const ProductDetailPage = () => {
   const dispatch = useDispatch();
   const cart = useSelector((state: RootState) => state.cart.items);
   const [isClient, setIsClient] = useState(false);
+  const [flashSalePrice, setFlashSalePrice] = useState<number | null>(null); // State for flash sale price
 
   useEffect(() => {
     setIsClient(true);
@@ -46,22 +57,96 @@ const ProductDetailPage = () => {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetch(`http://localhost:3000/api/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setProduct(data);
-        // Chọn variant mặc định
-        if (data.variants && data.variants.length > 0) {
-          let found = null;
-          if (variantId) {
-            found = data.variants.find((v: ProductVariant) => v._id === variantId);
-          }
-          setSelectedVariant(found || data.variants[0]);
+
+    const fetchProductAndFlashSale = async () => {
+      try {
+        // 1. Fetch product details
+        const productRes = await fetch(`http://localhost:3000/api/products/${id}`);
+        const productData = await productRes.json();
+        setProduct(productData);
+
+        if (!productData.variants || productData.variants.length === 0) {
+          setLoading(false);
+          return;
         }
+
+        // 2. Fetch active flash sales
+        const flashSaleRes = await fetch(getApiUrl('flashsales/active'));
+        const flashSaleData = await flashSaleRes.json();
+        const activeFlashSales: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+
+        // Create a map for quick lookup of flash sale variants
+        const flashSaleVariantsMap = new Map<string, number>();
+        activeFlashSales.forEach(sale => {
+          sale.flashSaleVariants.forEach(variant => {
+            flashSaleVariantsMap.set(variant.id_variant, variant.gia_flash_sale);
+          });
+        });
+
+        let currentVariant: ProductVariant | null = null;
+        
+        // 3. Find the variant to display based on priority
+        // Priority 1: Find a variant of this product that is on flash sale
+        const flashSaleVariantOnPage = productData.variants.find((v: ProductVariant) => flashSaleVariantsMap.has(v._id));
+
+        if (flashSaleVariantOnPage) {
+          currentVariant = flashSaleVariantOnPage;
+        } else if (variantId) {
+          // Priority 2: Find variant from URL
+          currentVariant = productData.variants.find((v: ProductVariant) => v._id === variantId) || null;
+        }
+
+        // Priority 3: Fallback to the first variant
+        currentVariant = currentVariant || productData.variants[0];
+
+        // 4. Set the selected variant and its price
+        setSelectedVariant(currentVariant);
+        
+        if (currentVariant && flashSaleVariantsMap.has(currentVariant._id)) {
+          setFlashSalePrice(flashSaleVariantsMap.get(currentVariant._id) ?? null);
+        } else {
+          setFlashSalePrice(null);
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    
+    fetchProductAndFlashSale();
+
   }, [id, variantId]);
+
+  // Refetch flash sale price when variant changes
+  useEffect(() => {
+    const checkFlashSalePrice = async () => {
+      if (!selectedVariant) return;
+
+      try {
+        const flashSaleRes = await fetch(getApiUrl('flashsales/active'));
+        const flashSaleData = await flashSaleRes.json();
+        const activeFlashSales: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+        
+        let price: number | null = null;
+        for (const sale of activeFlashSales) {
+          const saleVariant = sale.flashSaleVariants.find(
+            (v) => v.id_variant === selectedVariant._id
+          );
+          if (saleVariant) {
+            price = saleVariant.gia_flash_sale;
+            break;
+          }
+        }
+        setFlashSalePrice(price);
+      } catch (error) {
+        console.error("Error checking flash sale price:", error);
+      }
+    };
+
+    checkFlashSalePrice();
+  }, [selectedVariant]);
 
   useEffect(() => {
     // Fetch tất cả sản phẩm để lọc mua kèm
@@ -152,14 +237,10 @@ const ProductDetailPage = () => {
   ? selectedVariant.hinh
   : Array.isArray(product.hinh) ? product.hinh : product.hinh ? [product.hinh] : ["/images/no-image.png"];
 
-  // Giá gốc và giá khuyến mãi theo variant đang chọn
-  // Nếu variant có giá gốc hoặc giá, dùng giá đó, nếu không thì lấy giá của variant đầu tiên, nếu không có thì 0
-  const originPrice =
-    selectedVariant?.gia_goc ??
-    selectedVariant?.gia ??
-    product.variants?.[0]?.gia ??
-    0;
-  const price = selectedVariant?.gia || product.Gia * (1 - (product.khuyen_mai || 0) / 100);
+  // Giá gốc và giá khuyến mãi
+  const regularPrice = selectedVariant?.gia || 0;
+  const price = flashSalePrice !== null ? flashSalePrice : regularPrice;
+  const originPrice = flashSalePrice !== null ? regularPrice : selectedVariant?.gia_goc || regularPrice;
 
   // Hiển thị tên sản phẩm kèm variant
   const variantName = selectedVariant
@@ -396,13 +477,13 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
             {variantName && <span className="text-black-600 text-[24px] font-family-Arial font-bold"> {variantName}</span>}
           </h1>
           <div className="flex items-end gap-4 mb-3">
-            <span className="text-[24px] text-blue-600 font-bold">
+            <div className="text-3xl font-bold text-blue-600">
               {price.toLocaleString()}₫
-            </span>
-            {(originPrice > price) && (
-              <span className="text-lg text-gray-400 line-through ml-2">
+            </div>
+            {price < originPrice && (
+              <div className="text-xl text-gray-400 line-through ml-4">
                 {originPrice.toLocaleString()}₫
-              </span>
+              </div>
             )}
           </div>
           {/* Chỉ hiển thị phần chọn dung lượng nếu có biến thể và có giá trị hợp lệ */}
@@ -506,7 +587,8 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
             productId: product._id,
             variantId: selectedVariant._id,
             name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
-            price: selectedVariant.gia,
+            price: price,
+            originPrice: originPrice,
             image: getImageUrl(selectedVariant.hinh || product.hinh),
             colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
             selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
@@ -519,11 +601,13 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
             const accessory = accessories.find(acc => acc._id === accessoryId);
             if (accessory) {
               const accessoryVariant = accessory.variants?.[0];
+              const accessoryPrice = accessory.gia ?? accessoryVariant?.gia ?? 0;
               dispatch(addToCart({
                 productId: accessory._id,
                 variantId: accessoryVariant?._id || accessory._id,
                 name: accessory.TenSP,
-                price: accessory.gia ?? accessoryVariant?.gia ?? 0,
+                price: accessoryPrice,
+                originPrice: accessoryPrice,
                 image: getImageUrl(accessory.hinh),
                 colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
                 selectedColor: 0,
@@ -562,7 +646,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               style={{ backgroundColor: '#F8F9FA' }}/>
               <div className="font-medium text-center mb-1">{product.TenSP}{variantName && ` ${variantName}`}</div>
               <div className="text-blue-600 font-bold mb-1 text-lg">{price.toLocaleString()}₫</div>
-              {originPrice > price && (
+              {price < originPrice && (
                 <div className="text-gray-400 line-through text-sm">{originPrice.toLocaleString()}₫</div>
               )}
               <div className="text-gray-500 text-sm">{product.khuyen_mai ? `Giảm ${product.khuyen_mai}%` : null}</div>
@@ -653,7 +737,8 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                     productId: product._id,
                     variantId: selectedVariant._id,
                     name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
-                    price: selectedVariant.gia,
+                    price: price,
+                    originPrice: originPrice,
                     image: getImageUrl(selectedVariant.hinh || product.hinh),
                     colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
                     selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
@@ -666,11 +751,13 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                     const accessory = accessories.find(acc => acc._id === accessoryId);
                     if (accessory) {
                       const accessoryVariant = accessory.variants?.[0];
+                      const accessoryPrice = accessory.gia ?? accessoryVariant?.gia ?? 0;
                       dispatch(addToCart({
                         productId: accessory._id,
                         variantId: accessoryVariant?._id || accessory._id,
                         name: accessory.TenSP,
-                        price: accessory.gia ?? accessoryVariant?.gia ?? 0,
+                        price: accessoryPrice,
+                        originPrice: accessoryPrice,
                         image: getImageUrl(accessory.hinh),
                         colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
                         selectedColor: 0,

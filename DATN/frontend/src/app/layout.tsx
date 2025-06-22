@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import './globals.css'; 
 import ReduxProvider from '../providers/ReduxProvider';
+import ChatbotAI from '@/components/ChatbotAI';
 
 const inter = Inter({ 
   subsets: ['latin', 'vietnamese'] 
@@ -35,6 +36,7 @@ export default function RootLayout({
           </main>
           <Footer />
         </ReduxProvider>
+        <ChatbotAI />
       </body>
     </html>
   );

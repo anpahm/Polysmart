@@ -3,15 +3,10 @@ const FlashSaleVariant = require('../models/FlashSaleVariant');
 const Variant = require('../models/variantModel'); // Đổi tên biến import
 const Product = require('../models/productModel'); // Đảm bảo đúng tên model
 
-// Lấy tất cả các flash sale đang hoạt động
+// Lấy tất cả các biến thể flash sale (không điều kiện)
 exports.getAllFlashSales = async (req, res) => {
   try {
-    const now = new Date();
-    const flashSales = await FlashSale.find({
-      an_hien: true,
-      thoi_gian_bat_dau: { $lte: now },
-      thoi_gian_ket_thuc: { $gte: now },
-    })
+    const flashSales = await FlashSale.find({})
       .populate({
         path: 'flashSaleVariants',
         model: 'FlashSaleVariant',
@@ -52,10 +47,16 @@ exports.getAllFlashSales = async (req, res) => {
   }
 };
 
-// Lấy tất cả flash sale cho trang admin (không lọc)
-exports.getAllFlashSalesForAdmin = async (req, res) => {
+// Lấy chỉ các Flash Sale đang hoạt động (trong thời gian diễn ra và có an_hien = true)
+exports.getActiveFlashSales = async (req, res) => {
   try {
-    const flashSales = await FlashSale.find({})
+    const now = new Date();
+    
+    const flashSales = await FlashSale.find({
+      an_hien: true,
+      thoi_gian_bat_dau: { $lte: now },
+      thoi_gian_ket_thuc: { $gte: now }
+    })
       .populate({
         path: 'flashSaleVariants',
         model: 'FlashSaleVariant',
@@ -91,7 +92,7 @@ exports.getAllFlashSalesForAdmin = async (req, res) => {
 
     res.status(200).json({ data: formattedData });
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách flash sales cho admin:", error);
+    console.error("Lỗi khi lấy danh sách flash sales đang hoạt động:", error);
     res.status(500).json({ message: error.message });
   }
 };

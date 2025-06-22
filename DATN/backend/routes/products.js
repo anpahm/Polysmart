@@ -7,10 +7,12 @@ const {
   uploadImage,
   deletePro,
   editPro,
+  searchProducts,
 } = require("../controllers/productController");
 
-router.get("/", getAllProducts);
+router.get("/find", searchProducts);
 router.get("/:id", getProductById);
+router.get("/", getAllProducts);
 router.post("/", addPro);
 router.post("/upload-image", uploadImage);
 router.delete("/:id", deletePro);

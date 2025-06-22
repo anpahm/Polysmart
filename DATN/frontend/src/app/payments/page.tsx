@@ -3,6 +3,60 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { useRouter } from "next/navigation";
+import dynamic from 'next/dynamic';
+
+// Create a client-only component for the cart items
+const CartItems = dynamic(() => Promise.resolve(({ cart, formatVND }: { cart: any[], formatVND: (num: number) => string }) => (
+  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thin">
+    {cart.map((item, idx) => (
+      <div key={item.productId + "-" + item.variantId} className="flex items-center py-2">
+        <div className="relative mr-3">
+          <img src={item.image} alt={item.name} className="w-16 h-16 object-contain" />
+          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-sm font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {item.quantity}
+          </span>
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold text-gray-800 text-sm line-clamp-2">{item.name}</div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            {item.colorName && !item.colorName.startsWith('#') ? (
+              <span>Màu: {item.colorName}</span>
+            ) : (
+              <span>Màu đã chọn</span>
+            )}
+            {item.colors && item.selectedColor !== undefined && item.colors[item.selectedColor] && (
+              <span
+                className="w-5 h-5 rounded-full ring-2 ring-blue-500 ring-offset-2"
+                style={{ background: item.colors[item.selectedColor] }}
+              />
+            )}
+          </div>
+        </div>
+        <div className="text-right text-blue-600 font-semibold text-base">
+          {formatVND(item.price * item.quantity)}
+        </div>
+      </div>
+    ))}
+  </div>
+)), { ssr: false });
+
+// Create a client-only component for the totals
+const OrderTotals = dynamic(() => Promise.resolve(({ totalAmount, formatVND }: { totalAmount: number, formatVND: (num: number) => string }) => (
+  <div className="space-y-2 mb-6">
+    <div className="flex justify-between text-gray-700">
+      <span>Tạm tính:</span>
+      <span>{formatVND(totalAmount)}</span>
+    </div>
+    <div className="flex justify-between text-gray-700">
+      <span>Phí vận chuyển:</span>
+      <span>-</span>
+    </div>
+    <div className="flex justify-between font-bold text-lg text-gray-800">
+      <span>Tổng cộng:</span>
+      <span className="text-blue-600">{formatVND(totalAmount)}</span>
+    </div>
+  </div>
+)), { ssr: false });
 
 function formatVND(num: number) {
   return num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -11,14 +65,14 @@ function formatVND(num: number) {
 export default function PaymentsPage() {
   const cart = useSelector((state: RootState) => state.cart.items);
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [selectedProvinceCode, setSelectedProvinceCode] = useState<number | null>(null);
 
   useEffect(() => {
-    setIsClient(true);
+    setMounted(true);
 
     const fetchProvinces = async () => {
       try {
@@ -57,14 +111,44 @@ export default function PaymentsPage() {
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
-  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalAmount = mounted ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0) : 0;
 
   const handlePlaceOrder = () => {
-    alert("Chức năng đặt hàng đang được phát triển!");
-    // You would typically send this data to your backend
-    console.log("Customer Info:", customerInfo);
-    console.log("Payment Method:", paymentMethod);
-    console.log("Cart Items:", cart);
+    // Validate required fields
+    if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
+      alert("Vui lòng điền đầy đủ thông tin giao hàng!");
+      return;
+    }
+
+    // Create order data
+    const orderData = {
+      customerInfo,
+      items: cart,
+      totalAmount,
+      paymentMethod,
+    };
+
+    // Handle different payment methods
+    switch (paymentMethod) {
+      case "cod":
+        // Handle COD payment
+        alert("Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.");
+        // Here you would typically send the order to your backend
+        console.log("Order Data:", orderData);
+        break;
+
+      case "atm":
+        // Store order data in localStorage for retrieval after payment
+        localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+
+        // Redirect to bank selection page
+        router.push('/payment/banking');
+        return;
+
+      default:
+        alert("Vui lòng chọn phương thức thanh toán!");
+        return;
+    }
   };
 
   return (
@@ -123,25 +207,53 @@ export default function PaymentsPage() {
           {/* Payment Method */}
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Thanh toán</h2>
-            <label className="flex items-center justify-between p-4 border border-blue-500 rounded-lg cursor-pointer bg-blue-50">
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="cod"
-                  checked={paymentMethod === "cod"}
-                  onChange={() => setPaymentMethod("cod")}
-                  className="form-radio h-5 w-5 text-blue-600"
-                />
-                <span className="ml-3 text-lg font-medium text-gray-800">Thanh toán khi giao hàng (COD)</span>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9.75h19.5M2.25 12h19.5m-16.5 4.5h.008v.008h-.008V16.5zm.375 0h.008v.008h-.008V16.5zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008z" />
-              </svg>
-            </label>
+            <div className="space-y-3">
+              {/* COD Payment */}
+              <label className="flex items-center justify-between p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={() => setPaymentMethod("cod")}
+                    className="form-radio h-5 w-5 text-blue-600"
+                  />
+                  <span className="ml-3 text-lg font-medium text-gray-800">Thanh toán khi giao hàng (COD)</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9.75h19.5M2.25 12h19.5m-16.5 4.5h.008v.008h-.008V16.5zm.375 0h.008v.008h-.008V16.5zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008z" />
+                </svg>
+              </label>
+
+              {/* ATM Payment */}
+              <label className="flex items-center justify-between p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="atm"
+                    checked={paymentMethod === "atm"}
+                    onChange={() => setPaymentMethod("atm")}
+                    className="form-radio h-5 w-5 text-blue-600"
+                  />
+                  <span className="ml-3 text-lg font-medium text-gray-800">Thanh toán ATM/Internet Banking</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9.75h19.5M2.25 12h19.5m-16.5 4.5h.008v.008h-.008V16.5zm.375 0h.008v.008h-.008V16.5zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm5.625-5.25h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008zm-.375 3h.008v.008h-.008v-.008zm.375 0h.008v.008h-.008v-.008z" />
+                </svg>
+              </label>
+            </div>
+
+            {/* Payment Method Descriptions */}
             {paymentMethod === "cod" && (
               <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
                 Bạn sẽ thanh toán bằng tiền mặt khi nhận được hàng.
+              </div>
+            )}
+            {paymentMethod === "atm" && (
+              <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                <p className="text-gray-700">Bạn sẽ được chuyển đến trang thanh toán qua Internet Banking.</p>
               </div>
             )}
           </div>
@@ -149,38 +261,10 @@ export default function PaymentsPage() {
 
         {/* Right Column - Order Summary */}
         <div className="w-2/5 bg-gray-50 p-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Đơn hàng {isClient && `(${cart.length} sản phẩm)`}</h2>
-          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thin">
-            {cart.map((item, idx) => (
-              <div key={item.productId + "-" + item.variantId} className="flex items-center py-2">
-                <div className="relative mr-3">
-                  <img src={item.image} alt={item.name} className="w-16 h-16 object-contain" />
-                  <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-sm font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {item.quantity}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm line-clamp-2">{item.name}</div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    {item.colorName && !item.colorName.startsWith('#') ? (
-                      <span>Màu: {item.colorName}</span>
-                    ) : (
-                      <span>Màu đã chọn</span>
-                    )}
-                    {item.colors && item.selectedColor !== undefined && item.colors[item.selectedColor] && (
-                      <span
-                        className="w-5 h-5 rounded-full ring-2 ring-blue-500 ring-offset-2"
-                        style={{ background: item.colors[item.selectedColor] }}
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="text-right text-blue-600 font-semibold text-base">
-                  {formatVND(item.price * item.quantity)}
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            Đơn hàng {mounted && `(${cart.length} sản phẩm)`}
+          </h2>
+          {mounted && <CartItems cart={cart} formatVND={formatVND} />}
 
           <hr className="my-6" />
 
@@ -191,20 +275,7 @@ export default function PaymentsPage() {
           </div>
 
           {/* Totals */}
-          <div className="space-y-2 mb-6">
-            <div className="flex justify-between text-gray-700">
-              <span>Tạm tính:</span>
-              <span>{formatVND(totalAmount)}</span>
-            </div>
-            <div className="flex justify-between text-gray-700">
-              <span>Phí vận chuyển:</span>
-              <span>-</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg text-gray-800">
-              <span>Tổng cộng:</span>
-              <span className="text-blue-600">{formatVND(totalAmount)}</span>
-            </div>
-          </div>
+          {mounted && <OrderTotals totalAmount={totalAmount} formatVND={formatVND} />}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-3">

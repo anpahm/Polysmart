@@ -1,6 +1,7 @@
+require('dotenv').config();
 const mongoose = require("mongoose");
 mongoose
-  .connect("mongodb://127.0.0.1:27017/DB_ShopTao")
+  .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/DB_ShopTao")
   .then(() => console.log("MongoDB đã kết nối hẹ hẹ hẹ http://localhost:3000/ "))
   .catch((err) => console.log(err));
 
@@ -21,6 +22,7 @@ const flashsalesRouter = require('./routes/flashsales');
 const newsCategoryRouter = require("./routes/newsCategories");
 const newsRouter = require("./routes/news");
 const voucherRouter = require('./routes/vouchers');
+const ordersRouter = require('./routes/orders');
 var app = express();
 
 // view engine setup
@@ -76,6 +78,7 @@ app.use('/api/flashsales', flashsalesRouter);
 app.use("/api/newscategory", newsCategoryRouter);
 app.use("/api/news", newsRouter);
 app.use('/api/vouchers', voucherRouter);
+app.use('/api/orders', ordersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

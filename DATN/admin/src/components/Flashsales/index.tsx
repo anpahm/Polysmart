@@ -31,10 +31,49 @@ const FlashSaleManagement = () => {
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getFlashSaleStatus = (flashSale: FlashSale) => {
+    const now = new Date();
+    const startTime = new Date(flashSale.thoi_gian_bat_dau);
+    const endTime = new Date(flashSale.thoi_gian_ket_thuc);
+
+    if (!flashSale.an_hien) {
+      return {
+        text: 'Ẩn',
+        className: 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200',
+      };
+    }
+
+    if (now > endTime) {
+      return {
+        text: 'Đã kết thúc',
+        className: 'bg-red-200 text-red-800 dark:bg-red-500 dark:text-white',
+      };
+    }
+
+    if (now >= startTime && now <= endTime) {
+      return {
+        text: 'Đang diễn ra',
+        className: 'bg-green-200 text-green-800 dark:bg-green-500 dark:text-white',
+      };
+    }
+
+    if (now < startTime) {
+      return {
+        text: 'Sắp diễn ra',
+        className: 'bg-blue-200 text-blue-800 dark:bg-blue-500 dark:text-white',
+      };
+    }
+
+    return {
+      text: 'Không xác định',
+      className: 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200',
+    };
+  };
+
   const fetchFlashSales = async () => {
     try {
       setLoading(true);
-      const response = await fetch(getApiUrl('flashsales'));
+      const response = await fetch(getApiUrl('flashsales/all'));
       const data = await response.json();
       setFlashSales(Array.isArray(data.data) ? data.data : data);
     } catch (error) {
@@ -124,38 +163,41 @@ const FlashSaleManagement = () => {
                 </tr>
               </thead>
               <tbody className="text-gray-600 text-sm font-light">
-                {flashSales.map((flashSale) => (
-                  <tr key={flashSale._id} className="border-b border-gray-200 dark:border-strokedark hover:bg-gray-100 dark:hover:bg-meta-4">
-                    <td className="py-3 px-6 text-left whitespace-nowrap">{flashSale.ten_su_kien || 'N/A'}</td>
-                    <td className="py-3 px-6 text-left">{flashSale.thoi_gian_bat_dau ? new Date(flashSale.thoi_gian_bat_dau).toLocaleString() : 'N/A'}</td>
-                    <td className="py-3 px-6 text-left">{flashSale.thoi_gian_ket_thuc ? new Date(flashSale.thoi_gian_ket_thuc).toLocaleString() : 'N/A'}</td>
-                    <td className="py-3 px-6 text-left">
-                      <span className={`py-1 px-3 rounded-full text-xs ${flashSale.an_hien ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-                        {flashSale.an_hien ? 'Hiển thị' : 'Ẩn'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-6 text-center">
-                      <div className="flex item-center justify-center">
-                        <button 
-                          onClick={() => handleEdit(flashSale)}
-                          className="w-4 mr-2 transform hover:text-purple-500 hover:scale-110"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(flashSale._id)}
-                          className="w-4 mr-2 transform hover:text-red-500 hover:scale-110"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {flashSales.map((flashSale) => {
+                  const status = getFlashSaleStatus(flashSale);
+                  return (
+                    <tr key={flashSale._id} className="border-b border-gray-200 dark:border-strokedark hover:bg-gray-100 dark:hover:bg-meta-4">
+                      <td className="py-3 px-6 text-left whitespace-nowrap">{flashSale.ten_su_kien || 'N/A'}</td>
+                      <td className="py-3 px-6 text-left">{flashSale.thoi_gian_bat_dau ? new Date(flashSale.thoi_gian_bat_dau).toLocaleString() : 'N/A'}</td>
+                      <td className="py-3 px-6 text-left">{flashSale.thoi_gian_ket_thuc ? new Date(flashSale.thoi_gian_ket_thuc).toLocaleString() : 'N/A'}</td>
+                      <td className="py-3 px-6 text-left">
+                        <span className={`py-1 px-3 rounded-full text-xs ${status.className}`}>
+                          {status.text}
+                        </span>
+                      </td>
+                      <td className="py-3 px-6 text-center">
+                        <div className="flex item-center justify-center">
+                          <button 
+                            onClick={() => handleEdit(flashSale)}
+                            className="w-4 mr-2 transform hover:text-purple-500 hover:scale-110"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(flashSale._id)}
+                            className="w-4 mr-2 transform hover:text-red-500 hover:scale-110"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

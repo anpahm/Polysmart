@@ -3,8 +3,57 @@ const FlashSaleVariant = require('../models/FlashSaleVariant');
 const Variant = require('../models/variantModel'); // Đổi tên biến import
 const Product = require('../models/productModel'); // Đảm bảo đúng tên model
 
-// Lấy tất cả các biến thể flash sale (không điều kiện)
+// Lấy tất cả các flash sale đang hoạt động
 exports.getAllFlashSales = async (req, res) => {
+  try {
+    const now = new Date();
+    const flashSales = await FlashSale.find({
+      an_hien: true,
+      thoi_gian_bat_dau: { $lte: now },
+      thoi_gian_ket_thuc: { $gte: now },
+    })
+      .populate({
+        path: 'flashSaleVariants',
+        model: 'FlashSaleVariant',
+        populate: {
+          path: 'id_variant',
+          model: 'Variant',
+          populate: { path: 'id_san_pham', model: 'products' }
+        }
+      })
+      .exec();
+
+    const formattedData = flashSales.map(fs => {
+      const variantsData = fs.flashSaleVariants.map(fsv => ({
+        id_variant: fsv.id_variant ? fsv.id_variant._id : null,
+        gia_flash_sale: fsv.gia_flash_sale,
+        so_luong: fsv.so_luong,
+        da_ban: fsv.da_ban,
+        product_name: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.TenSP : 'N/A',
+        variant_details: fsv.id_variant ? `${fsv.id_variant.dung_luong} - ${fsv.id_variant.mau} (Giá gốc: ${fsv.id_variant.gia})` : 'N/A',
+        product_id: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham._id : null,
+        product_image: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.hinh : null,
+      }));
+
+      return {
+        _id: fs._id,
+        ten_su_kien: fs.ten_su_kien,
+        thoi_gian_bat_dau: fs.thoi_gian_bat_dau,
+        thoi_gian_ket_thuc: fs.thoi_gian_ket_thuc,
+        an_hien: fs.an_hien,
+        flashSaleVariants: variantsData,
+      };
+    });
+
+    res.status(200).json({ data: formattedData });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách flash sales:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Lấy tất cả flash sale cho trang admin (không lọc)
+exports.getAllFlashSalesForAdmin = async (req, res) => {
   try {
     const flashSales = await FlashSale.find({})
       .populate({
@@ -42,7 +91,7 @@ exports.getAllFlashSales = async (req, res) => {
 
     res.status(200).json({ data: formattedData });
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách flash sales:", error);
+    console.error("Lỗi khi lấy danh sách flash sales cho admin:", error);
     res.status(500).json({ message: error.message });
   }
 };

@@ -6,6 +6,7 @@ import { MapPin, Phone, Mail, Facebook, Youtube, Instagram } from 'lucide-react'
 import { Settings } from './cautrucdata';
 import { getImageUrl, getApiUrl } from '../config/api';
 import { useEffect, useState } from 'react';
+import { clearAllCookies } from '../utils/cookieUtils';
 
 const Footer = () => {
   const [settings, setSettings] = useState<any>(null);
@@ -175,14 +176,47 @@ const Footer = () => {
           </div>
         </div>
 
-       
-
         {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-xs text-center">
           <p>© 2025 PolySmart. Tất cả quyền được bảo lưu.</p>
           <p className="mt-2">
             Công ty Cổ phần Công nghệ ShopTech - GPĐKKD: 0123456789 do Sở KHĐT TP.HCM cấp ngày 01/01/2020
           </p>
+        </div>
+
+        {/* Phần bottom của footer */}
+        <div className="mt-8 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-sm text-gray-400">
+            © 2024 Your Company. All rights reserved.
+          </div>
+          
+          {/* Nút xóa cookie */}
+          <button
+            onClick={async () => {
+              try {
+                await clearAllCookies();
+              } catch (error) {
+                console.error('Error clearing cookies:', error);
+              }
+            }}
+            className="mt-4 md:mt-0 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm transition-colors duration-200 flex items-center space-x-2"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+              />
+            </svg>
+            <span>Đăng xuất & Xóa dữ liệu</span>
+          </button>
         </div>
       </div>
     </footer>

@@ -130,8 +130,15 @@ const Header = () => {
       await fetchApi(API_ENDPOINTS.LOGOUT, {
         method: 'POST'
       });
-      // Xóa token khỏi localStorage
+      
+      // Xóa tất cả dữ liệu liên quan đến người dùng
+      if (user?.email) {
+        localStorage.removeItem(`luckywheel_spun_user_${user.email}`);
+        localStorage.removeItem(`luckywheel_result_user_${user.email}`);
+      }
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
       dispatch(setUser(null));
       setShowUserDropdown(false);
       router.push("/");

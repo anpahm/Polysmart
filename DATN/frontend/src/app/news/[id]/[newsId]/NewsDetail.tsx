@@ -100,7 +100,7 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
             <span className="mx-2">•</span>
             <span>{newsDetail.luot_xem} lượt xem</span>
             <span className="mx-2">•</span>
-            <span>Đăng bởi {newsDetail.nguoi_dang.TenKH}</span>
+            <span>Đăng bởi {newsDetail.nguoi_dang?.TenKH || "Không rõ"}</span>
           </div>
 
           {newsDetail.hinh && (
@@ -163,7 +163,7 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
             "dateModified": newsDetail.ngay,
             "author": [{
               "@type": "Person",
-              "name": newsDetail.nguoi_dang.ho_ten
+              "name": newsDetail.nguoi_dang?.TenKH || "Không rõ"
             }],
             "publisher": {
               "@type": "Organization",

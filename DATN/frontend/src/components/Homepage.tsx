@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Category, Product, ProductVariant, Banner, HomePageData } from './cautrucdata';
@@ -120,75 +120,17 @@ const HomePage = () => {
   const totalSlides = Math.ceil(data.iPhoneProducts.length / productsPerSlide);
   const [news, setNews] = useState<NewsItem[]>([]);
 
-  // Tính thời gian kết thúc flash sale
-  useEffect(() => {
-    let endDate: Date;
+  const fetchData = useCallback(async () => {
+    try {
+      // setLoading(true); // Optional: you might not want a full loader on refresh
 
-    if (data.flashSaleProducts && data.flashSaleProducts.length > 0) {
-      endDate = new Date(data.flashSaleProducts[0].thoi_gian_ket_thuc);
-    } else {
-      endDate = new Date(); // Set to now if no flash sale products to show 00:00:00
-    }
+      // Fetch flash sale products
+      const flashSaleResponse = await fetch(getApiUrl('flashsales'));
+      const flashSaleData = await flashSaleResponse.json();
+      const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
 
-    const updateCountdown = () => {
-      const now = new Date();
-      const diff = endDate.getTime() - now.getTime();
-      if (diff <= 0) {
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-      setCountdown({ days, hours, minutes, seconds });
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [data.flashSaleProducts]);
-
-  // Fetch settings and create banner objects
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(getApiUrl('settings'));
-        const settingsData = await response.json();
-        const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
-        setSettings(settingObj);        
-        if (settingObj && settingObj.Banner) {
-          const bannerImages = settingObj.Banner.split('|');
-          setBanners(bannerImages.map((img: string, index: number) => ({
-            id: index + 1,
-            image: getImageUrl(img),
-            title: '',
-            subtitle: '',
-            link: '/mac/macbook-air',
-          })));
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-    
-    fetchSettings();
-  }, []);
-
-  const [banners, setBanners] = useState<Banner[]>([]);
-
-  // Fetch data from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch flash sale products từ backend mới
-        const flashSaleResponse = await fetch(getApiUrl('flashsales'));
-        const flashSaleData = await flashSaleResponse.json();
-        const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
-
-        // Fetch iPhone products
+      // Fetch other products only on initial load if needed, to optimize
+      if (data.iPhoneProducts.length === 0) {
         const IPHONE_CATEGORY_ID = '681d97db2a400db1737e6de3';
         const iPhoneResponse = await fetch(getApiUrl(`products?id_danhmuc=${IPHONE_CATEGORY_ID}`));
         const iPhoneData = await iPhoneResponse.json();
@@ -252,25 +194,90 @@ const HomePage = () => {
           ).slice(0, 40) : [],
           categories: categoriesData || []
         });
+      } else {
+        // Only update flash sale products on subsequent fetches
+        setData(prevData => ({ ...prevData, flashSaleProducts }));
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setData(prevData => ({ ...prevData, flashSaleProducts: [] }));
+    } finally {
+      // setLoading(false);
+    }
+  }, [data.iPhoneProducts]);
+
+  // Tính thời gian kết thúc flash sale
+  useEffect(() => {
+    if (!data.flashSaleProducts || data.flashSaleProducts.length === 0) {
+      setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
+    const endDate = new Date(data.flashSaleProducts[0].thoi_gian_ket_thuc);
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = endDate.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        clearInterval(interval);
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        fetchData(); // Refetch data when countdown ends
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setCountdown({ days, hours, minutes, seconds });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [data.flashSaleProducts, fetchData]);
+
+  // Fetch settings and create banner objects
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(getApiUrl('settings'));
+        const settingsData = await response.json();
+        const settingObj = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+        setSettings(settingObj);        
+        if (settingObj && settingObj.Banner) {
+          const bannerImages = settingObj.Banner.split('|');
+          setBanners(bannerImages.map((img: string, index: number) => ({
+            id: index + 1,
+            image: getImageUrl(img),
+            title: '',
+            subtitle: '',
+            link: '/mac/macbook-air',
+          })));
+        }
       } catch (error) {
-        setData({
-          flashSaleProducts: [],
-          iPhoneProducts: [],
-          iPadProducts: [],
-          MacProducts: [],
-          WatchProducts: [],
-          PhuKienProducts: [],
-          AmThanhProducts: [],
-          CameraProducts: [],
-          categories: []
-        });
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
+    fetchSettings();
+  }, []);
+
+  const [banners, setBanners] = useState<Banner[]>([]);
+
+  // Fetch data from API on initial load
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        await fetchData();
+      } catch (error) {
+        console.error("Error on initial fetch:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchData();
-  }, []);
+    fetchInitialData();
+  }, [fetchData]);
 
   // Auto chuyển slide sau 5 giây
   useEffect(() => {
@@ -423,6 +430,7 @@ const HomePage = () => {
         </div>
       </div>
       {/* Flash Sale Section */}
+      {data.flashSaleProducts && data.flashSaleProducts.length > 0 && (
       <section className="py-0 pt-10 bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
           <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
@@ -497,22 +505,18 @@ const HomePage = () => {
               }}
               className="mySwiper"
             >
-              {data.flashSaleProducts.map((flashSale) => {
-                // Đảm bảo rằng flashSaleVariants có ít nhất một phần tử
-                const firstVariant = flashSale.flashSaleVariants[0];
-                if (!firstVariant) return null; // Bỏ qua nếu không có biến thể
-
+              {data.flashSaleProducts.flatMap(fs => fs.flashSaleVariants).map((variant) => {
                 return (
-                  <SwiperSlide key={flashSale._id}>
+                  <SwiperSlide key={variant.id_variant}>
                     <Link 
-                      href={`/product/${firstVariant?.product_id || ''}`}
+                      href={`/product/${variant?.product_id || ''}`}
                       className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
                     >
                       {/* Ảnh sản phẩm */}
                       <div className="relative pt-[100%] overflow-hidden">
                         <Image
-                          src={getImageUrl(firstVariant?.product_image || '')}
-                          alt={firstVariant?.product_name || 'Sản phẩm Flash Sale'}
+                          src={getImageUrl(variant?.product_image || '')}
+                          alt={variant?.product_name || 'Sản phẩm Flash Sale'}
                           fill
                           className="object-contain p-4"
                         />
@@ -524,25 +528,25 @@ const HomePage = () => {
                         </div>
                         {/* Số lượng còn lại */}
                         <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                          Còn {firstVariant.so_luong - firstVariant.da_ban} sản phẩm
+                          Còn {variant.so_luong - variant.da_ban} sản phẩm
                         </div>
                       </div>
                       
                       {/* Thông tin sản phẩm */}
                       <div className="p-5">
                         <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
-                          {firstVariant?.product_name} {firstVariant?.variant_details?.split(' - ')[0]}
+                          {variant?.product_name} {variant?.variant_details?.split(' - ')[0]}
                         </h3>
                         <div className="space-y-2">
                           <div className="flex flex-col items-start space-y-1">
                             <span className="text-lg font-bold text-red-600">
-                              {formatCurrency(firstVariant.gia_flash_sale)}
+                              {formatCurrency(variant.gia_flash_sale)}
                             </span>
                             {/* Giá gốc được lấy từ variant_details, cần parse hoặc có thể truyền thêm giá gốc từ backend */}
                             {/* Tạm thời hiển thị giá gốc từ variant_details nếu giá flash sale khác giá gốc */}
-                            {firstVariant.variant_details && firstVariant.gia_flash_sale !== parseFloat(firstVariant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
+                            {variant.variant_details && variant.gia_flash_sale !== parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
                                 <span className="text-sm text-gray-400 line-through">
-                                  {formatCurrency(parseFloat(firstVariant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
+                                  {formatCurrency(parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
                                 </span>
                             )}
                           </div>
@@ -567,6 +571,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* iPhone Section */}
       <section className="section bg-white">

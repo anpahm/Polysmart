@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { FaApple} from "react-icons/fa";
 import NewsCard, { NewsItem } from "@/components/NewsCard";
 import Link from "next/link";
+import Image from "next/image";
 
 // Định nghĩa kiểu dữ liệu
 interface Category {
@@ -16,7 +17,7 @@ export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useEffect(() => { 
     // Gọi API lấy danh mục
     fetch("http://localhost:3000/api/newscategory")
       .then(res => res.json())
@@ -56,7 +57,7 @@ export default function NewsPage() {
         <div className="flex gap-4 mb-6">
           {/* Tin lớn bên trái */}
           {featuredNews[0] && (
-            <div className="flex-1 relative rounded-xl overflow-hidden h-80 flex items-end min-w-0">
+            <Link href={`/news/${featuredNews[0].id_danh_muc._id}/${featuredNews[0]._id}`} className="flex-1 relative rounded-xl overflow-hidden h-80 flex items-end min-w-0">
               <img
                 src={featuredNews[0].hinh.startsWith('http') ? featuredNews[0].hinh : `http://localhost:3000${featuredNews[0].hinh}`}
                 alt={featuredNews[0].tieu_de}
@@ -67,12 +68,12 @@ export default function NewsPage() {
                 <h2 className="text-2xl font-bold text-white mb-2 drop-shadow">{featuredNews[0].tieu_de}</h2>
                 <p className="text-white text-base drop-shadow">{featuredNews[0].mo_ta}</p>
               </div>
-            </div>
+            </Link>
           )}
           {/* 2 tin nhỏ bên phải */}
           <div className="flex flex-col gap-4 w-[350px] max-w-[40%]">
             {featuredNews.slice(1, 3).map((item) => (
-              <div key={item._id} className="relative rounded-xl overflow-hidden h-38 flex items-end min-w-0" style={{ height: 'calc(50% - 0.5rem)' }}>
+              <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`} className="relative rounded-xl overflow-hidden h-38 flex items-end min-w-0" style={{ height: 'calc(50% - 0.5rem)' }}>
                 <img
                   src={item.hinh.startsWith('http') ? item.hinh : `http://localhost:3000${item.hinh}`}
                   alt={item.tieu_de}
@@ -83,7 +84,7 @@ export default function NewsPage() {
                   <h3 className="text-lg font-semibold text-white drop-shadow mb-1">{item.tieu_de}</h3>
                   <p className="text-white text-xs drop-shadow">{item.mo_ta}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -112,7 +113,11 @@ export default function NewsPage() {
               <Link href={`/news/${cat._id}`} className="text-blue-600 text-sm hover:underline">Xem tất cả {cat.ten_danh_muc} &rarr;</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {newsByCategory[cat._id]?.slice(0, 4).map(item => <NewsCard key={item._id} item={item} />)}
+              {newsByCategory[cat._id]?.slice(0, 4).map(item => (
+                <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`}>
+                  <NewsCard item={item} />
+                </Link>
+              ))}
             </div>
           </div>
         ))}

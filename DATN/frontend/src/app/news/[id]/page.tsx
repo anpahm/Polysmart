@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import NewsCard, { NewsItem } from "@/components/NewsCard";
+import Link from "next/link";
+import Image from "next/image";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface Category {
   _id: string;
@@ -79,7 +83,35 @@ export default function NewsCategoryPage() {
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {pagedNews.map(item => <NewsCard key={item._id} item={item} />)}
+              {pagedNews.map(item => (
+                <Link key={item._id} href={`/news/${params.id}/${item._id}`}>
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    {item.hinh && (
+                      <div className="relative w-full h-48">
+                        <Image
+                          src={`http://localhost:3000/${item.hinh}`}
+                          alt={item.tieu_de}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {item.tieu_de}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-2">
+                        {item.mo_ta}
+                      </p>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <span>{format(new Date(item.ngay), 'dd/MM/yyyy', { locale: vi })}</span>
+                        <span className="mx-2">•</span>
+                        <span>{item.luot_xem} lượt xem</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
             {/* Pagination */}
             <div className="flex justify-center mt-8 gap-2">

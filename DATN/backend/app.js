@@ -25,6 +25,9 @@ const voucherRouter = require('./routes/vouchers');
 const giftVoucherRouter = require('./routes/giftVouchers');
 const ordersRouter = require('./routes/orders');
 const chatAiRouter = require('./routes/chat-ai');
+const reviewsRouter = require('./routes/reviews');
+const uploadReviewImageRouter = require('./routes/uploadReviewImage');
+
 var app = express();
 
 // view engine setup
@@ -83,6 +86,8 @@ app.use('/api/vouchers', voucherRouter);
 app.use('/api/gift-vouchers', giftVoucherRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api', chatAiRouter);
+app.use('/api/reviews', reviewsRouter);
+app.use('/api/upload-review-image', uploadReviewImageRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

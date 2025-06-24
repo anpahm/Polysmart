@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '@/store/cartSlice';
 import { RootState } from '@/store';
 import { getApiUrl } from "@/config/api"; // Import getApiUrl
+import ProductReviews from "@/components/ProductReviews"; //component của  ThanhHoai 
 
 // Interface for FlashSale data
 interface FlashSaleVariantInHomepage {
@@ -49,6 +50,7 @@ const ProductDetailPage = () => {
   const cart = useSelector((state: RootState) => state.cart.items);
   const [isClient, setIsClient] = useState(false);
   const [flashSalePrice, setFlashSalePrice] = useState<number | null>(null); // State for flash sale price
+  const user = useSelector((state: RootState) => state.user.user);
 
   useEffect(() => {
     setIsClient(true);
@@ -84,7 +86,7 @@ const ProductDetailPage = () => {
         });
 
         let currentVariant: ProductVariant | null = null;
-        
+
         // 3. Find the variant to display based on priority
         // Priority 1: Find a variant of this product that is on flash sale
         const flashSaleVariantOnPage = productData.variants.find((v: ProductVariant) => flashSaleVariantsMap.has(v._id));
@@ -101,7 +103,7 @@ const ProductDetailPage = () => {
 
         // 4. Set the selected variant and its price
         setSelectedVariant(currentVariant);
-        
+
         if (currentVariant && flashSaleVariantsMap.has(currentVariant._id)) {
           setFlashSalePrice(flashSaleVariantsMap.get(currentVariant._id) ?? null);
         } else {
@@ -114,7 +116,7 @@ const ProductDetailPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchProductAndFlashSale();
 
   }, [id, variantId]);
@@ -128,7 +130,7 @@ const ProductDetailPage = () => {
         const flashSaleRes = await fetch(getApiUrl('flashsales/active'));
         const flashSaleData = await flashSaleRes.json();
         const activeFlashSales: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
-        
+
         let price: number | null = null;
         for (const sale of activeFlashSales) {
           const saleVariant = sale.flashSaleVariants.find(
@@ -207,15 +209,15 @@ const ProductDetailPage = () => {
 
   // Hàm tính tổng tiền
   const calculateTotal = () => {
-  let total = price || 0;
-  accessories.forEach(acc => {
-    if (selectedAccessories.includes(acc._id)) {
-      total += acc.gia ?? acc.variants?.[0]?.gia ?? 0;
-    }
-  });
-  return total;
-};
-  
+    let total = price || 0;
+    accessories.forEach(acc => {
+      if (selectedAccessories.includes(acc._id)) {
+        total += acc.gia ?? acc.variants?.[0]?.gia ?? 0;
+      }
+    });
+    return total;
+  };
+
   // Hàm xử lý chọn/bỏ chọn sản phẩm
   const toggleAccessory = (accessoryId: string) => {
     if (selectedAccessories.includes(accessoryId)) {
@@ -234,8 +236,8 @@ const ProductDetailPage = () => {
   const storages = Array.from(new Set((product.variants?.map(v => v.dung_luong) || []).filter(Boolean)));
   const colors = Array.from(new Set((product.variants?.map(v => v.mau) || []).filter(Boolean)));
   const images = selectedVariant?.hinh && Array.isArray(selectedVariant.hinh)
-  ? selectedVariant.hinh
-  : Array.isArray(product.hinh) ? product.hinh : product.hinh ? [product.hinh] : ["/images/no-image.png"];
+    ? selectedVariant.hinh
+    : Array.isArray(product.hinh) ? product.hinh : product.hinh ? [product.hinh] : ["/images/no-image.png"];
 
   // Giá gốc và giá khuyến mãi
   const regularPrice = selectedVariant?.gia || 0;
@@ -263,14 +265,14 @@ const ProductDetailPage = () => {
     if (index === -1 && product?.video && product.video.length > 0) {
       const videoElement = document.querySelector('video');
       if (videoElement) {
-        videoElement.currentTime = 0; 
-        videoElement.play(); 
+        videoElement.currentTime = 0;
+        videoElement.play();
       }
     }
   };
   const SpecSection = () => {
     if (!product?.thong_so_ky_thuat) return null;
-    
+
     // Kiểm tra xem có thông số kỹ thuật nào không
     const hasSpecs = Object.values(product.thong_so_ky_thuat).some(value => value !== null && value !== undefined && value !== '');
     if (!hasSpecs) return null;
@@ -319,9 +321,8 @@ const ProductDetailPage = () => {
           {specs.map((spec, idx) => (
             <div
               key={spec.label}
-              className={`flex items-stretch px-8 py-4 ${
-                idx % 2 === 0 ? "bg-white" : "bg-gray-100"
-              }`}
+              className={`flex items-stretch px-8 py-4 ${idx % 2 === 0 ? "bg-white" : "bg-gray-100"
+                }`}
             >
               <div className="w-[530px] min-w-[180px] font-semibold text-gray-700 text-[13px] flex items-start pt-1">
                 {spec.label}:
@@ -337,29 +338,29 @@ const ProductDetailPage = () => {
   };
 
   // Hàm xử lý submit đăng ký nhận thông tin
-const handleRegisterSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setRegisterLoading(true);
-  setRegisterError('');
-  // Giả lập gửi API, bạn thay bằng API thực tế nếu có
-  try {
-    if (!registerForm.name || !registerForm.phone) {
-      setRegisterError('Vui lòng nhập đầy đủ họ tên và số điện thoại!');
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegisterLoading(true);
+    setRegisterError('');
+    // Giả lập gửi API, bạn thay bằng API thực tế nếu có
+    try {
+      if (!registerForm.name || !registerForm.phone) {
+        setRegisterError('Vui lòng nhập đầy đủ họ tên và số điện thoại!');
+        setRegisterLoading(false);
+        return;
+      }
+      // await fetch('/api/register-stock', { method: 'POST', body: JSON.stringify(registerForm) })
+      setTimeout(() => {
+        setShowRegisterModal(false);
+        setShowSuccessModal(true);
+        setRegisterLoading(false);
+        setRegisterForm({ name: '', phone: '', email: '' });
+      }, 1000);
+    } catch (err) {
+      setRegisterError('Đăng ký thất bại, vui lòng thử lại!');
       setRegisterLoading(false);
-      return;
     }
-    // await fetch('/api/register-stock', { method: 'POST', body: JSON.stringify(registerForm) })
-    setTimeout(() => {
-      setShowRegisterModal(false);
-      setShowSuccessModal(true);
-      setRegisterLoading(false);
-      setRegisterForm({ name: '', phone: '', email: '' });
-    }, 1000);
-  } catch (err) {
-    setRegisterError('Đăng ký thất bại, vui lòng thử lại!');
-    setRegisterLoading(false);
-  }
-};
+  };
 
   return (
     <div className="container mx-auto px-40 py-8">
@@ -373,103 +374,103 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Khung ảnh/video chính và thumbnails */}
         <div className="w-[590px]">
-            <div className="sticky top-24">
+          <div className="sticky top-24">
 
-          {/* Khung hiển thị chính */}
-          <div className="bg-gray-100 rounded-xl relative w-full aspect-square mb-4 overflow-hidden">
-            {product.video && product.video.length > 0 && selectedImageIndex === -1 ? (
-              <video
-                ref={mainVideoRef}
-                src={`http://localhost:3000/video/${product.video[0]}`}
-                controls
-                autoPlay
-                loop
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-contain"
-                poster={getImageUrl(images[0])}
-              />
-            ) : (
-              <img
-                src={getImageUrl(images[selectedImageIndex] || images[0])}
-                alt={product.TenSP}
-                className="absolute inset-0 w-full h-full object-contain"
-              />
-            )}
-          </div>
-
-          {/* Thumbnails với scroll */}
-          <div className="relative">
-            {/* Nút scroll trái */}
-            <button 
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-              onClick={() => {
-                const container = document.getElementById('thumbnails');
-                if (container) container.scrollLeft -= 100;
-              }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            {/* Container thumbnails với scroll */}
-            <div 
-              id="thumbnails"
-              className="flex gap-2 overflow-x-auto scrollbar-hide px-8 scroll-smooth"
-            >
-              {/* Thumbnail video */}
-              {product.video && product.video.length > 0 && (
-                <div 
-                  className="flex-shrink-0 w-20 h-20 bg-black rounded-lg cursor-pointer relative overflow-hidden"
-                  onClick={() => setSelectedImageIndex(-1)}
-                >
-                  <video
-                    ref={thumbVideoRef}
-                    src={`http://localhost:3000/video/${product.video[0]}`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    muted
-                    playsInline
-                    autoPlay
-                    loop
-                    // Không cần controls
-                  />
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </span>
-                </div>
-              )}
-              
-              {/* Thumbnails ảnh */}
-              {images.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={getImageUrl(img)}
-                  alt={`${product.TenSP} - ảnh ${idx + 1}`}
-                  className={`flex-shrink-0 w-20 h-20 object-cover rounded-lg border-2 cursor-pointer transition
-                    ${selectedImageIndex === idx ? 'border-blue-500' : 'border-transparent hover:border-gray-300'}`}
-                  onClick={() => handleThumbnailClick(idx)} // Sử dụng hàm xử lý mới
+            {/* Khung hiển thị chính */}
+            <div className="bg-gray-100 rounded-xl relative w-full aspect-square mb-4 overflow-hidden">
+              {product.video && product.video.length > 0 && selectedImageIndex === -1 ? (
+                <video
+                  ref={mainVideoRef}
+                  src={`http://localhost:3000/video/${product.video[0]}`}
+                  controls
+                  autoPlay
+                  loop
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-contain"
+                  poster={getImageUrl(images[0])}
                 />
-              ))}
+              ) : (
+                <img
+                  src={getImageUrl(images[selectedImageIndex] || images[0])}
+                  alt={product.TenSP}
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+              )}
             </div>
 
-            {/* Nút scroll phải */}
-            <button 
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-              onClick={() => {
-                const container = document.getElementById('thumbnails');
-                if (container) container.scrollLeft += 100;
-              }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {/* Thumbnails với scroll */}
+            <div className="relative">
+              {/* Nút scroll trái */}
+              <button
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                onClick={() => {
+                  const container = document.getElementById('thumbnails');
+                  if (container) container.scrollLeft -= 100;
+                }}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Container thumbnails với scroll */}
+              <div
+                id="thumbnails"
+                className="flex gap-2 overflow-x-auto scrollbar-hide px-8 scroll-smooth"
+              >
+                {/* Thumbnail video */}
+                {product.video && product.video.length > 0 && (
+                  <div
+                    className="flex-shrink-0 w-20 h-20 bg-black rounded-lg cursor-pointer relative overflow-hidden"
+                    onClick={() => setSelectedImageIndex(-1)}
+                  >
+                    <video
+                      ref={thumbVideoRef}
+                      src={`http://localhost:3000/video/${product.video[0]}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      muted
+                      playsInline
+                      autoPlay
+                      loop
+                    // Không cần controls
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
+                  </div>
+                )}
+
+                {/* Thumbnails ảnh */}
+                {images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={getImageUrl(img)}
+                    alt={`${product.TenSP} - ảnh ${idx + 1}`}
+                    className={`flex-shrink-0 w-20 h-20 object-cover rounded-lg border-2 cursor-pointer transition
+                    ${selectedImageIndex === idx ? 'border-blue-500' : 'border-transparent hover:border-gray-300'}`}
+                    onClick={() => handleThumbnailClick(idx)} // Sử dụng hàm xử lý mới
+                  />
+                ))}
+              </div>
+
+              {/* Nút scroll phải */}
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                onClick={() => {
+                  const container = document.getElementById('thumbnails');
+                  if (container) container.scrollLeft += 100;
+                }}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-</div>
         {/* Thông tin sản phẩm */}
         <div className="flex-1">
           <h1 className="text-[24px] font-family-Arial font-bold mb-2">
@@ -531,7 +532,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
           {/* Ưu đãi*/}
           <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm w-[569px]">
             <div className="flex items-center mb-2">
-              <svg className="w-6 h-6 text-gray-700 mr-2" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor"/><path d="M7 7V5a2 2 0 114 0v2" stroke="currentColor"/><circle cx="17" cy="12" r="1" fill="currentColor"/></svg>
+              <svg className="w-6 h-6 text-gray-700 mr-2" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" /><path d="M7 7V5a2 2 0 114 0v2" stroke="currentColor" /><circle cx="17" cy="12" r="1" fill="currentColor" /></svg>
               <span className="font-bold text-[13px]">Ưu đãi</span>
             </div>
             <div className="font-bold text-red-600 mb-1 text-[13px]">I. Ưu đãi thanh toán</div>
@@ -554,85 +555,85 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
           </div>
           {/* Nút mua hàng */}
           <div className="flex flex-col items-center gap-4 mb-6">
-  {selectedVariant?.so_luong_hang === 0 ? (
-    // Nếu hết hàng, hiển thị UI đặc biệt
-    <div className="w-[535px] flex flex-col items-center">
-      <div className="font-bold text-xl text-center mb-4 mt-2">ĐĂNG KÝ NHẬN THÔNG TIN KHI CÓ HÀNG</div>
-      <button
-        className="w-full h-[48px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition"
-        onClick={() => setShowRegisterModal(true)}
-      >
-        ĐĂNG KÝ NHẬN THÔNG TIN
-      </button>
-      <button className="w-full h-[68px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition flex flex-col items-center justify-center">
-        <span>SẢN PHẨM NGỪNG KINH DOANH</span>
-        <span className="text-[14px] font-normal">(Vui lòng liên hệ trực tiếp)</span>
-      </button>
-      <button className="w-full h-[48px] bg-blue-600 text-white rounded-lg font-bold text-[14px] hover:bg-blue-700 transition">
-        <Link href="" as={`/categories/${product.id_danhmuc}`}>
-            Xem thêm sản phẩm khác
-        </Link>
-      </button>
-    </div>
-  ) : (
-    // Nếu còn hàng, hiển thị nút mua hàng bình thường
-    <>
-      <button 
-        className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
-        onClick={() => {
-          if (!product || !selectedVariant) return;
-          
-          // Thêm sản phẩm chính vào giỏ hàng
-          dispatch(addToCart({
-            productId: product._id,
-            variantId: selectedVariant._id,
-            name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
-            price: price,
-            originPrice: originPrice,
-            image: getImageUrl(selectedVariant.hinh || product.hinh),
-            colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
-            selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
-            colorName: selectedVariant.mau || '',
-            quantity: 1,
-          }));
-          
-          // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng
-          selectedAccessories.forEach(accessoryId => {
-            const accessory = accessories.find(acc => acc._id === accessoryId);
-            if (accessory) {
-              const accessoryVariant = accessory.variants?.[0];
-              const accessoryPrice = accessory.gia ?? accessoryVariant?.gia ?? 0;
-              dispatch(addToCart({
-                productId: accessory._id,
-                variantId: accessoryVariant?._id || accessory._id,
-                name: accessory.TenSP,
-                price: accessoryPrice,
-                originPrice: accessoryPrice,
-                image: getImageUrl(accessory.hinh),
-                colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
-                selectedColor: 0,
-                colorName: accessoryVariant?.mau || '',
-                quantity: 1,
-              }));
-            }
-          });
-          
-          // Hiển thị thông báo thành công
-          setShowCartSuccess(true);
-          setTimeout(() => setShowCartSuccess(false), 3000);
-        }}
-      >
-        Mua {selectedAccessories.length + 1} sản phẩm
-      </button>
-      <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
-        </svg>
-        Thu cũ đổi mới
-      </button>
-    </>
-  )}
-</div>
+            {selectedVariant?.so_luong_hang === 0 ? (
+              // Nếu hết hàng, hiển thị UI đặc biệt
+              <div className="w-[535px] flex flex-col items-center">
+                <div className="font-bold text-xl text-center mb-4 mt-2">ĐĂNG KÝ NHẬN THÔNG TIN KHI CÓ HÀNG</div>
+                <button
+                  className="w-full h-[48px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition"
+                  onClick={() => setShowRegisterModal(true)}
+                >
+                  ĐĂNG KÝ NHẬN THÔNG TIN
+                </button>
+                <button className="w-full h-[68px] bg-red-600 text-white rounded-lg font-bold text-[14px] mb-3 hover:bg-red-700 transition flex flex-col items-center justify-center">
+                  <span>SẢN PHẨM NGỪNG KINH DOANH</span>
+                  <span className="text-[14px] font-normal">(Vui lòng liên hệ trực tiếp)</span>
+                </button>
+                <button className="w-full h-[48px] bg-blue-600 text-white rounded-lg font-bold text-[14px] hover:bg-blue-700 transition">
+                  <Link href="" as={`/categories/${product.id_danhmuc}`}>
+                    Xem thêm sản phẩm khác
+                  </Link>
+                </button>
+              </div>
+            ) : (
+              // Nếu còn hàng, hiển thị nút mua hàng bình thường
+              <>
+                <button
+                  className="w-[570px] h-[64px] bg-blue-600 text-white py-3 rounded-lg font-bold text-[17px] hover:bg-blue-700 transition"
+                  onClick={() => {
+                    if (!product || !selectedVariant) return;
+
+                    // Thêm sản phẩm chính vào giỏ hàng
+                    dispatch(addToCart({
+                      productId: product._id,
+                      variantId: selectedVariant._id,
+                      name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+                      price: price,
+                      originPrice: originPrice,
+                      image: getImageUrl(selectedVariant.hinh || product.hinh),
+                      colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+                      selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+                      colorName: selectedVariant.mau || '',
+                      quantity: 1,
+                    }));
+
+                    // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng
+                    selectedAccessories.forEach(accessoryId => {
+                      const accessory = accessories.find(acc => acc._id === accessoryId);
+                      if (accessory) {
+                        const accessoryVariant = accessory.variants?.[0];
+                        const accessoryPrice = accessory.gia ?? accessoryVariant?.gia ?? 0;
+                        dispatch(addToCart({
+                          productId: accessory._id,
+                          variantId: accessoryVariant?._id || accessory._id,
+                          name: accessory.TenSP,
+                          price: accessoryPrice,
+                          originPrice: accessoryPrice,
+                          image: getImageUrl(accessory.hinh),
+                          colors: accessory.variants?.map(v => v.mau).filter(Boolean) || [],
+                          selectedColor: 0,
+                          colorName: accessoryVariant?.mau || '',
+                          quantity: 1,
+                        }));
+                      }
+                    });
+
+                    // Hiển thị thông báo thành công
+                    setShowCartSuccess(true);
+                    setTimeout(() => setShowCartSuccess(false), 3000);
+                  }}
+                >
+                  Mua {selectedAccessories.length + 1} sản phẩm
+                </button>
+                <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
+                  </svg>
+                  Thu cũ đổi mới
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
       {/* Mua kèm giá sốc */}
@@ -643,7 +644,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
             {/* Sản phẩm chính */}
             <div className="flex flex-col items-center w-[200px] bg-#F8F9FA">
               <img src={getImageUrl(images[0])} alt={product.TenSP} className="w-28 h-28 object-contain mb-2"
-              style={{ backgroundColor: '#F8F9FA' }}/>
+                style={{ backgroundColor: '#F8F9FA' }} />
               <div className="font-medium text-center mb-1">{product.TenSP}{variantName && ` ${variantName}`}</div>
               <div className="text-blue-600 font-bold mb-1 text-lg">{price.toLocaleString()}₫</div>
               {price < originPrice && (
@@ -675,7 +676,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               <div
                 id="accessories-slider"
                 className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
-               style={{
+                style={{
                   width: 700,
                   scrollBehavior: 'smooth'
                 }}>
@@ -694,12 +695,11 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                     <div className="text-blue-600 font-bold mb-2">
                       {(acc.gia ?? acc.variants?.[0]?.gia ?? 0).toLocaleString()}₫
                     </div>
-                    <button 
-                      className={`${
-                        selectedAccessories.includes(acc._id)
-                          ? "bg-red-100 text-red-600 border-red-500"
-                          : "border-blue-500 text-blue-600"
-                      } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
+                    <button
+                      className={`${selectedAccessories.includes(acc._id)
+                        ? "bg-red-100 text-red-600 border-red-500"
+                        : "border-blue-500 text-blue-600"
+                        } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
                       onClick={() => toggleAccessory(acc._id)}
                     >
                       {selectedAccessories.includes(acc._id) ? "Bỏ chọn" : "Chọn sản phẩm"}
@@ -727,11 +727,11 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
               <div className="text-2xl font-bold text-blue-700 mb-4">
                 {calculateTotal().toLocaleString()}₫
               </div>
-              <button 
+              <button
                 className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
                 onClick={() => {
                   if (!product || !selectedVariant) return;
-                  
+
                   // Thêm sản phẩm chính vào giỏ hàng
                   dispatch(addToCart({
                     productId: product._id,
@@ -766,7 +766,7 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
                       }));
                     }
                   });
-                  
+
                   // Hiển thị thông báo thành công
                   setShowCartSuccess(true);
                   setTimeout(() => setShowCartSuccess(false), 3000);
@@ -782,197 +782,205 @@ const handleRegisterSubmit = async (e: React.FormEvent) => {
       <div className="mt-12">
         <h2 className="text-xl font-bold mb-4">Sản phẩm tương tự</h2>
         <div className="relative" style={{ overflow: "hidden" }}>
-  {/* Nút trái */}
-  <button
-    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-    style={{ marginLeft: '4px' }}
-    onClick={() => {
-      const container = document.getElementById('related-slider');
-      if (container) container.scrollLeft -= 300;
-    }}
-    type="button"
-  >
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-    </svg>
-  </button>
-  {/* Slide sản phẩm liên quan */}
-  <div
-    id="related-slider"
-    className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
-    style={{ scrollBehavior: 'smooth', height: 380 }}
-  >
-    {allProducts
-      .filter(
-        p =>
-          p.id_danhmuc === product.id_danhmuc &&
-          p._id !== product._id &&
-          (p.an_hien === undefined || p.an_hien === true) &&
-          // Ẩn sản phẩm tương tự nếu tất cả variant đều hết hàng
-          (Array.isArray(p.variants)
-            ? p.variants.some(v => v.so_luong_hang > 0)
-            : true)
-      )
-      .map(sp => {
-        const giaGoc = sp.variants?.[0]?.gia_goc ?? sp.Gia ?? 0;
-        const giaBan = sp.gia ?? sp.variants?.[0]?.gia ?? sp.Gia ?? 0;
-        const discount = giaGoc > giaBan ? Math.round(100 - (giaBan / giaGoc) * 100) : 0;
-        const dungLuong = sp.variants?.[0]?.dung_luong ? ` ${sp.variants[0].dung_luong}` : "";
-        return (
-          <Link key={sp._id} href={`/product/${sp._id}`} className="bg-white rounded-xl shadow p-4 flex flex-col w-[280px] h-[370px] relative flex-shrink-0 hover:shadow-lg transition">
-            {/* Badge giảm giá */}
-            {discount > 0 && (
-              <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded z-10">
-                Giảm {discount}%
-              </div>
-            )}
-            {/* Badge trả góp */}
-            <div className="absolute top-2 right-2">
-              <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
-                Trả góp 0%
-              </span>
-            </div>
-            <img
-              src={getImageUrl(sp.hinh)}
-              alt={sp.TenSP}
-              className="w-full h-[250px] object-contain mb-2 mt-6"
-            />
-            <div className="font-bold text-[16px] line-clamp-2 mb-2 text-left pl-5">
-              {sp.TenSP}{dungLuong}
-            </div>
-            <div className="flex items-end gap-2 pl-5">
-              <span className="text-blue-600 font-bold text-[15px]">
-                {giaBan.toLocaleString()}<sup>₫</sup>
-              </span>
-              {giaGoc > giaBan && (
-                <span className="text-gray-400 line-through text-sm">
-                  {giaGoc.toLocaleString()}<sup>₫</sup>
-                </span>
-              )}
-            </div>
-          </Link>
-        );
-      })}
-  </div>
-  {/* Nút phải */}
-  <button
-    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-    style={{ marginRight: '4px' }}
-    onClick={() => {
-      const container = document.getElementById('related-slider');
-      if (container) container.scrollLeft += 300;
-    }}
-    type="button"
-  >
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  </button>
-      </div>
-        
+          {/* Nút trái */}
+          <button
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+            style={{ marginLeft: '4px' }}
+            onClick={() => {
+              const container = document.getElementById('related-slider');
+              if (container) container.scrollLeft -= 300;
+            }}
+            type="button"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          {/* Slide sản phẩm liên quan */}
+          <div
+            id="related-slider"
+            className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
+            style={{ scrollBehavior: 'smooth', height: 380 }}
+          >
+            {allProducts
+              .filter(
+                p =>
+                  p.id_danhmuc === product.id_danhmuc &&
+                  p._id !== product._id &&
+                  (p.an_hien === undefined || p.an_hien === true) &&
+                  // Ẩn sản phẩm tương tự nếu tất cả variant đều hết hàng
+                  (Array.isArray(p.variants)
+                    ? p.variants.some(v => v.so_luong_hang > 0)
+                    : true)
+              )
+              .map(sp => {
+                const giaGoc = sp.variants?.[0]?.gia_goc ?? sp.Gia ?? 0;
+                const giaBan = sp.gia ?? sp.variants?.[0]?.gia ?? sp.Gia ?? 0;
+                const discount = giaGoc > giaBan ? Math.round(100 - (giaBan / giaGoc) * 100) : 0;
+                const dungLuong = sp.variants?.[0]?.dung_luong ? ` ${sp.variants[0].dung_luong}` : "";
+                return (
+                  <Link key={sp._id} href={`/product/${sp._id}`} className="bg-white rounded-xl shadow p-4 flex flex-col w-[280px] h-[370px] relative flex-shrink-0 hover:shadow-lg transition">
+                    {/* Badge giảm giá */}
+                    {discount > 0 && (
+                      <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded z-10">
+                        Giảm {discount}%
+                      </div>
+                    )}
+                    {/* Badge trả góp */}
+                    <div className="absolute top-2 right-2">
+                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded shadow-sm">
+                        Trả góp 0%
+                      </span>
+                    </div>
+                    <img
+                      src={getImageUrl(sp.hinh)}
+                      alt={sp.TenSP}
+                      className="w-full h-[250px] object-contain mb-2 mt-6"
+                    />
+                    <div className="font-bold text-[16px] line-clamp-2 mb-2 text-left pl-5">
+                      {sp.TenSP}{dungLuong}
+                    </div>
+                    <div className="flex items-end gap-2 pl-5">
+                      <span className="text-blue-600 font-bold text-[15px]">
+                        {giaBan.toLocaleString()}<sup>₫</sup>
+                      </span>
+                      {giaGoc > giaBan && (
+                        <span className="text-gray-400 line-through text-sm">
+                          {giaGoc.toLocaleString()}<sup>₫</sup>
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+          {/* Nút phải */}
+          <button
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+            style={{ marginRight: '4px' }}
+            onClick={() => {
+              const container = document.getElementById('related-slider');
+              if (container) container.scrollLeft += 300;
+            }}
+            type="button"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
       </div>
 
-      
+
       {/* Thông số  */}
       <div className="mt-8">
         <div className="border-b border-gray-200">
           <div className="flex gap-4">
-            <button 
-              className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                activeTab === 'thongso' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-              }`}
+
+
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'thongso' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
               onClick={() => setActiveTab('thongso')}
             >
               Thông số kỹ thuật
             </button>
-            <button 
-              className={`px-4 py-2 text-sm font-medium border-b-2 ${
-                activeTab === 'baiviet' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-              }`}
+
+            {/*bình luận đánh giá  thanh hoài */}
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'baiviet' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
+                }`}
               onClick={() => setActiveTab('baiviet')}
             >
-              Bài viết đánh giá
+              Bình luận đánh giá
             </button>
+            {/*bình luận đánh giá  thanh hoài */}
+
           </div>
         </div>
 
         <div className="py-6">
           {activeTab === 'thongso' && <SpecSection />}
-          {activeTab === 'baiviet' && <div>Nội dung bài viết đánh giá</div>}
+          {activeTab === 'baiviet' && product?._id && (
+            <ProductReviews ma_san_pham={product._id} ma_nguoi_dung={user?._id || ''} />
+          )}
+          {/*bình luận đánh giá  thanh hoài */}
         </div>
+
       </div>
       {/* Modal đăng ký nhận thông tin */}
-{showRegisterModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] relative animate-fadeIn">
-      <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowRegisterModal(false)}>&times;</button>
-      <h2 className="text-xl font-bold text-center mb-4">Đăng Ký Nhận Tin</h2>
-      <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
-        <input
-          className="border rounded px-4 py-2"
-          placeholder="Họ tên (bắt buộc)"
-          value={registerForm.name}
-          onChange={e => setRegisterForm(f => ({ ...f, name: e.target.value }))}
-        />
-        <input
-          className="border rounded px-4 py-2"
-          placeholder="Số điện thoại (bắt buộc)"
-          value={registerForm.phone}
-          onChange={e => setRegisterForm(f => ({ ...f, phone: e.target.value }))}
-        />
-        <input
-          className="border rounded px-4 py-2"
-          placeholder="Địa chỉ email (để nhận phản hồi qua email)"
-          value={registerForm.email}
-          onChange={e => setRegisterForm(f => ({ ...f, email: e.target.value }))}
-        />
-        {registerError && <div className="text-red-500 text-sm text-center">{registerError}</div>}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition"
-          disabled={registerLoading}
-        >
-          {registerLoading ? 'Đang gửi...' : 'ĐĂNG KÝ'}
-        </button>
-      </form>
-    </div>
-  </div>
-)}
-{/* Modal đăng ký thành công */}
-{showSuccessModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-lg p-8 w-[780px] relative animate-fadeIn">
-      <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowSuccessModal(false)}>&times;</button>
-      <div className="flex flex-col items-center">
-        <div className="mb-4">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="32" cy="32" r="32" fill="#FEE2E2"/>
-            <path d="M20 32L28 40L44 24" stroke="#22C55E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+      {showRegisterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] relative animate-fadeIn">
+            <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowRegisterModal(false)}>&times;</button>
+            <h2 className="text-xl font-bold text-center mb-4">Đăng Ký Nhận Tin</h2>
+            <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+              <input
+                className="border rounded px-4 py-2"
+                placeholder="Họ tên (bắt buộc)"
+                value={registerForm.name}
+                onChange={e => setRegisterForm(f => ({ ...f, name: e.target.value }))}
+              />
+              <input
+                className="border rounded px-4 py-2"
+                placeholder="Số điện thoại (bắt buộc)"
+                value={registerForm.phone}
+                onChange={e => setRegisterForm(f => ({ ...f, phone: e.target.value }))}
+              />
+              <input
+                className="border rounded px-4 py-2"
+                placeholder="Địa chỉ email (để nhận phản hồi qua email)"
+                value={registerForm.email}
+                onChange={e => setRegisterForm(f => ({ ...f, email: e.target.value }))}
+              />
+              {registerError && <div className="text-red-500 text-sm text-center">{registerError}</div>}
+              <button
+                type="submit"
+                className="bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition"
+                disabled={registerLoading}
+              >
+                {registerLoading ? 'Đang gửi...' : 'ĐĂNG KÝ'}
+              </button>
+            </form>
+          </div>
         </div>
-        <div className="text-green-600 font-bold text-lg mb-2 text-center">Đăng ký nhận thông tin thành công</div>
-        <div className="text-gray-700 text-center mb-4">Cảm ơn bạn đã để lại thông tin, PolySmart sẽ liên hệ lại với bạn trong thời gian nhanh nhất.</div>
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition"
-          onClick={() => setShowSuccessModal(false)}
-        >
-          Quay lại danh sách sản phẩm
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-{/* Thông báo thêm vào giỏ hàng thành công */}
-{showCartSuccess && (
-  <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
-    <div className="flex items-center gap-2">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
-      <span>Đã thêm vào giỏ hàng thành công!</span>
-    </div>
-  </div>
-)}
+      )}
+      {/* Modal đăng ký thành công */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-[780px] relative animate-fadeIn">
+            <button className="absolute top-3 right-3 text-2xl" onClick={() => setShowSuccessModal(false)}>&times;</button>
+            <div className="flex flex-col items-center">
+              <div className="mb-4">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="32" r="32" fill="#FEE2E2" />
+                  <path d="M20 32L28 40L44 24" stroke="#22C55E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="text-green-600 font-bold text-lg mb-2 text-center">Đăng ký nhận thông tin thành công</div>
+              <div className="text-gray-700 text-center mb-4">Cảm ơn bạn đã để lại thông tin, PolySmart sẽ liên hệ lại với bạn trong thời gian nhanh nhất.</div>
+              <button
+                className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Quay lại danh sách sản phẩm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Thông báo thêm vào giỏ hàng thành công */}
+      {showCartSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Đã thêm vào giỏ hàng thành công!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

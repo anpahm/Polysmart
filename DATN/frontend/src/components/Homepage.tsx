@@ -42,6 +42,7 @@ interface NewsItem {
   ngay: string;
   hinh: string;
   luot_xem?: number;
+  id_danhmuc: string;
 }
 
 const getImageUrl = (url: string | string[]) => {
@@ -1515,8 +1516,9 @@ const HomePage = () => {
               .sort((a, b) => (b.luot_xem || 0) - (a.luot_xem || 0))
               .slice(0, 3)
               .map(item => (
-                <div
+                <Link
                   key={item._id}
+                  href={`/news/${item.id_danh_muc._id}/${item._id}`}
                   className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group flex flex-col"
                 >
                   <img
@@ -1525,11 +1527,13 @@ const HomePage = () => {
                     className="w-full h-[220px] object-cover"
                   />
                   <div className="flex-1 flex flex-col p-4">
-                    <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition">{item.tieu_de}</h3>
+                    <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                      {item.tieu_de}
+                    </h3>
                     <div className="text-gray-500 text-sm mb-2 line-clamp-2">{item.mo_ta}</div>
                     <div className="text-gray-400 text-xs mt-auto">{new Date(item.ngay).toLocaleDateString()}</div>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
           <div className="flex justify-center mt-6">

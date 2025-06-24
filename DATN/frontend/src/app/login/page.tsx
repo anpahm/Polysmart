@@ -23,6 +23,7 @@ export default function LoginPage() {
         const response = await fetchApi(API_ENDPOINTS.GET_USER);
         if (response && response.user) {
           dispatch(setUser({
+            _id: response.user._id,
             TenKH: response.user.TenKH,
             email: response.user.email,
             Sdt: response.user.Sdt,
@@ -30,6 +31,7 @@ export default function LoginPage() {
             sinh_nhat: response.user.sinh_nhat,
             dia_chi: response.user.dia_chi,
             avatar: response.user.avatar,
+            role: response.user.role,
           }));
           router.push('/');
         }
@@ -76,6 +78,7 @@ export default function LoginPage() {
         console.log("Login: User data from API:", userResponse);
         localStorage.setItem('user', JSON.stringify(userResponse)); // Lưu thông tin user vào localStorage
         dispatch(setUser({
+          _id: userResponse._id,
           TenKH: userResponse.TenKH,
           email: userResponse.email,
           Sdt: userResponse.Sdt,
@@ -83,6 +86,7 @@ export default function LoginPage() {
           sinh_nhat: userResponse.sinh_nhat,
           dia_chi: userResponse.dia_chi,
           avatar: userResponse.avatar,
+          role: userResponse.role,
         }));
       }
 

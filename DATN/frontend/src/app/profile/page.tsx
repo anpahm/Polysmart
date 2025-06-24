@@ -528,8 +528,8 @@ export default function ProfilePage() {
                 <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5" onClick={() => togglePasswordVisibility('currentPassword')}>
                   {showCurrentPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.774 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.774 3.162 10.065 7.5-.241.85-1.041 1.595-1.743 2.115M17.25 12L20.25 12" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                     </svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
@@ -622,61 +622,11 @@ export default function ProfilePage() {
       return (
         <div>
           <h2 className="text-xl font-bold mb-4">Lịch sử đánh giá sản phẩm</h2>
-          {loadingReviewHistory ? (
-            <div>Đang tải lịch sử đánh giá...</div>
-          ) : reviewError ? (
-            <div className="text-red-500">{reviewError}</div>
-          ) : reviewHistory.length === 0 ? (
-            <div className="text-gray-500">Bạn chưa có đánh giá sản phẩm nào.</div>
-          ) : (
-            <div className="space-y-6">
-              {reviewHistory.map((r) => (
-                <div key={r._id} className="border-b pb-4 flex gap-4">
-                  {/* Avatar user nếu có, nếu không thì avatar sản phẩm hoặc mặc định */}
-                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border bg-gray-50 flex items-center justify-center">
-                    {r.avatar ? (
-                      <img
-                        src={getImageUrl(r.avatar)}
-                        alt={r.ma_san_pham?.TenSP || 'avatar'}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : r.ma_san_pham?.hinh ? (
-                      <img
-                        src={getImageUrl(r.ma_san_pham.hinh)}
-                        alt={r.ma_san_pham.TenSP}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    )}
-                  </div>
-                  {/* Thông tin đánh giá */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-900">{r.ma_san_pham?.TenSP || 'Sản phẩm đã xóa'}</span>
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <svg key={i} className={`w-4 h-4 ${i < r.so_sao ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" /></svg>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-500">{new Date(r.ngay_danh_gia).toLocaleDateString('vi-VN', {year: 'numeric', month: 'long', day: 'numeric'})}</span>
-                    </div>
-                    <div className="mb-2 text-gray-800">{r.binh_luan}</div>
-                    {r.images && r.images.length > 0 && (
-                      <div className="flex gap-2 flex-wrap mt-2">
-                        {r.images.map((img, i) => (
-                          <img key={i} src={getImageUrl(img.duong_dan_anh)} alt={img.ghi_chu || 'review'} className="w-20 h-20 object-cover rounded border" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <p>Nội dung lịch sử đánh giá...</p>
         </div>
       );
     }
+    // fallback
     return null;
   };
 
@@ -685,7 +635,15 @@ export default function ProfilePage() {
       {/* Sidebar chỉ giữ lại sidebar có icon */}
       <aside className="w-64 bg-white shadow-md p-6">
         <nav className="space-y-4">
-          {/* Sidebar có icon */}
+          {PROFILE_TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === tab.key ? 'bg-orange-100 text-[#ee4d2d] font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+              onClick={() => handleTabChange(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'info' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
             onClick={() => setActiveTab('info')}

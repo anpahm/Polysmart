@@ -16,6 +16,8 @@ const PROFILE_TABS = [
   { key: "password", label: "Đổi mật khẩu" },
   { key: "avatar", label: "Ảnh đại diện" },
   { key: "reviews", label: "Lịch sử đánh giá sản phẩm" },
+  { key: "system", label: "Hệ thống" },
+  { key: "points", label: "Điểm thưởng" },
 ];
 
 // --- Đơn đặt hàng Shopee style ---
@@ -91,7 +93,6 @@ interface ReviewHistoryItem {
   binh_luan: string;
   ngay_danh_gia: string;
   images?: { duong_dan_anh: string; ghi_chu?: string }[];
-  avatar?: string; // avatar user nếu muốn show
 }
 
 export default function ProfilePage() {
@@ -622,7 +623,62 @@ export default function ProfilePage() {
       return (
         <div>
           <h2 className="text-xl font-bold mb-4">Lịch sử đánh giá sản phẩm</h2>
-          <p>Nội dung lịch sử đánh giá...</p>
+          {loadingReviewHistory ? (
+            <div>Đang tải lịch sử đánh giá...</div>
+          ) : reviewError ? (
+            <div className="text-red-500">{reviewError}</div>
+          ) : reviewHistory.length === 0 ? (
+            <div className="text-gray-500">Bạn chưa có đánh giá sản phẩm nào.</div>
+          ) : (
+            <div className="space-y-6">
+              {reviewHistory.map((r) => (
+                <div key={r._id} className="border-b pb-4 flex gap-4">
+                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border bg-gray-50 flex items-center justify-center">
+                    {r.ma_san_pham?.hinh ? (
+                      <img src={getImageUrl(r.ma_san_pham.hinh)} alt={r.ma_san_pham.TenSP} className="object-cover w-full h-full" />
+                    ) : (
+                      <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-gray-900">{r.ma_san_pham?.TenSP || 'Sản phẩm đã xóa'}</span>
+                      <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className={`w-4 h-4 ${i < r.so_sao ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" /></svg>
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">{new Date(r.ngay_danh_gia).toLocaleDateString('vi-VN', {year: 'numeric', month: 'long', day: 'numeric'})}</span>
+                    </div>
+                    <div className="mb-2 text-gray-800">{r.binh_luan}</div>
+                    {r.images && r.images.length > 0 && (
+                      <div className="flex gap-2 flex-wrap mt-2">
+                        {r.images.map((img, i) => (
+                          <img key={i} src={getImageUrl(img.duong_dan_anh)} alt={img.ghi_chu || 'review'} className="w-20 h-20 object-cover rounded border" />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (activeTab === "system") {
+      return (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Hệ thống</h2>
+          <p>Nội dung hệ thống, thông tin về các chức năng và cập nhật của hệ thống.</p>
+        </div>
+      );
+    }
+    if (activeTab === "points") {
+      return (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Điểm thưởng</h2>
+          <p>Nội dung điểm thưởng, thông tin về tích lũy và sử dụng điểm.</p>
         </div>
       );
     }
@@ -635,15 +691,6 @@ export default function ProfilePage() {
       {/* Sidebar chỉ giữ lại sidebar có icon */}
       <aside className="w-64 bg-white shadow-md p-6">
         <nav className="space-y-4">
-          {PROFILE_TABS.map(tab => (
-            <button
-              key={tab.key}
-              className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === tab.key ? 'bg-orange-100 text-[#ee4d2d] font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-              onClick={() => handleTabChange(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'info' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
             onClick={() => setActiveTab('info')}
@@ -666,20 +713,6 @@ export default function ProfilePage() {
             Đơn đặt hàng
           </button>
           <button
-            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'system' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('system')}
-          >
-            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            Hệ thống
-          </button>
-          <button
-            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'points' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('points')}
-          >
-            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.539 1.118l-3.38-2.454a1 1 0 00-1.176 0l-3.38 2.454c-.784.57-1.839-.197-1.54-1.118l1.519-4.674a1 1 0 00-.364-1.118L2.927 9.5c-.783-.57-.381-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.519-4.674z"></path></svg>
-            Điểm thưởng
-          </button>
-          <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'password' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
             onClick={() => setActiveTab('password')}
           >
@@ -699,6 +732,20 @@ export default function ProfilePage() {
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             Lịch sử đánh giá sản phẩm
+          </button>
+          <button
+            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'system' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setActiveTab('system')}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            Hệ thống
+          </button>
+          <button
+            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'points' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setActiveTab('points')}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.539 1.118l-3.38-2.454a1 1 0 00-1.176 0l-3.38 2.454c-.784.57-1.839-.197-1.54-1.118l1.519-4.674a1 1 0 00-.364-1.118L2.927 9.5c-.783-.57-.381-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.519-4.674z"></path></svg>
+            Điểm thưởng
           </button>
         </nav>
       </aside>

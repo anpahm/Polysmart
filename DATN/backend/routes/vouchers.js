@@ -2,16 +2,21 @@ const express = require('express');
 const router = express.Router();
 const voucherController = require('../controllers/voucherController');
 
-// Lấy tất cả voucher
-router.get('/', voucherController.getAllVouchers);
-// Lấy voucher theo mã
-router.get('/ma/:ma', voucherController.getVoucherByMa);
-// Tạo voucher mới
-router.post('/', voucherController.createVoucher);
-// Cập nhật voucher
-router.put('/:id', voucherController.updateVoucher);
-// Xóa voucher
-router.delete('/:id', voucherController.deleteVoucher);
+// Middleware để bảo vệ route (giả sử bạn có)
+// const { protect, admin } = require('../middleware/authMiddleware');
+
+// Route cho người dùng
+router.get('/apply/:code', voucherController.applyVoucher);
+
+// Routes cho admin
+router.route('/')
+    .get(voucherController.getAllVouchers)    // Lấy tất cả voucher
+    .post(voucherController.createVoucher);   // Tạo voucher mới
+
+router.route('/:id')
+    .get(voucherController.getVoucherById)     // Lấy voucher theo ID
+    .put(voucherController.updateVoucher)      // Cập nhật voucher
+    .delete(voucherController.deleteVoucher); // Xóa voucher
 
 // Lucky Wheel Result
 router.post('/luckywheel-result', voucherController.createLuckyWheelResult);

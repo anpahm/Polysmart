@@ -12,29 +12,28 @@ const PROFILE_TABS = [
   { key: "info", label: "Thông tin tài khoản" },
   { key: "address", label: "Địa chỉ nhận hàng" },
   { key: "orders", label: "Đơn đặt hàng" },
-  { key: "voucher", label: "Voucher" },
+  { key: "voucher", label: "Kho Voucher" },
   { key: "password", label: "Đổi mật khẩu" },
   { key: "avatar", label: "Ảnh đại diện" },
   { key: "reviews", label: "Lịch sử đánh giá sản phẩm" },
   { key: "system", label: "Hệ thống" },
-  { key: "points", label: "Điểm thưởng" },
 ];
 
 // --- Đơn đặt hàng Shopee style ---
 const ORDER_TABS = [
-  { key: 'all', label: 'Tất cả', count: 3 },
+  { key: 'all', label: 'Tất cả', count: 5 },
   { key: 'pending', label: 'Chờ thanh toán', count: 1 },
-  { key: 'shipping', label: 'Vận chuyển', count: 0 },
-  { key: 'waiting', label: 'Chờ giao hàng', count: 1 },
-  { key: 'completed', label: 'Hoàn thành', count: 1 },
-  { key: 'cancelled', label: 'Đã hủy', count: 0 },
-  { key: 'returned', label: 'Trả hàng/Hoàn tiền', count: 0 },
+  { key: 'shipping', label: 'Vận chuyển', count: 1 },
+  { key: 'waiting', label: 'Chờ giao hàng', count: 2 },
+  { key: 'completed', label: 'Hoàn thành', count: 2 },
+  { key: 'cancelled', label: 'Đã hủy', count: 1 },
+  { key: 'returned', label: 'Trả hàng/Hoàn tiền', count: 1 },
 ];
 const mockOrders = [
   {
     id: '1',
     shop: 'Shopee Choice Việt Nam',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productImg: 'https://shopdunk.com/images/thumbs/0035754_ipad-a16-11-inch-wi-fi_240.png',
     productName: 'Tai Nghe Nhét Tai Có Dây WEKOME YC08 Choice EL1-0741-7 Tích Hợp Micro, Cản Tiếng',
     productType: 'YC08 - TypeC',
     qty: 1,
@@ -42,9 +41,9 @@ const mockOrders = [
     oldPrice: 168000,
     status: 'waiting',
     statusText: 'CHỜ GIAO HÀNG',
-    statusColor: 'text-[#ee4d2d]',
-    delivered: true,
-    note: 'Vui lòng chỉ nhấn "Đã nhận được hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.',
+    statusColor: 'text-blue-600',
+    delivered: false,
+    note: 'Vui lòng chỉ nhấn "Đã nhận hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.',
     isChoice: true,
   },
   {
@@ -79,6 +78,91 @@ const mockOrders = [
     note: '',
     isChoice: false,
   },
+  // Đơn hàng mẫu: Vận chuyển
+  {
+    id: '4',
+    shop: 'Shopee Mall',
+    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productName: 'Bàn phím cơ Keychron K2',
+    productType: 'RGB - Gateron Brown',
+    qty: 1,
+    price: 1500000,
+    oldPrice: 1700000,
+    status: 'shipping',
+    statusText: 'ĐANG VẬN CHUYỂN',
+    statusColor: 'text-blue-400',
+    delivered: false,
+    note: '',
+    isChoice: false,
+  },
+  // Đơn hàng mẫu: Chờ giao hàng
+  {
+    id: '5',
+    shop: 'Apple Store',
+    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productName: 'iPhone 15 Pro Max',
+    productType: '256GB - Titan Xanh',
+    qty: 1,
+    price: 32990000,
+    oldPrice: 34990000,
+    status: 'waiting',
+    statusText: 'CHỜ GIAO HÀNG',
+    statusColor: 'text-blue-600',
+    delivered: false,
+    note: 'Vui lòng chỉ nhấn "Đã nhận được hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.',
+    isChoice: false,
+  },
+  // Đơn hàng mẫu: Hoàn thành
+  {
+    id: '6',
+    shop: 'Apple Store',
+    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productName: 'iPad Air 5',
+    productType: '64GB - Xám',
+    qty: 1,
+    price: 14500000,
+    oldPrice: 15500000,
+    status: 'completed',
+    statusText: 'HOÀN THÀNH',
+    statusColor: 'text-green-600',
+    delivered: true,
+    note: '',
+    isChoice: false,
+  },
+  // Đơn hàng mẫu: Đã hủy
+  {
+    id: '7',
+    shop: 'Tech accessories',
+    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productName: 'Sạc dự phòng 20000mAh',
+    productType: 'Màu đen',
+    qty: 1,
+    price: 350000,
+    oldPrice: 450000,
+    status: 'cancelled',
+    statusText: 'ĐÃ HỦY',
+    statusColor: 'text-red-500',
+    delivered: false,
+    note: '',
+    isChoice: false,
+  },
+  // Đơn hàng mẫu: Trả hàng/Hoàn tiền
+  {
+    id: '8',
+    shop: 'Shopee Choice Việt Nam',
+    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
+    productName: 'Chuột máy tính không dây',
+    productType: 'Màu trắng',
+    qty: 1,
+    price: 120000,
+    oldPrice: 150000,
+    status: 'returned',
+    statusText: 'TRẢ HÀNG/HOÀN TIỀN',
+    statusColor: 'text-orange-500',
+    delivered: true,
+    note: 'Yêu cầu trả hàng/hoàn tiền của bạn đã được xử lý.',
+    isChoice: true,
+  },
 ];
 
 // Thêm type cho review
@@ -104,6 +188,7 @@ export default function ProfilePage() {
   // Đơn đặt hàng: tab con
   const orderTypeQuery = searchParams.get("type");
   const [orderTab, setOrderTab] = useState(orderTypeQuery || "all");
+  const [orders, setOrders] = useState(mockOrders);
 
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
@@ -145,6 +230,45 @@ export default function ProfilePage() {
   const [reviewHistory, setReviewHistory] = useState<ReviewHistoryItem[]>([]);
   const [loadingReviewHistory, setLoadingReviewHistory] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  
+  // State for vouchers
+  const [userVouchers, setUserVouchers] = useState<any[]>([]);
+  const [voucherFilter, setVoucherFilter] = useState('all');
+  const [voucherCodeInput, setVoucherCodeInput] = useState('');
+  const [voucherMessage, setVoucherMessage] = useState('');
+  const [voucherError, setVoucherError] = useState('');
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
+
+  // Hàm lấy danh sách voucher của user từ backend (đặt ngoài useEffect)
+  const fetchUserVouchers = async () => {
+    if (!user || !user._id) return;
+    setLoadingVouchers(true);
+    setVoucherError('');
+    try {
+      const res = await fetch(`/api/user-vouchers?userId=${user._id}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setUserVouchers(data.data);
+      } else {
+        setUserVouchers([]);
+        setVoucherError('Không thể tải kho voucher.');
+      }
+    } catch (err) {
+      setUserVouchers([]);
+      setVoucherError('Có lỗi khi tải kho voucher.');
+    } finally {
+      setLoadingVouchers(false);
+    }
+  };
+
+  // Khi vào tab voucher thì load từ backend
+  useEffect(() => {
+    if (activeTab === 'voucher' && user && user._id) {
+      fetchUserVouchers();
+      setVoucherMessage('');
+      setVoucherError('');
+    }
+  }, [activeTab, user]);
 
   useEffect(() => {
     if (user) {
@@ -194,7 +318,7 @@ export default function ProfilePage() {
         })
         .finally(() => setLoadingReviewHistory(false));
     }
-  }, [activeTab, user?._id]);
+  }, [activeTab, user?._id, user?.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -327,13 +451,70 @@ export default function ProfilePage() {
     router.push(`?tab=orders&type=${key}`);
   };
 
+  const handleConfirmReceipt = (orderId: string) => {
+    // In a real app, this would be an API call.
+    // For now, we update the local state to simulate the change.
+    setOrders(currentOrders =>
+      currentOrders.map(order => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            status: 'completed',
+            statusText: 'HOÀN THÀNH',
+            statusColor: 'text-green-600',
+            note: '', // Clear the note after completion
+          };
+        }
+        return order;
+      })
+    );
+  };
+
+  // Hàm xử lý nhập mã voucher
+  const handleAddVoucher = async () => {
+    setVoucherMessage('');
+    setVoucherError('');
+    const code = voucherCodeInput.trim();
+    if (!code) {
+      setVoucherError('Vui lòng nhập mã voucher');
+      return;
+    }
+    if (!user || !user._id) {
+      setVoucherError('Bạn cần đăng nhập để lưu voucher!');
+      return;
+    }
+    // Kiểm tra trùng
+    if (userVouchers.some(v => (v.voucherCode || v.ma_voucher) === code.toUpperCase())) {
+      setVoucherError('Bạn đã lưu mã này rồi!');
+      return;
+    }
+    try {
+      // Gọi API backend để lưu voucher vào user-voucher
+      const res = await fetch('/api/user-vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user._id, code }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVoucherMessage('Đã lưu voucher thành công!');
+        setVoucherCodeInput('');
+        fetchUserVouchers(); // Reload lại danh sách
+        return;
+      }
+      setVoucherError(data.message || 'Mã voucher không hợp lệ hoặc đã hết lượt sử dụng/vô hiệu hóa.');
+    } catch (err) {
+      setVoucherError('Có lỗi khi kiểm tra/lưu mã voucher');
+    }
+  };
+
   // --- Render nội dung từng tab ---
   const renderContent = () => {
     if (activeTab === "orders") {
       // Đơn đặt hàng 
       const filteredOrders = orderTab === 'all'
-        ? mockOrders
-        : mockOrders.filter(order => order.status === orderTab);
+        ? orders
+        : orders.filter(order => order.status === orderTab);
       return (
         <div className="sm:px-0">
           <div className="max-w-[70.5rem] mx-auto">
@@ -344,14 +525,14 @@ export default function ProfilePage() {
                   key={tab.key}
                   className={`relative flex items-center justify-center min-w-[80px] py-2 px-1 sm:px-2 text-sm font-medium transition border-b-2 outline-none focus:outline-none text-center whitespace-nowrap ${
                     orderTab === tab.key
-                      ? 'border-[#ee4d2d] text-[#ee4d2d] bg-white'
-                      : 'border-transparent text-gray-700 hover:text-[#ee4d2d] bg-white'
+                      ? 'border-[#0066CC] text-[#0066CC] bg-white'
+                      : 'border-transparent text-gray-700 hover:text-[#0066CC] bg-white'
                   }`}
                   onClick={() => handleOrderTabChange(tab.key)}
                 >
                   <span>{tab.label}</span>
                   {tab.count > 0 && (
-                    <span className="ml-2 inline-block min-w-[20px] px-1 text-xs rounded-full bg-[#ee4d2d] text-white font-bold align-middle">
+                    <span className="ml-2 inline-block min-w-[20px] px-1 text-xs rounded-full bg-[#0066CC] text-white font-bold align-middle">
                       {tab.count}
                     </span>
                   )}
@@ -362,8 +543,8 @@ export default function ProfilePage() {
             <div className="bg-white py-4 border-b border-[#f2f2f2]">
               <input
                 type="text"
-                placeholder="Bạn có thể tìm kiếm theo tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
-                className="w-full border border-[#e5e5e5] rounded text-base px-5 py-3 focus:outline-none focus:border-[#ee4d2d] bg-[#fafafa]"
+                placeholder="Bạn có thể tìm kiếm theo Tên Sản phẩm"
+                className="w-full border border-[#e5e5e5] rounded text-base px-5 py-3 focus:outline-none focus:border-[#0066CC] bg-[#fafafa]"
               />
             </div>
           </div>
@@ -377,22 +558,14 @@ export default function ProfilePage() {
                 {/* Shop + trạng thái */}
                 <div className="flex items-center justify-between px-6 pt-4 pb-2 border-b border-[#f2f2f2]">
                   <div className="flex items-center gap-2">
-                    {order.isChoice && (
-                      <span className="bg-[#ee4d2d] text-white font-bold px-2 py-1 rounded text-xs mr-1">✔ Choice</span>
-                    )}
-                    <span className="text-base font-semibold text-gray-800">{order.shop}</span>
-                    <button className="ml-2 px-3 py-1 border border-[#ee4d2d] text-[#ee4d2d] rounded text-xs font-semibold hover:bg-[#fff0ea]">Chat</button>
-                    <button className="ml-2 px-3 py-1 border border-[#ee4d2d] text-[#ee4d2d] rounded text-xs font-semibold hover:bg-[#fff0ea]">Xem Shop</button>
-                  </div>
-                  <div className="flex items-center gap-2">
                     {order.delivered && (
                       <span className="flex items-center text-green-600 text-sm font-medium">
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" /></svg>
                         Giao hàng thành công
                       </span>
                     )}
-                    <span className={`${order.statusColor} text-sm font-bold uppercase`}>{order.statusText}</span>
                   </div>
+                  <span className={`${order.statusColor} text-sm font-bold uppercase`}>{order.statusText}</span>
                 </div>
                 {/* Sản phẩm - chiều ngang */}
                 <div className="flex items-center gap-4 px-6 py-4 border-b border-[#f2f2f2]">
@@ -403,8 +576,8 @@ export default function ProfilePage() {
                     <div className="text-xs text-gray-500">x{order.qty}</div>
                   </div>
                   <div className="text-right min-w-[120px] flex flex-col items-end justify-center">
-                    <span className="line-through text-gray-400 text-sm mr-2">₫{order.oldPrice.toLocaleString()}</span>
-                    <span className="text-[#ee4d2d] font-bold text-lg">₫{order.price.toLocaleString()}</span>
+                    <span className="line-through text-gray-400 text-sm mr-2">{order.oldPrice.toLocaleString()}₫</span>
+                    <span className="text-[#0066CC] font-bold text-lg">{order.price.toLocaleString()}₫</span>
                   </div>
                 </div>
                 {/* Chú thích nhỏ */}
@@ -417,12 +590,47 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600 text-base">Thành tiền:</span>
-                    <span className="text-[#ee4d2d] font-bold text-2xl">₫{order.price.toLocaleString()}</span>
+                    <span className="text-[#0066CC] font-bold text-2xl">{order.price.toLocaleString()}₫</span>
                   </div>
                   <div className="flex justify-end gap-3">
-                    <button className="bg-[#ee4d2d] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#d9441c] transition">Đã Nhận Hàng</button>
-                    <button className="border border-[#ee4d2d] text-[#ee4d2d] px-7 py-2 rounded font-bold text-base hover:bg-[#fff0ea] transition">Yêu Cầu Trả Hàng/Hoàn Tiền</button>
-                    <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">Liên Hệ Người Bán</button>
+                    {order.status === 'waiting' && (
+                      <>
+                        <button
+                          onClick={() => handleConfirmReceipt(order.id)}
+                          className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition"
+                        >
+                          Đã Nhận Hàng
+                        </button>
+                        <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                          Yêu Cầu Trả Hàng/Hoàn Tiền
+                        </button>
+                      </>
+                    )}
+                    {order.status === 'completed' && (
+                       <>
+                         <button className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition">
+                           Mua Lại
+                         </button>
+                         <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                           Đánh Giá
+                         </button>
+                       </>
+                    )}
+                     {order.status === 'pending' && (
+                       <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                         Hủy Đơn
+                       </button>
+                     )}
+                     {order.status === 'cancelled' && (
+                       <button className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition">
+                         Mua Lại
+                       </button>
+                     )}
+                     {order.status === 'returned' && (
+                       <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                         Xem Chi Tiết
+                       </button>
+                     )}
                   </div>
                 </div>
               </div>
@@ -529,8 +737,8 @@ export default function ProfilePage() {
                 <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5" onClick={() => togglePasswordVisibility('currentPassword')}>
                   {showCurrentPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.774 3.162 10.065 7.5-.241.85-1.041 1.595-1.743 2.115M17.25 12L20.25 12" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.774 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 100-6 3 3 0 000 6z" />
                     </svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
@@ -612,10 +820,117 @@ export default function ProfilePage() {
       );
     }
     if (activeTab === "voucher") {
+      // Lọc voucher theo filter
+      const filteredVouchers = userVouchers.filter(v => {
+        let expiresAt = v.detail?.ngay_ket_thuc || v.expiresAt || v.ngay_ket_thuc;
+        if (voucherFilter === 'expiring' && expiresAt) {
+          const timeLeft = new Date(expiresAt).getTime() - new Date().getTime();
+          const hoursLeft = timeLeft / (1000 * 3600);
+          return hoursLeft > 0 && hoursLeft < 12; // Dưới 12 tiếng
+        }
+        return true;
+      });
       return (
         <div>
-          <h2 className="text-xl font-bold mb-4">Voucher</h2>
-          <p>Nội dung điểm thưởng...</p>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Kho Voucher</h2>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border mb-6 flex items-center gap-4">
+            <label htmlFor="voucher-code" className="font-semibold text-gray-700">Mã Voucher</label>
+            <input
+              id="voucher-code"
+              type="text"
+              placeholder="Nhập mã voucher tại đây"
+              className="flex-grow border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={voucherCodeInput}
+              onChange={e => setVoucherCodeInput(e.target.value)}
+            />
+            <button
+              className="bg-gray-200 text-gray-700 font-semibold px-6 py-2 rounded-md hover:bg-gray-300"
+              onClick={handleAddVoucher}
+            >Lưu</button>
+          </div>
+          {voucherMessage && <div className="text-green-600 mb-2">{voucherMessage}</div>}
+          {voucherError && <div className="text-red-500 mb-2">{voucherError}</div>}
+          {/* Filter tabs */}
+          <div className="flex items-center gap-6 border-b mb-6">
+            <button
+              onClick={() => setVoucherFilter('all')}
+              className={`py-2 font-medium ${voucherFilter === 'all' ? 'text-[#0066CC] border-b-2 border-[#0066CC]' : 'text-gray-600'}`}
+            >
+              Tất cả ({userVouchers.length})
+            </button>
+            <button
+              onClick={() => setVoucherFilter('expiring')}
+              className={`py-2 font-medium ${voucherFilter === 'expiring' ? 'text-[#0066CC] border-b-2 border-[#0066CC]' : 'text-gray-600'}`}
+            >
+              Sắp hết hạn
+            </button>
+          </div>
+          {/* Voucher Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredVouchers.map(voucher => {
+              // Lấy dữ liệu từ detail nếu có
+              const detail = voucher.detail || {};
+              const isGift = voucher.type === 'gift';
+              const code = voucher.voucherCode || voucher.ma_voucher;
+              // Đặt các biến duy nhất ở đây, không lặp lại
+              const percent = detail.phan_tram_giam_gia || voucher.percent || voucher.phan_tram_giam_gia || 0;
+              const maxDiscount = detail.giam_toi_da || voucher.maxDiscount || voucher.giam_toi_da || 0;
+              const minSpend = detail.don_hang_toi_thieu || voucher.minSpend || voucher.don_hang_toi_thieu || 0;
+              const expiresAt = detail.ngay_ket_thuc || voucher.expiresAt || voucher.ngay_ket_thuc;
+              const description = detail.mo_ta || voucher.description || voucher.mo_ta || '';
+              const shopName = detail.shopName || voucher.shopName || (isGift ? 'SHOPEE' : 'POLYSMART');
+              const logo = detail.logo || voucher.logo || (isGift ? '' : '/images/voucherlogo.jpg');
+              return (
+                <div key={code} className="bg-white rounded-lg shadow-sm flex overflow-hidden relative border">
+                  {/* Banner mới nếu là gift voucher mới */}
+                  {voucher.isNew && (
+                    <div className="absolute top-0 right-0">
+                      <div className="w-20 h-20 overflow-hidden">
+                        <div className="absolute transform rotate-45 bg-[#D0011B] text-center text-white font-semibold py-1 right-[-30px] top-[15px] w-[100px] text-xs">
+                          Mới
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="w-1/4 bg-[#D0011B] flex items-center justify-center p-2 relative">
+                    <div
+                      className="absolute top-0 right-[-1px] h-full w-1 bg-repeat-y"
+                      style={{
+                        backgroundImage: 'radial-gradient(circle at 0 5px, white 4px, transparent 5px)',
+                        backgroundSize: '4px 10px'
+                      }}
+                    ></div>
+                    <div className="text-center">
+                      <img src={logo} alt={shopName} className="w-12 h-12 mx-auto mb-1 rounded-full bg-white object-contain p-1" />
+                      <span className="text-white font-bold text-sm uppercase">{shopName}</span>
+                    </div>
+                  </div>
+                  <div className="w-3/4 p-4 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-base">
+                        {percent > 0 ? `Giảm ${percent}%` : ''}
+                        {maxDiscount > 0 ? ` Giảm tối đa ₫${maxDiscount.toLocaleString()}` : ''}
+                        {percent === 0 && maxDiscount === 0 ? description : ''}
+                      </h3>
+                      <p className="text-gray-600 text-sm">Đơn Tối Thiểu ₫{minSpend.toLocaleString()}</p>
+                      <p className="text-gray-500 text-xs mt-2">
+                        Hiệu lực đến: {expiresAt ? new Date(expiresAt).toLocaleDateString('vi-VN') : '-'}
+                        {' | '}
+                        <Link href="#" className="text-blue-600 hover:underline">Điều Kiện</Link>
+                      </p>
+                    </div>
+                    <div className="text-right mt-2">
+                      <button className="bg-[#DBEAFE]/10 text-[#0066CC] border border-[#0066CC] px-4 py-1 rounded text-sm font-semibold">
+                        Dùng Ngay
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     }
@@ -674,14 +989,6 @@ export default function ProfilePage() {
         </div>
       );
     }
-    if (activeTab === "points") {
-      return (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Điểm thưởng</h2>
-          <p>Nội dung điểm thưởng, thông tin về tích lũy và sử dụng điểm.</p>
-        </div>
-      );
-    }
     // fallback
     return null;
   };
@@ -727,6 +1034,13 @@ export default function ProfilePage() {
             Ảnh đại diện
           </button>
           <button
+            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'voucher' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setActiveTab('voucher')}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+            Kho Voucher
+          </button>
+          <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'reviews' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
             onClick={() => setActiveTab('reviews')}
           >
@@ -739,13 +1053,6 @@ export default function ProfilePage() {
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             Hệ thống
-          </button>
-          <button
-            className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'points' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('points')}
-          >
-            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.539 1.118l-3.38-2.454a1 1 0 00-1.176 0l-3.38 2.454c-.784.57-1.839-.197-1.54-1.118l1.519-4.674a1 1 0 00-.364-1.118L2.927 9.5c-.783-.57-.381-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.519-4.674z"></path></svg>
-            Điểm thưởng
           </button>
         </nav>
       </aside>

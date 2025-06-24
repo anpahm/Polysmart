@@ -2,66 +2,129 @@ const Voucher = require('../models/voucherModel');
 const LuckyWheelResult = require('../models/luckyWheelResultModel');
 const UserVoucher = require('../models/userVoucherModel');
 
-// Lấy tất cả voucher
+// @desc    Lấy tất cả voucher (cho admin, có phân trang)
+// @route   GET /api/vouchers
+// @access  Private/Admin
 exports.getAllVouchers = async (req, res) => {
-  try {
-    const vouchers = await Voucher.find();
-    res.json({ success: true, data: vouchers });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const vouchers = await Voucher.find({}).sort({ createdAt: -1 });
+        res.json({ success: true, count: vouchers.length, data: vouchers });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server', error: error.message });
+    }
 };
 
-// Lấy voucher theo mã
-exports.getVoucherByMa = async (req, res) => {
-  try {
-    const { ma } = req.params;
-    const voucher = await Voucher.findOne({ ma });
-    if (!voucher) return res.status(404).json({ success: false, message: 'Voucher not found' });
-    res.json({ success: true, data: voucher });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+// @desc    Lấy một voucher bằng ID
+// @route   GET /api/vouchers/:id
+// @access  Private/Admin
+exports.getVoucherById = async (req, res) => {
+    try {
+        const voucher = await Voucher.findById(req.params.id);
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy voucher' });
+        }
+        res.json({ success: true, data: voucher });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server', error: error.message });
+    }
 };
 
-// Tạo voucher mới
+// @desc    Tạo voucher mới
+// @route   POST /api/vouchers
+// @access  Private/Admin
 exports.createVoucher = async (req, res) => {
-  try {
-    const voucher = new Voucher(req.body);
-    await voucher.save();
-    res.status(201).json({ success: true, data: voucher });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
+    try {
+        const { ma_voucher, mo_ta, phan_tram_giam_gia, giam_toi_da, don_hang_toi_thieu, so_luong, ngay_bat_dau, ngay_ket_thuc, trang_thai } = req.body;
+
+        const upper_ma_voucher = ma_voucher.toUpperCase();
+        const voucherExists = await Voucher.findOne({ ma_voucher: upper_ma_voucher });
+
+        if (voucherExists) {
+            return res.status(400).json({ success: false, message: 'Mã voucher này đã tồn tại' });
+        }
+
+        const voucher = new Voucher({
+            ma_voucher: upper_ma_voucher,
+            mo_ta,
+            phan_tram_giam_gia,
+            giam_toi_da,
+            don_hang_toi_thieu,
+            so_luong,
+            ngay_bat_dau,
+            ngay_ket_thuc,
+            trang_thai,
+        });
+
+        const createdVoucher = await voucher.save();
+        res.status(201).json({ success: true, data: createdVoucher });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({
+                success: false,
+                message: `Dữ liệu không hợp lệ: ${messages.join(', ')}`,
+                errors: messages,
+            });
+        } else {
+             console.error('Lỗi khi tạo voucher:', error);
+             res.status(500).json({ success: false, message: 'Lỗi server khi tạo voucher.', error: error.message });
+        }
+    }
 };
 
-// Cập nhật voucher
+// @desc    Cập nhật voucher
+// @route   PUT /api/vouchers/:id
+// @access  Private/Admin
 exports.updateVoucher = async (req, res) => {
-  const { id } = req.params;
-  const { used } = req.body;
-  try {
-    const update = { used };
-    const voucher = await Voucher.findByIdAndUpdate(
-      id,
-      update,
-      { new: true }
-    );
-    res.json({ success: true, data: voucher });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+    try {
+        // Nếu cập nhật mã voucher, cũng nên chuyển thành chữ hoa
+        if(req.body.ma_voucher) {
+            req.body.ma_voucher = req.body.ma_voucher.toUpperCase();
+        }
+
+        const voucher = await Voucher.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy voucher' });
+        }
+
+        res.json({ success: true, data: voucher });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({
+                success: false,
+                message: `Dữ liệu không hợp lệ: ${messages.join(', ')}`,
+                errors: messages,
+            });
+        } else if (error.code === 11000) { // Lỗi trùng key (E11000)
+            return res.status(400).json({ success: false, message: 'Mã voucher này đã tồn tại.' });
+        }
+        else {
+            console.error(`Lỗi khi cập nhật voucher ${req.params.id}:`, error);
+            res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật voucher.', error: error.message });
+        }
+    }
 };
 
-// Xóa voucher
+// @desc    Xóa voucher
+// @route   DELETE /api/vouchers/:id
+// @access  Private/Admin
 exports.deleteVoucher = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const voucher = await Voucher.findByIdAndDelete(id);
-    if (!voucher) return res.status(404).json({ success: false, message: 'Voucher not found' });
-    res.json({ success: true, message: 'Voucher deleted' });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
+    try {
+        const voucher = await Voucher.findByIdAndDelete(req.params.id);
+
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy voucher' });
+        }
+
+        res.json({ success: true, message: 'Voucher đã được xóa' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server', error: error.message });
+    }
 };
 
 // Thêm API: User quay trúng -> lưu lịch sử
@@ -135,4 +198,37 @@ exports.useUserVoucher = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+};
+
+// @desc    Áp dụng voucher (cho người dùng ở trang thanh toán)
+// @route   GET /api/vouchers/apply/:code
+// @access  Public
+exports.applyVoucher = async (req, res) => {
+    try {
+        const { code } = req.params;
+        const voucher = await Voucher.findOne({ ma_voucher: code.toUpperCase() });
+
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Mã giảm giá không hợp lệ.' });
+        }
+
+        const now = new Date();
+        if (voucher.trang_thai !== 'active') {
+            return res.status(400).json({ success: false, message: 'Mã giảm giá đã hết hiệu lực.' });
+        }
+        if (now < voucher.ngay_bat_dau) {
+            return res.status(400).json({ success: false, message: 'Mã giảm giá chưa đến ngày sử dụng.' });
+        }
+        if (now > voucher.ngay_ket_thuc) {
+            return res.status(400).json({ success: false, message: 'Mã giảm giá đã hết hạn.' });
+        }
+        if (voucher.da_su_dung >= voucher.so_luong) {
+            return res.status(400).json({ success: false, message: 'Mã giảm giá đã hết lượt sử dụng.' });
+        }
+
+        res.json({ success: true, data: voucher });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi server khi áp dụng voucher', error: error.message });
+    }
 }; 

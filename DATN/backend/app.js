@@ -27,6 +27,7 @@ const ordersRouter = require('./routes/orders');
 const chatAiRouter = require('./routes/chat-ai');
 const reviewsRouter = require('./routes/reviews');
 const uploadReviewImageRouter = require('./routes/uploadReviewImage');
+const userVouchersRouter = require('./routes/userVouchers');
 
 var app = express();
 
@@ -88,6 +89,7 @@ app.use('/api/orders', ordersRouter);
 app.use('/api', chatAiRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/upload-review-image', uploadReviewImageRouter);
+app.use('/api/user-vouchers', userVouchersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

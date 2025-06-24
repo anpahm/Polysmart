@@ -78,6 +78,12 @@ export default function PaymentsPage() {
   const [districts, setDistricts] = useState<any[]>([]);
   const [selectedProvinceCode, setSelectedProvinceCode] = useState<number | null>(null);
 
+  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherPercent, setVoucherPercent] = useState<number | null>(null);
+  const [voucherError, setVoucherError] = useState('');
+  const [voucherApplied, setVoucherApplied] = useState(false);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+
   useEffect(() => {
     setMounted(true);
     setLoading(true);
@@ -188,6 +194,50 @@ export default function PaymentsPage() {
      )
   }
 
+  const handleApplyVoucher = async () => {
+    setVoucherError('');
+    setVoucherApplied(false);
+    setVoucherPercent(null);
+    setVoucherDiscount(0);
+    if (!voucherCode.trim()) {
+      setVoucherError('Vui lòng nhập mã giảm giá');
+      return;
+    }
+    try {
+      // Thử gift voucher trước
+      let res = await fetch(getApiUrl(`gift-vouchers/code/${voucherCode.trim()}`));
+      let data = await res.json();
+      if (data.success && data.data && !data.data.isUsed && !data.data.isDisabled) {
+        const percent = data.data.percent || 0;
+        const maxDiscount = data.data.maxDiscount || data.data.giam_toi_da || Infinity;
+        setVoucherPercent(percent);
+        setVoucherApplied(true);
+        // Tính số tiền giảm, có giới hạn tối đa
+        const rawDiscount = Math.floor((cartDetails.total * percent) / 100);
+        const discount = Math.min(rawDiscount, maxDiscount);
+        setVoucherDiscount(discount);
+        return;
+      }
+      // Nếu không phải gift voucher, thử voucher công khai
+      res = await fetch(getApiUrl(`vouchers/apply/${voucherCode.trim()}`));
+      data = await res.json();
+      if (data.success && data.data) {
+        const percent = data.data.phan_tram_giam_gia || 0;
+        const maxDiscount = data.data.giam_toi_da || Infinity;
+        setVoucherPercent(percent);
+        setVoucherApplied(true);
+        // Tính số tiền giảm, có giới hạn tối đa
+        const rawDiscount = Math.floor((cartDetails.total * percent) / 100);
+        const discount = Math.min(rawDiscount, maxDiscount);
+        setVoucherDiscount(discount);
+        return;
+      }
+      setVoucherError('Mã giảm giá không hợp lệ hoặc đã được sử dụng/vô hiệu hóa');
+    } catch (err) {
+      setVoucherError('Có lỗi khi kiểm tra mã giảm giá');
+    }
+  };
+
   const handlePlaceOrder = () => {
     // Validate required fields
     if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
@@ -199,8 +249,13 @@ export default function PaymentsPage() {
     const orderData = {
       customerInfo,
       items: cartDetails.items,
-      totalAmount: cartDetails.total,
+      totalAmount: cartDetails.total - voucherDiscount,
       paymentMethod,
+      voucher: voucherApplied ? {
+        code: voucherCode,
+        percent: voucherPercent,
+        discount: voucherDiscount
+      } : undefined,
     };
 
     // Handle different payment methods
@@ -343,12 +398,30 @@ export default function PaymentsPage() {
           <div className="border-t my-6"></div>
 
           {/* Discount Code */}
-          <div className="flex mb-6">
-            <input type="text" placeholder="Nhập mã giảm giá" className="w-full p-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <button className="px-6 bg-gray-300 text-gray-700 font-semibold rounded-r-lg hover:bg-gray-400">Áp dụng</button>
+          <div className="flex mb-2">
+            <input
+              type="text"
+              placeholder="Nhập mã giảm giá"
+              className="w-full p-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={voucherCode}
+              onChange={e => setVoucherCode(e.target.value)}
+              disabled={voucherApplied}
+            />
+            <button
+              className="px-6 bg-gray-300 text-gray-700 font-semibold rounded-r-lg hover:bg-gray-400"
+              onClick={handleApplyVoucher}
+              type="button"
+              disabled={voucherApplied}
+            >
+              {voucherApplied ? 'Đã áp dụng' : 'Áp dụng'}
+            </button>
           </div>
+          {voucherError && <div className="text-red-500 mb-2">{voucherError}</div>}
+          {voucherApplied && voucherPercent && (
+            <div className="text-green-600 mb-2">Đã áp dụng mã giảm giá: -{formatVND(voucherDiscount)} ({voucherPercent}%)</div>
+          )}
 
-          <OrderTotals totalAmount={cartDetails.total} formatVND={formatVND} />
+          <OrderTotals totalAmount={cartDetails.total - voucherDiscount} formatVND={formatVND} />
 
           <div className="flex items-center justify-between mt-8">
             <button onClick={() => router.push('/cart')} className="text-blue-600 font-semibold flex items-center gap-2 hover:underline">

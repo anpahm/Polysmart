@@ -181,6 +181,32 @@ const menuGroups = [
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
+              d="M19.4142 10.4142C19.7345 10.0939 20.2655 10.0939 20.5858 10.4142C21.2139 11.0423 21.3683 11.9961 20.9431 12.784L15.3431 22.0858C14.9048 22.894 13.9184 23.1118 13.106 22.6702L3.10601 17.0702C2.2936 16.6286 2.07584 15.6422 2.51416 14.834L8.11416 5.53223C8.53939 4.74439 9.49321 4.58998 10.281 5.0152L19.4142 10.4142Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M16 3.5L12.5 7"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ),
+        label: "Voucher Công Khai",
+        route: "/vouchers",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
               d="M4 6H20M4 10H14M4 14H14M4 18H20"
               stroke="currentColor"
               strokeWidth="1.5"

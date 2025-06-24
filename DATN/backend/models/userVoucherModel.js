@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const userVoucherSchema = new mongoose.Schema({
-  user_email: { type: String, required: true },
-  voucher_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher', required: true },
-  ma_voucher: { type: String, required: true },
-  used: { type: Boolean, default: false },
-  created_at: { type: Date, default: Date.now },
-  expired_at: { type: Date, required: true }
+const userVoucherSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  voucherCode: { type: String, required: true },
+  type: { type: String, enum: ['gift', 'public'], required: true },
+  addedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('UserVoucher', userVoucherSchema); 

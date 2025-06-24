@@ -14,9 +14,13 @@ interface Voucher {
   expired_at: string;
 }
 
-const LuckyWheel: React.FC = () => {
+interface LuckyWheelProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const LuckyWheel: React.FC<LuckyWheelProps> = ({ open, onClose }) => {
   const { isLoggedIn, user } = useSelector((state: RootState) => state.user);
-  const [showModal, setShowModal] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<Voucher | null>(null);
   const [error, setError] = useState('');
@@ -77,21 +81,20 @@ const LuckyWheel: React.FC = () => {
     }
   }, [user]);
 
-  // Khi showModal thay đổi, trigger hiệu ứng scale
+  // Khi component's open prop thay đổi, trigger hiệu ứng scale
   useEffect(() => {
-    if (showModal) {
+    if (open) {
       setTimeout(() => setModalScale(1), 10); // delay nhỏ để trigger transition
     } else {
       setModalScale(0);
     }
-  }, [showModal]);
+  }, [open]);
 
   const handleModalClose = () => {
     setModalScale(0);
     setTimeout(() => {
-      setShowModal(false);
+      onClose();
       setError('');
-      setResult(null);
     }, 250); // duration khớp với transition
   };
 
@@ -161,7 +164,7 @@ const LuckyWheel: React.FC = () => {
       <div className="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm md:max-w-md lg:max-w-lg flex flex-col items-center animate-fade-in">
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-3xl font-bold transition-colors"
-          onClick={handleClose}
+          onClick={handleModalClose}
           aria-label="Đóng"
         >
           ×
@@ -251,33 +254,19 @@ const LuckyWheel: React.FC = () => {
           className="absolute bottom-[-20px] left-[-70px] w-48 h-auto hidden md:block"
         />
         {/* Kết quả */}
-        {result && (
-          <div className="mt-6 text-center bg-green-50 p-4 rounded-lg border border-green-200 animate-fade-in-up">
-            <div className="text-xl font-bold text-green-700 mb-2">Chúc mừng bạn nhận được voucher!</div>
-            <div className="text-3xl font-extrabold text-blue-700 mb-2">{result.code}</div>
-            <div className="text-lg text-gray-700">
-              {result.discount_type === 'percent'
-                ? `Giảm ${result.discount_value}%`
-                : `Giảm ${result.discount_value.toLocaleString()}₫`}
+        <div className="mt-8 text-center">
+          {error && <p className="text-red-500 font-semibold">{error}</p>}
+          {result && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative animate-bounce">
+              <strong className="font-bold">Chúc mừng!</strong>
+              <p>Bạn đã trúng voucher: <span className="font-mono bg-green-200 px-2 py-1 rounded">{result.ma_voucher || result.ma}</span></p>
+              <p>Giảm giá: {result.giam_gia.toLocaleString('vi-VN')}
+              </p>
             </div>
-            <div className="text-sm text-gray-500 mt-2">
-              HSD: {new Date(result.expired_at).toLocaleDateString()}
-            </div>
-          </div>
-        )}
-        {error && <div className="mt-4 text-red-600 font-semibold text-center bg-red-50 p-3 rounded-lg border border-red-200">{error}</div>}
-        {!isLoggedIn && (
-          <div className="mt-4 text-yellow-700 font-semibold text-center bg-yellow-50 p-3 rounded-lg border border-yellow-200">Bạn cần đăng nhập để sử dụng vòng quay!</div>
-        )}
+          )}
+        </div>
       </div>
     </div>
-  );
-
-  return (
-    <>
-      {renderMiniButton()}
-      {showModal && renderChatBox()}
-    </>
   );
 };
 

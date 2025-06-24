@@ -20,7 +20,7 @@ const upload = multer({ storage: storage, fileFilter: checkfile });
 
 const getAllCategories = async (req, res) => {
   try {
-    const categoryList = await categories.find({}, "ten_danh_muc banner_dm");
+    const categoryList = await categories.find({}, "ten_danh_muc video");
     if (!categoryList.length) {
       return res.status(404).json({ message: "Không tìm thấy danh mục nào" });
     }

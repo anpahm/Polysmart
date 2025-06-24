@@ -17,4 +17,7 @@ router.post('/resend-email/:email', giftVoucherController.resendVoucherEmail);
 // Lấy tất cả gift vouchers (cho admin)
 router.get('/', giftVoucherController.getAllGiftVouchers);
 
+// Vô hiệu hóa voucher
+router.patch('/:id/disable', giftVoucherController.disableVoucher);
+
 module.exports = router; 

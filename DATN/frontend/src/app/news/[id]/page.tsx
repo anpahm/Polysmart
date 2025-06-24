@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import NewsCard, { NewsItem } from "@/components/NewsCard";
+import NewsCard from "@/components/NewsCard";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -11,6 +11,17 @@ import { vi } from "date-fns/locale";
 interface Category {
   _id: string;
   ten_danh_muc: string;
+}
+
+interface NewsItem {
+  _id: string;
+  tieu_de: string;
+  mo_ta: string;
+  hinh: string;
+  ngay: string;
+  an_hien: boolean;
+  luot_xem: number;
+  id_danh_muc?: { _id: string; ten_danh_muc: string };
 }
 
 export default function NewsCategoryPage() {
@@ -51,6 +62,9 @@ export default function NewsCategoryPage() {
   const totalPages = Math.ceil(filteredNews.length / pageSize);
   const pagedNews = filteredNews.slice((page - 1) * pageSize, page * pageSize);
 
+  const visibleNews = news.filter(item => item.an_hien);
+  const visiblePagedNews = pagedNews.filter(item => item.an_hien);
+
   if (!category) return <div>Đang tải...</div>;
 
   return (
@@ -83,7 +97,7 @@ export default function NewsCategoryPage() {
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {pagedNews.map(item => (
+              {visiblePagedNews.map(item => (
                 <Link key={item._id} href={`/news/${params.id}/${item._id}`}>
                   <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                     {item.hinh && (

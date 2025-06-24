@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { FaApple} from "react-icons/fa";
-import NewsCard, { NewsItem } from "@/components/NewsCard";
+import NewsCard from "@/components/NewsCard";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -10,6 +10,17 @@ import Image from "next/image";
 interface Category {
   _id: string;
   ten_danh_muc: string;
+}
+
+// Bổ sung an_hien và id_danh_muc có thể có _id
+export interface NewsItem {
+  _id: string;
+  tieu_de: string;
+  mo_ta: string;
+  hinh: string;
+  ngay: string;
+  an_hien: boolean;
+  id_danh_muc?: { _id: string; ten_danh_muc: string };
 }
 
 export default function NewsPage() {
@@ -26,7 +37,10 @@ export default function NewsPage() {
     // Gọi API lấy tin tức
     fetch("http://localhost:3000/api/news")
       .then(res => res.json())
-      .then((data: NewsItem[]) => setNews(data))
+      .then((data: NewsItem[]) => {
+        // Lọc chỉ lấy tin an_hien === true
+        setNews(data.filter((item: NewsItem) => item.an_hien));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -56,7 +70,7 @@ export default function NewsPage() {
       <div className="max-w-5xl mx-auto px-4 mt-2">
         <div className="flex gap-4 mb-6">
           {/* Tin lớn bên trái */}
-          {featuredNews[0] && (
+          {featuredNews[0] && featuredNews[0].id_danh_muc && featuredNews[0].id_danh_muc._id ? (
             <Link href={`/news/${featuredNews[0].id_danh_muc._id}/${featuredNews[0]._id}`} className="flex-1 relative rounded-xl overflow-hidden h-80 flex items-end min-w-0">
               <img
                 src={featuredNews[0].hinh.startsWith('http') ? featuredNews[0].hinh : `http://localhost:3000${featuredNews[0].hinh}`}
@@ -69,22 +83,24 @@ export default function NewsPage() {
                 <p className="text-white text-base drop-shadow">{featuredNews[0].mo_ta}</p>
               </div>
             </Link>
-          )}
+          ) : null}
           {/* 2 tin nhỏ bên phải */}
           <div className="flex flex-col gap-4 w-[350px] max-w-[40%]">
             {featuredNews.slice(1, 3).map((item) => (
-              <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`} className="relative rounded-xl overflow-hidden h-38 flex items-end min-w-0" style={{ height: 'calc(50% - 0.5rem)' }}>
-                <img
-                  src={item.hinh.startsWith('http') ? item.hinh : `http://localhost:3000${item.hinh}`}
-                  alt={item.tieu_de}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-30" />
-                <div className="relative z-10 p-4 w-full">
-                  <h3 className="text-lg font-semibold text-white drop-shadow mb-1">{item.tieu_de}</h3>
-                  <p className="text-white text-xs drop-shadow">{item.mo_ta}</p>
-                </div>
-              </Link>
+              item.id_danh_muc && item.id_danh_muc._id ? (
+                <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`} className="relative rounded-xl overflow-hidden h-38 flex items-end min-w-0" style={{ height: 'calc(50% - 0.5rem)' }}>
+                  <img
+                    src={item.hinh.startsWith('http') ? item.hinh : `http://localhost:3000${item.hinh}`}
+                    alt={item.tieu_de}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-30" />
+                  <div className="relative z-10 p-4 w-full">
+                    <h3 className="text-lg font-semibold text-white drop-shadow mb-1">{item.tieu_de}</h3>
+                    <p className="text-white text-xs drop-shadow">{item.mo_ta}</p>
+                  </div>
+                </Link>
+              ) : null
             ))}
           </div>
         </div>
@@ -114,9 +130,11 @@ export default function NewsPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {newsByCategory[cat._id]?.slice(0, 4).map(item => (
-                <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`}>
-                  <NewsCard item={item} />
-                </Link>
+                item.id_danh_muc && item.id_danh_muc._id ? (
+                  <Link key={item._id} href={`/news/${item.id_danh_muc._id}/${item._id}`}>
+                    <NewsCard item={item} />
+                  </Link>
+                ) : null
               ))}
             </div>
           </div>

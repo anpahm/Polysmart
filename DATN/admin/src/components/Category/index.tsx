@@ -9,13 +9,13 @@ import { useRouter } from 'next/navigation';
 interface Category {
   _id: string;
   ten_danh_muc: string;
-  banner_dm?: string;
+  video?: string;
 }
 
-const getImageUrl = (imageUrl: string | undefined): string => {
-  if (!imageUrl) return '/no-image.png';
-  if (imageUrl.startsWith('http')) return imageUrl;
-  return `http://localhost:3000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+const getVideoUrl = (videoUrl: string | undefined): string => {
+  if (!videoUrl) return '';
+  if (videoUrl.startsWith('http')) return videoUrl;
+  return `http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`;
 };
 
 export default function CategoryAdminPage() {
@@ -25,7 +25,7 @@ export default function CategoryAdminPage() {
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState({
     ten_danh_muc: "",
-    banner_dm: ""
+    video: ""
   });
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -62,26 +62,26 @@ export default function CategoryAdminPage() {
     setEditCategory(category);
     setNewCategory({
       ten_danh_muc: category.ten_danh_muc || "",
-      banner_dm: category.banner_dm || ""
+      video: category.video || ""
     });
     setShowModal(true);
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
-    formData.append('image', file);
-    const res = await fetch('http://localhost:3000/api/categories/upload-image', {
+    formData.append('video', file);
+    const res = await fetch('http://localhost:3000/api/categories/upload-video', {
       method: 'POST',
       body: formData,
     });
     const data = await res.json();
     if (data.url) {
-      setNewCategory(prev => ({ ...prev, banner_dm: data.url }));
+      setNewCategory(prev => ({ ...prev, video: data.url }));
       setImageError("");
     } else {
-      setImageError(data.message || 'Lỗi upload ảnh');
+      setImageError(data.message || 'Lỗi upload video');
     }
   };
 
@@ -90,11 +90,6 @@ export default function CategoryAdminPage() {
       toast.error("Vui lòng nhập tên danh mục!");
       return;
     }
-    if (!newCategory.banner_dm) {
-      setImageError("Vui lòng upload banner danh mục!");
-      return;
-    }
-    setImageError("");
     if (editCategory) {
       // Sửa danh mục
       fetch(`http://localhost:3000/api/categories/${editCategory._id}`, {
@@ -110,7 +105,7 @@ export default function CategoryAdminPage() {
           setCategories(prev => prev.map(c => c._id === data._id ? data : c));
           setShowModal(false);
           setEditCategory(null);
-          setNewCategory({ ten_danh_muc: "", banner_dm: "" });
+          setNewCategory({ ten_danh_muc: "", video: "" });
           toast.success('Đã cập nhật danh mục thành công!');
         })
         .catch(err => toast.error(err.message));
@@ -128,7 +123,7 @@ export default function CategoryAdminPage() {
         .then(data => {
           setCategories([data, ...categories]);
           setShowModal(false);
-          setNewCategory({ ten_danh_muc: "", banner_dm: "" });
+          setNewCategory({ ten_danh_muc: "", video: "" });
           toast.success('Đã thêm danh mục thành công!');
         })
         .catch(err => {
@@ -182,7 +177,7 @@ export default function CategoryAdminPage() {
             <tr className="text-black">
               <th className="border px-4 py-2 text-left">STT</th>
               <th className="border px-4 py-2 text-left">Tên danh mục</th>
-              <th className="border px-4 py-2 text-left">Banner</th>
+              <th className="border px-4 py-2 text-left">Video</th>
               <th className="border px-4 py-2 text-center">Hành động</th>
             </tr>
           </thead>
@@ -197,14 +192,14 @@ export default function CategoryAdminPage() {
                   <td className="border px-4 py-2">{pageIndex * pageSize + idx + 1}</td>
                   <td className="border px-4 py-2">{c.ten_danh_muc}</td>
                   <td className="border px-4 py-2">
-                    <Image
-                      src={getImageUrl(c.banner_dm)}
-                      alt={c.ten_danh_muc}
-                      className="w-24 h-14 object-cover rounded"
-                      width={96}
-                      height={56}
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/no-image.png'; }}
-                    />
+                    {c.video ? (
+                      <video width={120} height={60} controls style={{ borderRadius: 8 }}>
+                        <source src={getVideoUrl(c.video)} type="video/mp4" />
+                        Trình duyệt không hỗ trợ video.
+                      </video>
+                    ) : (
+                      <span className="text-gray-400 italic">Không có video</span>
+                    )}
                   </td>
                   <td className="border px-4 py-2">
                     <div className="flex items-center justify-center gap-2">
@@ -279,23 +274,19 @@ export default function CategoryAdminPage() {
               />
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 text-black font-medium">
-                  <FaImage /> Banner danh mục
+                  <FaImage /> Video danh mục
                 </label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="video/*"
                   className="border rounded px-3 py-2 text-black"
-                  onChange={handleImageChange}
+                  onChange={handleVideoChange}
                 />
-                {newCategory.banner_dm && (
-                  <Image
-                    src={getImageUrl(newCategory.banner_dm)}
-                    alt="Banner danh mục"
-                    className="w-full h-full object-cover rounded"
-                    width={128}
-                    height={80}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/no-image.png'; }}
-                  />
+                {newCategory.video && (
+                  <video width={200} height={100} controls style={{ borderRadius: 8 }}>
+                    <source src={getVideoUrl(newCategory.video)} type="video/mp4" />
+                    Trình duyệt không hỗ trợ video.
+                  </video>
                 )}
                 {imageError && (
                   <div className="text-red-600 text-sm mt-1">{imageError}</div>
@@ -310,7 +301,7 @@ export default function CategoryAdminPage() {
               <button
                 className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                 onClick={handleSaveCategory}
-                disabled={!newCategory.ten_danh_muc || !newCategory.banner_dm}
+                disabled={!newCategory.ten_danh_muc}
               >Lưu</button>
             </div>
           </div>

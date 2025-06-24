@@ -10,6 +10,7 @@ import { FaEdit, FaTrash, FaEyeSlash, FaEye, FaInfoCircle } from "react-icons/fa
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {flexRender, getCoreRowModel, getPaginationRowModel, useReactTable, getFilteredRowModel } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
+import { colorMap, getVnColorName } from '../../../../src/constants/colorMapShared';
 
 interface Product {
   _id: string;
@@ -25,7 +26,6 @@ interface Product {
   ban_chay?: number;
   hot?: boolean;
 }
-
 
 export default function ProductTable() {
   const [globalFilter, setGlobalFilter] = useState("");

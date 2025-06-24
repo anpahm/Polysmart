@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product, Variant } from '../types/product';
 import { ShoppingBag } from 'lucide-react';
+import { colorMap, getVnColorName } from '../../../src/constants/colorMapShared';
 
 // Hàm lấy URL hình ảnh sản phẩm (copy từ Homepage)
 const getImageUrl = (url: string | string[] | undefined | null) => {

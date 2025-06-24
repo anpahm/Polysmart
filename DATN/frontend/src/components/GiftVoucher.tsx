@@ -2,24 +2,23 @@
 
 import React, { useState } from 'react';
 
-const gifts = [
-  { id: 1, img: '/images/gift-red.png' },
-  { id: 2, img: '/images/gift-yellow.png' },
-  { id: 3, img: '/images/gift-green.png' },
-  { id: 4, img: '/images/gift-yellow.png' },
-  { id: 5, img: '/images/gift-green.png' },
-  { id: 6, img: '/images/gift-red.png' },
-];
+// Tạo danh sách phần quà với phần trăm giảm giá ngẫu nhiên từ 1% đến 10%
+const gifts = Array.from({ length: 6 }, (_, i) => {
+  const percent = Math.floor(Math.random() * 10) + 1;
+  return { id: i + 1, img: `/images/gift-${i % 3 === 0 ? 'red' : i % 3 === 1 ? 'yellow' : 'green'}.png`, percent };
+});
 
 const GiftVoucher = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
+  const [selectedPercent, setSelectedPercent] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
   const [checked, setChecked] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,12 +26,19 @@ const GiftVoucher = () => {
 
   const handleGiftSelect = (id: number) => {
     setSelectedGift(id);
+    const gift = gifts.find(g => g.id === id);
+    setSelectedPercent(gift ? gift.percent : null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
+
+    // Tính hạn sử dụng 10 ngày kể từ hôm nay
+    const now = new Date();
+    const expires = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const expiresAtStr = expires.toISOString();
 
     try {
       const response = await fetch('http://localhost:3000/api/gift-vouchers', {
@@ -44,7 +50,9 @@ const GiftVoucher = () => {
           name: form.name,
           phone: form.phone,
           email: form.email,
-          selectedGift: selectedGift
+          selectedGift: selectedGift,
+          percent: selectedPercent,
+          expiresAt: expiresAtStr
         }),
       });
 
@@ -53,6 +61,7 @@ const GiftVoucher = () => {
       if (data.success) {
         setVoucherCode(data.data.voucherCode);
         setShowResult(true);
+        setExpiresAt(data.data.expiresAt || expiresAtStr);
         
         // Hiển thị thông báo về email
         if (data.data.emailSent) {
@@ -75,6 +84,7 @@ const GiftVoucher = () => {
     setShowPopup(false);
     setShowResult(false);
     setSelectedGift(null);
+    setSelectedPercent(null);
     setForm({ name: '', phone: '', email: '' });
     setChecked(true);
     setVoucherCode('');
@@ -116,7 +126,9 @@ const GiftVoucher = () => {
                         alt=""
                         className="w-16 h-16 mb-0"
                       />
-                      <span className={`text-xs font-bold rounded-full border px-3 py-1 mt-0 ${selectedGift === gift.id ? 'border-[#E53935] bg-[#E53935] text-white' : 'border-[#E53935] bg-white text-[#E53935]'}`}>Chọn</span>
+                      <span className={`text-xs font-bold rounded-full border px-3 py-1 mt-0 ${selectedGift === gift.id ? 'border-[#E53935] bg-[#E53935] text-white' : 'border-[#E53935] bg-white text-[#E53935]'}`}>
+                        Chọn
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -212,10 +224,10 @@ const GiftVoucher = () => {
                 className="w-32 h-24 object-contain mb-2"
               />
               <div className="text-white text-sm text-center mb-2">
-                Bạn trúng <b>voucher giảm ngay 10%</b> (tối đa 150K) mua Online tại Poly Smart.<br/>
+                Bạn trúng <b>voucher giảm ngay {selectedPercent || 10}%</b> mua hàng Online tại Poly Smart.<br/>
                 Tư vấn viên sẽ liên hệ ngay qua số điện thoại và gửi mã code đến email của bạn.<br/>
-                Gọi tổng đài <b>1800.6601</b> miễn phí hoặc qua cửa hàng để được hỗ trợ nhanh hơn.<br/>
-                Hạn sử dụng: <b>01.07.2025</b>
+                Gọi tổng đài <b>1800.1234</b> miễn phí hoặc qua cửa hàng để được hỗ trợ nhanh hơn.<br/>
+                Hạn sử dụng: <b>{expiresAt ? new Date(expiresAt).toLocaleDateString('vi-VN') : '-'}</b>
               </div>
               <div className="w-full flex flex-col items-center">
                 <div className="bg-white text-[#E53935] font-bold text-lg rounded-lg px-6 py-2 border-2 border-[#E53935] mb-2 tracking-widest select-all">

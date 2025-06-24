@@ -14,7 +14,7 @@ function generateVoucherCode() {
 // Tạo gift voucher và gửi email
 exports.createGiftVoucher = async (req, res) => {
   try {
-    const { name, phone, email, selectedGift } = req.body;
+    const { name, phone, email, selectedGift, percent, expiresAt } = req.body;
 
     // Kiểm tra email đã tồn tại chưa
     const existingVoucher = await GiftVoucher.findOne({ email });
@@ -42,7 +42,9 @@ exports.createGiftVoucher = async (req, res) => {
       phone,
       email,
       voucherCode,
-      selectedGift
+      selectedGift,
+      percent,
+      expiresAt
     });
 
     await giftVoucher.save();
@@ -65,6 +67,8 @@ exports.createGiftVoucher = async (req, res) => {
       success: true,
       data: {
         voucherCode,
+        percent,
+        expiresAt,
         emailSent: emailResult.success,
         message: emailResult.success 
           ? 'Voucher đã được tạo và gửi email thành công!' 
@@ -189,5 +193,19 @@ exports.getAllGiftVouchers = async (req, res) => {
       success: false,
       message: 'Có lỗi xảy ra khi lấy danh sách voucher'
     });
+  }
+};
+
+// Vô hiệu hóa voucher
+exports.disableVoucher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const voucher = await GiftVoucher.findByIdAndUpdate(id, { isDisabled: true }, { new: true });
+    if (!voucher) {
+      return res.status(404).json({ success: false, message: 'Voucher không tồn tại' });
+    }
+    res.json({ success: true, message: 'Voucher đã được vô hiệu hóa', data: voucher });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Có lỗi khi vô hiệu hóa voucher' });
   }
 }; 

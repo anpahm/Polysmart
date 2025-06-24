@@ -175,6 +175,39 @@ const menuGroups = [
           <svg
             className="fill-current"
             width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 6H20M4 10H14M4 14H14M4 18H20"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <rect
+              x="2"
+              y="3"
+              width="20"
+              height="18"
+              rx="2"
+              ry="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+          </svg>
+        ),
+        label: "Tin tức",
+        route: "/new/news",
+      },
+      {
+        icon: (
+          <svg
+            className="fill-current"
+            width="18"
             height="19"
             viewBox="0 0 18 19"
             fill="none"

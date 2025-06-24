@@ -313,6 +313,14 @@ const CategoryDetailPage = () => {
     return filtered;
   }, [products, selectedPriceRange, selectedSizes, selectedColors, showPromotionsOnly, sortBy, selectedCategoryType, selectedProductStorage, allCategoriesData]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12;
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
+  const paginatedProducts = filteredAndSortedProducts.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
+
   const handlePlayPause = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
@@ -372,6 +380,10 @@ const CategoryDetailPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredAndSortedProducts]);
+
   // Số card hiển thị tùy theo màn hình
   const getVisibleCount = () => {
     if (typeof window !== "undefined") {
@@ -382,6 +394,12 @@ const CategoryDetailPage = () => {
   };
   const visibleCount = getVisibleCount();
   const maxIndex = reasons.length - visibleCount;
+
+  const productListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [id]);
 
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
   if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
@@ -740,11 +758,12 @@ const CategoryDetailPage = () => {
               </div>
 
               {/* Product display */}
-              {filteredAndSortedProducts.length === 0 ? (
+              <div ref={productListRef}>
+                {paginatedProducts.length === 0 ? (
                   <div className="text-gray-500 text-center py-10">Không tìm thấy sản phẩm nào phù hợp với các tiêu chí lọc.</div>
-              ) : (
+                ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
-                    {filteredAndSortedProducts.map((product) => {
+                    {paginatedProducts.map((product) => {
                       // Lọc các variant đang hiện
                       const visibleVariants = (product.variants || []).filter(v => v.an_hien !== false);
                       // Chọn biến thể để hiển thị dựa trên bộ lọc dung lượng và màu sắc
@@ -851,7 +870,35 @@ const CategoryDetailPage = () => {
                       );
                     })}
                   </div>
-              )}
+                )}
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-8 space-x-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 rounded border bg-white disabled:opacity-50"
+                    >
+                      Trước
+                    </button>
+                    {[...Array(totalPages)].map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(idx + 1)}
+                        className={`px-3 py-1 rounded border ${currentPage === idx + 1 ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 rounded border bg-white disabled:opacity-50"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                )}
+              </div>
           </div>
         </div>
         {/* Section: Lý do mua hàng */}

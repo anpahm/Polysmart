@@ -39,7 +39,7 @@ const getAllProducts = async (req, res) => {
 
     const categoryAll = await categories.find(
       { _id: { $in: categoryIds } },
-      "ten_danh_muc banner_dm"
+      "ten_danh_muc video"
     );
 
     const productsWithCategories = productsList.map((product) => {
@@ -79,7 +79,7 @@ const getProductById = async (req, res) => {
 
     const category = await categories.findById(
       product.id_danhmuc,
-      "ten_danh_muc banner_dm"
+      "ten_danh_muc video"
     );
     if (!category) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
@@ -169,7 +169,7 @@ const searchProducts = async (req, res) => {
     const variantAll = await variants.find({ id_san_pham: { $in: productIds } });
     const categoryAll = await categories.find(
       { _id: { $in: categoryIds } },
-      "ten_danh_muc banner_dm"
+      "ten_danh_muc video"
     );
     const productsWithCategories = productsList.map((product) => {
       const productObj = product.toObject();

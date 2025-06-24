@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { FaEdit, FaEye, FaEyeSlash, FaPlus, FaTrash } from "react-icons/fa";
 import React from "react";
+import { colorMap, getVnColorName } from '../../../../src/constants/colorMapShared';
 
 interface Variant {
   _id: string;
@@ -398,7 +399,7 @@ export default function VariantProductPage({ productId }: { productId: string })
                   <td className="border px-4 py-2">{variant.gia?.toLocaleString()}₫</td>
                   <td className="border px-4 py-2">{variant.gia_goc?.toLocaleString() || "-"}₫</td>
                   <td className="border px-4 py-2">{variant.dung_luong || "-"}</td>
-                  <td className="border px-4 py-2">{variant.mau || "-"}</td>
+                  <td className="border px-4 py-2">{getVnColorName(variant.mau || "")}</td>
                   <td className="border px-4 py-2">{variant.so_luong_hang ?? "-"}</td>
                   <td className="border px-4 py-2">
                     <span

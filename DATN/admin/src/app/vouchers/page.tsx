@@ -129,7 +129,7 @@ const VouchersPage = () => {
                                         <p className="text-sm text-gray-500">Tối đa: {formatCurrency(voucher.giam_toi_da)}</p>
                                     </td>
                                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                                        <p className="text-black dark:text-white">{voucher.da_su_dung} / {voucher.so_luong}</p>
+                                        <p className="text-black dark:text-white">{voucher.so_luong - voucher.da_su_dung} / {voucher.so_luong}</p>
                                     </td>
                                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                                         <p className="text-sm">Từ: {formatDate(voucher.ngay_bat_dau)}</p>

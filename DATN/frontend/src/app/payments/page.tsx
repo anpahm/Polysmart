@@ -46,7 +46,7 @@ const CartItems = dynamic(() => Promise.resolve(({ items, formatVND }: { items: 
 )), { ssr: false });
 
 // Create a client-only component for the totals
-const OrderTotals = dynamic(() => Promise.resolve(({ totalAmount, formatVND }: { totalAmount: number, formatVND: (num: number) => string }) => (
+const OrderTotals = dynamic(() => Promise.resolve(({ totalAmount, shippingFee, formatVND }: { totalAmount: number, shippingFee: number, formatVND: (num: number) => string }) => (
   <div className="space-y-2 mb-6">
     <div className="flex justify-between text-gray-700">
       <span>Tạm tính:</span>
@@ -54,11 +54,11 @@ const OrderTotals = dynamic(() => Promise.resolve(({ totalAmount, formatVND }: {
     </div>
     <div className="flex justify-between text-gray-700">
       <span>Phí vận chuyển:</span>
-      <span>-</span>
+      <span>{formatVND(shippingFee)}</span>
     </div>
     <div className="flex justify-between font-bold text-lg text-gray-800">
       <span>Tổng cộng:</span>
-      <span className="text-blue-600">{formatVND(totalAmount)}</span>
+      <span className="text-blue-600">{formatVND(totalAmount + shippingFee)}</span>
     </div>
   </div>
 )), { ssr: false });
@@ -83,6 +83,9 @@ export default function PaymentsPage() {
   const [voucherError, setVoucherError] = useState('');
   const [voucherApplied, setVoucherApplied] = useState(false);
   const [voucherDiscount, setVoucherDiscount] = useState(0);
+
+  // Phí vận chuyển mặc định
+  const SHIPPING_FEE = 50000;
 
   useEffect(() => {
     setMounted(true);
@@ -421,7 +424,7 @@ export default function PaymentsPage() {
             <div className="text-green-600 mb-2">Đã áp dụng mã giảm giá: -{formatVND(voucherDiscount)} ({voucherPercent}%)</div>
           )}
 
-          <OrderTotals totalAmount={cartDetails.total - voucherDiscount} formatVND={formatVND} />
+          <OrderTotals totalAmount={cartDetails.total - voucherDiscount} shippingFee={SHIPPING_FEE} formatVND={formatVND} />
 
           <div className="flex items-center justify-between mt-8">
             <button onClick={() => router.push('/cart')} className="text-blue-600 font-semibold flex items-center gap-2 hover:underline">

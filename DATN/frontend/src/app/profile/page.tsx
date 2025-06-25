@@ -296,13 +296,20 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // Đồng bộ tab với URL query
+  // Đồng bộ tab với URL query - cải thiện logic
   useEffect(() => {
-    setActiveTab(tabQuery || "info");
-  }, [tabQuery]);
+    const currentTab = tabQuery || "info";
+    if (currentTab !== activeTab) {
+      setActiveTab(currentTab);
+    }
+  }, [tabQuery, activeTab]);
+
   useEffect(() => {
-    setOrderTab(orderTypeQuery || "all");
-  }, [orderTypeQuery]);
+    const currentOrderTab = orderTypeQuery || "all";
+    if (currentOrderTab !== orderTab) {
+      setOrderTab(currentOrderTab);
+    }
+  }, [orderTypeQuery, orderTab]);
 
   // Lấy lịch sử đánh giá khi vào tab reviews
   useEffect(() => {
@@ -442,13 +449,25 @@ export default function ProfilePage() {
     }
   };
 
-  // Đổi tab chính
+  // Đổi tab chính - cải thiện để cập nhật URL
   const handleTabChange = (key: string) => {
-    router.push(`?tab=${key}`);
+    setActiveTab(key);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', key);
+    // Nếu đổi tab khác orders, xóa type parameter
+    if (key !== 'orders') {
+      params.delete('type');
+    }
+    router.push(`?${params.toString()}`);
   };
-  // Đổi tab đơn hàng
+
+  // Đổi tab đơn hàng - cải thiện để cập nhật URL
   const handleOrderTabChange = (key: string) => {
-    router.push(`?tab=orders&type=${key}`);
+    setOrderTab(key);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'orders');
+    params.set('type', key);
+    router.push(`?${params.toString()}`);
   };
 
   const handleConfirmReceipt = (orderId: string) => {
@@ -882,8 +901,9 @@ export default function ProfilePage() {
               const description = detail.mo_ta || voucher.description || voucher.mo_ta || '';
               const shopName = detail.shopName || voucher.shopName || (isGift ? 'SHOPEE' : 'POLYSMART');
               const logo = detail.logo || voucher.logo || (isGift ? '' : '/images/voucherlogo.jpg');
+              const isUsed = voucher.isUsed || voucher.isDisabled || voucher.da_su_dung || false;
               return (
-                <div key={code} className="bg-white rounded-lg shadow-sm flex overflow-hidden relative border">
+                <div key={code} className={`bg-white rounded-lg shadow-sm flex overflow-hidden relative border ${isUsed ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
                   {/* Banner mới nếu là gift voucher mới */}
                   {voucher.isNew && (
                     <div className="absolute top-0 right-0">
@@ -922,8 +942,12 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <div className="text-right mt-2">
-                      <button className="bg-[#DBEAFE]/10 text-[#0066CC] border border-[#0066CC] px-4 py-1 rounded text-sm font-semibold">
-                        Dùng Ngay
+                      <button
+                        className={`px-4 py-1 rounded text-sm font-semibold border ${isUsed ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed' : 'bg-[#DBEAFE]/10 text-[#0066CC] border-[#0066CC]'}`}
+                        disabled={isUsed}
+                        tabIndex={isUsed ? -1 : 0}
+                      >
+                        {isUsed ? 'Đã sử dụng' : 'Dùng Ngay'}
                       </button>
                     </div>
                   </div>
@@ -1000,56 +1024,56 @@ export default function ProfilePage() {
         <nav className="space-y-4">
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'info' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('info')}
+            onClick={() => handleTabChange('info')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             Thông tin tài khoản
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'address' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('address')}
+            onClick={() => handleTabChange('address')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0L6.343 16.657m10.607-2.121a8.001 8.001 0 00-11.314 0m11.314 0l.001.001h-.001zm-11.314 0L3.414 14.5a1.998 1.998 0 01-2.828 0L.343 12.343"></path></svg>
             Địa chỉ nhận hàng
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'orders' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('orders')}
+            onClick={() => handleTabChange('orders')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M17 12h.01"></path></svg>
             Đơn đặt hàng
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'password' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('password')}
+            onClick={() => handleTabChange('password')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             Đổi mật khẩu
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'avatar' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('avatar')}
+            onClick={() => handleTabChange('avatar')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             Ảnh đại diện
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'voucher' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('voucher')}
+            onClick={() => handleTabChange('voucher')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
             Kho Voucher
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'reviews' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('reviews')}
+            onClick={() => handleTabChange('reviews')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             Lịch sử đánh giá sản phẩm
           </button>
           <button
             className={`flex items-center w-full p-3 rounded-lg text-left ${activeTab === 'system' ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setActiveTab('system')}
+            onClick={() => handleTabChange('system')}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             Hệ thống

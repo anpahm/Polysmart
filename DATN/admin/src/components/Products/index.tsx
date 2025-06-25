@@ -27,6 +27,15 @@ interface Product {
   hot?: boolean;
 }
 
+const FILTER_OPTIONS = [
+  { value: "top_sold", label: "Bán chạy nhất" },
+  { value: "least_sold", label: "Bán ít nhất" },
+  { value: "newest", label: "Mới nhất" },
+  { value: "oldest", label: "Cũ nhất" },
+  { value: "hot", label: "Sản phẩm hot" },
+  { value: "hidden", label: "Đang ẩn" },
+];
+
 export default function ProductTable() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -65,6 +74,7 @@ export default function ProductTable() {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [videoProduct, setVideoProduct] = useState<Product | null>(null);
   const videoModalRef = useRef<HTMLDivElement>(null);
+  const [filterOption, setFilterOption] = useState("top_sold");
 
   const router = useRouter();
 
@@ -267,22 +277,48 @@ export default function ProductTable() {
 
   // Lọc sản phẩm theo danh mục bằng useMemo để tránh filter lại mỗi lần render
   const filteredProducts = useMemo(() => {
-    let sorted = [...products].sort((a, b) => new Date(b.ngay_tao).getTime() - new Date(a.ngay_tao).getTime());
-    if (!selectedCategory) return sorted;
-    return sorted.filter(p => String(p.id_danhmuc) === String(selectedCategory));
-  }, [products, selectedCategory]);
+    let arr = [...products];
+    // Lọc theo danh mục nếu có
+    if (selectedCategory) {
+      arr = arr.filter(p => String(p.id_danhmuc) === String(selectedCategory));
+    }
+    // Lọc theo tiêu chí dropdown
+    switch (filterOption) {
+      case "top_sold":
+        arr = arr.sort((a, b) => (b.ban_chay || 0) - (a.ban_chay || 0));
+        break;
+      case "least_sold":
+        arr = arr.sort((a, b) => (a.ban_chay || 0) - (b.ban_chay || 0));
+        break;
+      case "newest":
+        arr = arr.sort((a, b) => new Date(b.ngay_tao).getTime() - new Date(a.ngay_tao).getTime());
+        break;
+      case "oldest":
+        arr = arr.sort((a, b) => new Date(a.ngay_tao).getTime() - new Date(b.ngay_tao).getTime());
+        break;
+      case "hot":
+        arr = arr.filter(p => p.hot);
+        break;
+      case "hidden":
+        arr = arr.filter(p => p.an_hien === false);
+        break;
+      default:
+        break;
+    }
+    return arr;
+  }, [products, selectedCategory, filterOption]);
 
   const table = useReactTable({
     data: filteredProducts,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(), 
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       globalFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter, 
+    globalFilterFn: fuzzyFilter,
     initialState: {
       pagination: {
         pageSize: 5,
@@ -436,6 +472,15 @@ export default function ProductTable() {
             <option value="">Tất cả danh mục</option>
             {categories.map(cat => (
               <option key={cat._id} value={cat._id}>{cat.ten_danh_muc}</option>
+            ))}
+          </select>
+          <select
+            className="border rounded px-3 py-2"
+            value={filterOption}
+            onChange={e => setFilterOption(e.target.value)}
+          >
+            {FILTER_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
           <Input

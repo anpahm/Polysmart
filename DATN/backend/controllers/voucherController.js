@@ -1,5 +1,4 @@
 const Voucher = require('../models/voucherModel');
-const LuckyWheelResult = require('../models/luckyWheelResultModel');
 const UserVoucher = require('../models/userVoucherModel');
 
 // @desc    Lấy tất cả voucher (cho admin, có phân trang)
@@ -125,34 +124,6 @@ exports.deleteVoucher = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi server', error: error.message });
     }
-};
-
-// Thêm API: User quay trúng -> lưu lịch sử
-exports.createLuckyWheelResult = async (req, res) => {
-  try {
-    const { user_email, voucher_id } = req.body;
-    // Kiểm tra đã từng quay chưa
-    const existed = await LuckyWheelResult.findOne({ user_email });
-    if (existed) {
-      return res.status(400).json({ success: false, message: 'User already spun the wheel' });
-    }
-    const result = new LuckyWheelResult({ user_email, voucher_id });
-    await result.save();
-    res.status(201).json({ success: true, data: result });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// Lấy lịch sử quay của user
-exports.getUserLuckyWheelResults = async (req, res) => {
-  try {
-    const { user_email } = req.params;
-    const results = await LuckyWheelResult.find({ user_email }).populate('voucher_id');
-    res.json({ success: true, data: results });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
 };
 
 // Tạo user voucher mới khi user quay trúng

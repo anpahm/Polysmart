@@ -18,9 +18,6 @@ router.route('/:id')
     .put(voucherController.updateVoucher)      // Cập nhật voucher
     .delete(voucherController.deleteVoucher); // Xóa voucher
 
-// Lucky Wheel Result
-router.post('/luckywheel-result', voucherController.createLuckyWheelResult);
-router.get('/luckywheel-result/:user_email', voucherController.getUserLuckyWheelResults);
 
 // UserVoucher routes
 router.post('/user-voucher', voucherController.createUserVoucher);

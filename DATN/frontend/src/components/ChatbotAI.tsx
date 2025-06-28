@@ -167,10 +167,7 @@ const ChatbotAI = () => {
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-[1000] bg-gray-300 hover:bg-gray-400 text-white w-14 h-14 rounded-full shadow-lg duration-300 ease-in-out flex items-center justify-center"
           aria-label="Mở chat AI"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor" width="32" height="32">
-              <path d="M53.8,49.2l-5.3-5.3c-0.4-0.4-1-0.6-1.5-0.6H17c-1.1,0-2-0.9-2-2V17c0-1.1,0.9-2,2-2h30c1.1,0,2,0.9,2,2v18.8c0,0.6,0.2,1.1,0.6,1.5l5.3,5.3c0.8,0.8,0.4,2.2-0.6,2.6C54.8,49.4,54.2,49.4,53.8,49.2z M24,29c-1.1,0-2-0.9-2-2s0.9-2,2-2s2,0.9,2,2S25.1,29,24,29z M32,29c-1.1,0-2-0.9-2-2s0.9-2,2-2s2,0.9,2,2S33.1,29,32,29z M40,29c-1.1,0-2-0.9-2-2s0.9-2,2-2s2,0.9,2,2S41.1,29,40,29z"/>
-          </svg>
+        >🤖
         </button>
       )}
 

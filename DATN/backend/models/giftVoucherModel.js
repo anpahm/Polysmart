@@ -17,39 +17,39 @@ const giftVoucherSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  voucherCode: {
+  ma_voucher: {
     type: String,
     required: true,
     unique: true
   },
-  selectedGift: {
+  qua_duoc_chon: {
     type: Number,
     required: true
   },
-  isUsed: {
+  da_su_dung: {
     type: Boolean,
     default: false
   },
-  emailSent: {
+  email_da_gui: {
     type: Boolean,
     default: false
   },
-  emailSentAt: {
+  email_gui_luc: {
     type: Date
   },
-  createdAt: {
+  ngay_tao: {
     type: Date,
     default: Date.now
   },
-  expiresAt: {
+  het_han: {
     type: Date,
     default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 năm
   },
-  percent: {
+  phan_tram: {
     type: Number,
     required: true
   },
-  isDisabled: {
+  da_vo_hieu_hoa: {
     type: Boolean,
     default: false
   }

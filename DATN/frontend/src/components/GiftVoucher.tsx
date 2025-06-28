@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Tạo danh sách phần quà với phần trăm giảm giá ngẫu nhiên từ 1% đến 10%
 const gifts = Array.from({ length: 6 }, (_, i) => {
@@ -50,24 +52,24 @@ const GiftVoucher = () => {
           name: form.name,
           phone: form.phone,
           email: form.email,
-          selectedGift: selectedGift,
-          percent: selectedPercent,
-          expiresAt: expiresAtStr
+          qua_duoc_chon: selectedGift,
+          phan_tram: selectedPercent,
+          het_han: expiresAtStr
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setVoucherCode(data.data.voucherCode);
+        setVoucherCode(data.data.ma_voucher);
         setShowResult(true);
-        setExpiresAt(data.data.expiresAt || expiresAtStr);
+        setExpiresAt(data.data.het_han || expiresAtStr);
         
         // Hiển thị thông báo về email
-        if (data.data.emailSent) {
-          alert('Voucher đã được gửi đến email của bạn! Vui lòng kiểm tra hộp thư.');
+        if (data.data.email_da_gui) {
+          toast.success('Voucher đã được gửi đến email của bạn! Vui lòng kiểm tra hộp thư.');
         } else {
-          alert('Voucher đã được tạo nhưng gửi email thất bại. Vui lòng liên hệ hỗ trợ.');
+          toast.error('Voucher đã được tạo nhưng gửi email thất bại. Vui lòng liên hệ hỗ trợ.');
         }
       } else {
         setErrorMessage(data.message || 'Có lỗi xảy ra khi tạo voucher');
@@ -241,6 +243,7 @@ const GiftVoucher = () => {
           </div>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 };

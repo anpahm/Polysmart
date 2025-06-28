@@ -5,13 +5,12 @@ import { generateUniqueVoucherCode } from '../utils/generateVoucherCode';
 
 interface Voucher {
   _id: string;
-  ma: string;
-  ma_voucher?: string;
+  ma_voucher: string;
   giam_gia: number;
   user_emails: string[];
-  used: boolean;
-  created_at: string;
-  expired_at: string;
+  da_su_dung: boolean;
+  ngay_tao: string;
+  het_han: string;
 }
 
 interface LuckyWheelProps {
@@ -52,7 +51,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ open, onClose }) => {
 
     availableVouchers.forEach(voucher => {
       sectors.push({
-        label: voucher.ma,
+        label: voucher.ma_voucher,
         type: 'voucher',
         actualVoucher: voucher
       });
@@ -132,7 +131,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ open, onClose }) => {
       if (selectedSector.actualVoucher) {
         const wonVoucher = selectedSector.actualVoucher;
         // Tạo mã voucher riêng cho user này
-        const uniqueVoucherCode = generateUniqueVoucherCode(wonVoucher.ma);
+        const uniqueVoucherCode = generateUniqueVoucherCode(wonVoucher.ma_voucher);
         
         // Cập nhật kết quả hiển thị với mã riêng
         setResult({
@@ -259,7 +258,7 @@ const LuckyWheel: React.FC<LuckyWheelProps> = ({ open, onClose }) => {
           {result && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative animate-bounce">
               <strong className="font-bold">Chúc mừng!</strong>
-              <p>Bạn đã trúng voucher: <span className="font-mono bg-green-200 px-2 py-1 rounded">{result.ma_voucher || result.ma}</span></p>
+              <p>Bạn đã trúng voucher: <span className="font-mono bg-green-200 px-2 py-1 rounded">{result.ma_voucher || result.ma_voucher}</span></p>
               <p>Giảm giá: {result.giam_gia.toLocaleString('vi-VN')}
               </p>
             </div>

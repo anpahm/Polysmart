@@ -28,6 +28,7 @@ const chatAiRouter = require('./routes/chat-ai');
 const reviewsRouter = require('./routes/reviews');
 const uploadReviewImageRouter = require('./routes/uploadReviewImage');
 const userVouchersRouter = require('./routes/userVouchers');
+const trackEventRouter = require('./routes/trackEvent');
 
 var app = express();
 
@@ -35,21 +36,10 @@ var app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.use(logger("dev"));
+// app.use(logger("dev")); // Comment để tắt HTTP request logging
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(cookieParser());
-
-// Add request logging middleware
-app.use((req, res, next) => {
-  console.log('Incoming Request:', {
-    method: req.method,
-    path: req.path,
-    body: req.body,
-    headers: req.headers
-  });
-  next();
-});
 
 // Serve static files from public directory
 app.use('/images', express.static('public/images'));
@@ -90,6 +80,7 @@ app.use('/api', chatAiRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/upload-review-image', uploadReviewImageRouter);
 app.use('/api/user-vouchers', userVouchersRouter);
+app.use('/api/track-event', trackEventRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

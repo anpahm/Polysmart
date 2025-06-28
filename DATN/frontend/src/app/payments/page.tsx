@@ -211,13 +211,13 @@ export default function PaymentsPage() {
       let res = await fetch(getApiUrl(`gift-vouchers/code/${voucherCode.trim()}`));
       let data = await res.json();
       if (data.success && data.data && !data.data.isUsed && !data.data.isDisabled) {
-        const percent = data.data.percent || 0;
-        const maxDiscount = data.data.maxDiscount || data.data.giam_toi_da || Infinity;
-        setVoucherPercent(percent);
+        const phan_tram = data.data.percent || 0;
+        const giam_toi_da = data.data.maxDiscount || data.data.giam_toi_da || Infinity;
+        setVoucherPercent(phan_tram);
         setVoucherApplied(true);
         // Tính số tiền giảm, có giới hạn tối đa
-        const rawDiscount = Math.floor((cartDetails.total * percent) / 100);
-        const discount = Math.min(rawDiscount, maxDiscount);
+        const rawDiscount = Math.floor((cartDetails.total * phan_tram) / 100);
+        const discount = Math.min(rawDiscount, giam_toi_da);
         setVoucherDiscount(discount);
         return;
       }
@@ -225,13 +225,13 @@ export default function PaymentsPage() {
       res = await fetch(getApiUrl(`vouchers/apply/${voucherCode.trim()}`));
       data = await res.json();
       if (data.success && data.data) {
-        const percent = data.data.phan_tram_giam_gia || 0;
-        const maxDiscount = data.data.giam_toi_da || Infinity;
-        setVoucherPercent(percent);
+        const phan_tram = data.data.phan_tram_giam_gia || 0;
+        const giam_toi_da = data.data.giam_toi_da || Infinity;
+        setVoucherPercent(phan_tram);
         setVoucherApplied(true);
         // Tính số tiền giảm, có giới hạn tối đa
-        const rawDiscount = Math.floor((cartDetails.total * percent) / 100);
-        const discount = Math.min(rawDiscount, maxDiscount);
+        const rawDiscount = Math.floor((cartDetails.total * phan_tram) / 100);
+        const discount = Math.min(rawDiscount, giam_toi_da);
         setVoucherDiscount(discount);
         return;
       }

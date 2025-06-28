@@ -14,7 +14,7 @@ function generateVoucherCode() {
 // Tạo gift voucher và gửi email
 exports.createGiftVoucher = async (req, res) => {
   try {
-    const { name, phone, email, selectedGift, percent, expiresAt } = req.body;
+    const { name, phone, email, qua_duoc_chon, phan_tram, het_han } = req.body;
 
     // Kiểm tra email đã tồn tại chưa
     const existingVoucher = await GiftVoucher.findOne({ email });
@@ -26,11 +26,11 @@ exports.createGiftVoucher = async (req, res) => {
     }
 
     // Tạo mã voucher mới
-    let voucherCode;
+    let ma_voucher;
     let isUnique = false;
     while (!isUnique) {
-      voucherCode = generateVoucherCode();
-      const existingCode = await GiftVoucher.findOne({ voucherCode });
+      ma_voucher = generateVoucherCode();
+      const existingCode = await GiftVoucher.findOne({ ma_voucher });
       if (!existingCode) {
         isUnique = true;
       }
@@ -41,22 +41,22 @@ exports.createGiftVoucher = async (req, res) => {
       name,
       phone,
       email,
-      voucherCode,
-      selectedGift,
-      percent,
-      expiresAt
+      ma_voucher,
+      qua_duoc_chon,
+      phan_tram,
+      het_han
     });
 
     await giftVoucher.save();
 
     // Gửi email voucher
-    const emailResult = await sendVoucherEmail(email, name, voucherCode);
+    const emailResult = await sendVoucherEmail(email, name, ma_voucher);
     
     if (emailResult.success) {
       // Cập nhật trạng thái đã gửi email
       await GiftVoucher.findByIdAndUpdate(giftVoucher._id, {
-        emailSent: true,
-        emailSentAt: new Date()
+        email_da_gui: true,
+        email_gui_luc: new Date()
       });
     } else {
       // Log the detailed error from Nodemailer
@@ -66,10 +66,10 @@ exports.createGiftVoucher = async (req, res) => {
     res.status(201).json({
       success: true,
       data: {
-        voucherCode,
-        percent,
-        expiresAt,
-        emailSent: emailResult.success,
+        ma_voucher,
+        phan_tram,
+        het_han,
+        email_da_gui: emailResult.success,
         message: emailResult.success 
           ? 'Voucher đã được tạo và gửi email thành công!' 
           : 'Voucher đã được tạo nhưng gửi email thất bại. Vui lòng liên hệ hỗ trợ.'
@@ -116,7 +116,7 @@ exports.getVoucherByEmail = async (req, res) => {
 exports.getVoucherByCode = async (req, res) => {
   try {
     const { code } = req.params;
-    const voucher = await GiftVoucher.findOne({ voucherCode: code });
+    const voucher = await GiftVoucher.findOne({ ma_voucher: code });
     
     if (!voucher) {
       return res.status(404).json({
@@ -153,13 +153,13 @@ exports.resendVoucherEmail = async (req, res) => {
     }
 
     // Gửi lại email
-    const emailResult = await sendVoucherEmail(voucher.email, voucher.name, voucher.voucherCode);
+    const emailResult = await sendVoucherEmail(voucher.email, voucher.name, voucher.ma_voucher);
     
     if (emailResult.success) {
       // Cập nhật trạng thái đã gửi email
       await GiftVoucher.findByIdAndUpdate(voucher._id, {
-        emailSent: true,
-        emailSentAt: new Date()
+        email_da_gui: true,
+        email_gui_luc: new Date()
       });
     }
 

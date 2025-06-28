@@ -8,6 +8,7 @@ import { addToCart } from '@/store/cartSlice';
 import { RootState } from '@/store';
 import { getApiUrl } from "@/config/api"; // Import getApiUrl
 import ProductReviews from "@/components/ProductReviews"; //component của  ThanhHoai 
+import { trackUserEvent } from '@/services/productService';
 
 // Interface for FlashSale data
 interface FlashSaleVariantInHomepage {
@@ -227,6 +228,12 @@ const ProductDetailPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (user && id) {
+      trackUserEvent('view_product', id as string, user._id);
+    }
+  }, [user, id]);
+
   if (!isClient) return null;
 
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
@@ -296,7 +303,7 @@ const ProductDetailPage = () => {
         spec.value !== null &&
         spec.value !== undefined &&
         !(typeof spec.value === 'string' && spec.value.trim() === '') &&
-        !(Array.isArray(spec.value) && spec.value.length === 0)
+        !(Array.isArray(spec.value) && (spec.value as any[]).length === 0)
     );
 
     // Nếu không có thông số nào, return null
@@ -583,6 +590,11 @@ const ProductDetailPage = () => {
                   onClick={() => {
                     if (!product || !selectedVariant) return;
 
+                    // Thêm tracking hành vi thêm vào giỏ hàng
+                    if (user) {
+                      trackUserEvent('add_to_cart', product._id, user._id);
+                    }
+
                     // Thêm sản phẩm chính vào giỏ hàng
                     dispatch(addToCart({
                       productId: product._id,
@@ -731,6 +743,11 @@ const ProductDetailPage = () => {
                 className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
                 onClick={() => {
                   if (!product || !selectedVariant) return;
+
+                  // Thêm tracking hành vi thêm vào giỏ hàng
+                  if (user) {
+                    trackUserEvent('add_to_cart', product._id, user._id);
+                  }
 
                   // Thêm sản phẩm chính vào giỏ hàng
                   dispatch(addToCart({

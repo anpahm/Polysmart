@@ -1,20 +1,21 @@
 const UserVoucher = require('../models/userVoucherModel');
 const GiftVoucher = require('../models/giftVoucherModel');
 const Voucher = require('../models/voucherModel');
+const mongoose = require('mongoose');
 
 exports.getUserVouchers = async (req, res) => {
   try {
-    const { userId } = req.query;
-    if (!userId) return res.json({ success: false, message: 'Missing userId' });
-    const userVouchers = await UserVoucher.find({ user: userId });
+    const { nguoi_dung } = req.query;
+    if (!nguoi_dung) return res.json({ success: false, message: 'Thiếu nguoi_dung' });
+    const userVouchers = await UserVoucher.find({ nguoi_dung });
 
     // Lấy thông tin chi tiết cho từng voucher
     const result = await Promise.all(userVouchers.map(async (uv) => {
       let detail = null;
-      if (uv.type === 'public') {
-        detail = await Voucher.findOne({ ma_voucher: uv.voucherCode });
-      } else if (uv.type === 'gift') {
-        detail = await GiftVoucher.findOne({ voucherCode: uv.voucherCode });
+      if (uv.loai === 'public') {
+        detail = await Voucher.findOne({ ma_voucher: uv.ma_voucher });
+      } else if (uv.loai === 'gift') {
+        detail = await GiftVoucher.findOne({ ma_voucher: uv.ma_voucher });
       }
       return {
         ...uv.toObject(),
@@ -30,24 +31,29 @@ exports.getUserVouchers = async (req, res) => {
 
 exports.addUserVoucher = async (req, res) => {
   try {
-    const { userId, code } = req.body;
-    if (!userId || !code) return res.json({ success: false, message: 'Thiếu thông tin' });
-    const existed = await UserVoucher.findOne({ user: userId, voucherCode: code.toUpperCase() });
+    const { nguoi_dung, code } = req.body;
+    if (!nguoi_dung || !code) return res.json({ success: false, message: 'Thiếu thông tin' });
+    const nguoiDungObjId = new mongoose.Types.ObjectId(nguoi_dung);
+    const existed = await UserVoucher.findOne({ nguoi_dung: nguoiDungObjId, ma_voucher: code.toUpperCase() });
     if (existed) return res.json({ success: false, message: 'Bạn đã lưu mã này rồi!' });
-    let voucher = await GiftVoucher.findOne({ voucherCode: code.toUpperCase(), isUsed: false, isDisabled: false });
+    
+    // Kiểm tra gift voucher
+    let voucher = await GiftVoucher.findOne({ ma_voucher: code.toUpperCase(), da_su_dung: false, da_vo_hieu_hoa: false });
     if (voucher) {
-      await UserVoucher.create({ user: userId, voucherCode: code.toUpperCase(), type: 'gift' });
+      await UserVoucher.create({ nguoi_dung: nguoiDungObjId, ma_voucher: code.toUpperCase(), loai: 'gift', het_han: voucher.het_han });
       return res.json({ success: true });
     }
+    
+    // Kiểm tra voucher công khai
     voucher = await Voucher.findOne({ 
       ma_voucher: code.toUpperCase(), 
       trang_thai: 'active', 
-      so_luong: { $gt: 0 },
+      $expr: { $gt: ["$so_luong", "$da_su_dung"] },
       ngay_bat_dau: { $lte: new Date() },
       ngay_ket_thuc: { $gte: new Date() }
     });
     if (voucher) {
-      await UserVoucher.create({ user: userId, voucherCode: code.toUpperCase(), type: 'public' });
+      await UserVoucher.create({ nguoi_dung: nguoiDungObjId, ma_voucher: code.toUpperCase(), loai: 'public', het_han: voucher.ngay_ket_thuc });
       return res.json({ success: true });
     }
     return res.json({ success: false, message: 'Mã voucher không hợp lệ hoặc đã hết lượt sử dụng/vô hiệu hóa.' });

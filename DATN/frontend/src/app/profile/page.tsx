@@ -245,7 +245,7 @@ export default function ProfilePage() {
     setLoadingVouchers(true);
     setVoucherError('');
     try {
-      const res = await fetch(`/api/user-vouchers?userId=${user._id}`);
+      const res = await fetch(`/api/user-vouchers?nguoi_dung=${user._id}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setUserVouchers(data.data);
@@ -503,7 +503,7 @@ export default function ProfilePage() {
       return;
     }
     // Kiểm tra trùng
-    if (userVouchers.some(v => (v.voucherCode || v.ma_voucher) === code.toUpperCase())) {
+    if (userVouchers.some(v => (v.ma_voucher || v.voucherCode) === code.toUpperCase())) {
       setVoucherError('Bạn đã lưu mã này rồi!');
       return;
     }
@@ -512,7 +512,7 @@ export default function ProfilePage() {
       const res = await fetch('/api/user-vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user._id, code }),
+        body: JSON.stringify({ nguoi_dung: user._id, code }),
       });
       const data = await res.json();
       if (data.success) {
@@ -841,9 +841,9 @@ export default function ProfilePage() {
     if (activeTab === "voucher") {
       // Lọc voucher theo filter
       const filteredVouchers = userVouchers.filter(v => {
-        let expiresAt = v.detail?.ngay_ket_thuc || v.expiresAt || v.ngay_ket_thuc;
-        if (voucherFilter === 'expiring' && expiresAt) {
-          const timeLeft = new Date(expiresAt).getTime() - new Date().getTime();
+        let het_han = v.detail?.ngay_ket_thuc || v.het_han || v.expiresAt || v.ngay_ket_thuc;
+        if (voucherFilter === 'expiring' && het_han) {
+          const timeLeft = new Date(het_han).getTime() - new Date().getTime();
           const hoursLeft = timeLeft / (1000 * 3600);
           return hoursLeft > 0 && hoursLeft < 12; // Dưới 12 tiếng
         }
@@ -872,7 +872,7 @@ export default function ProfilePage() {
           {voucherMessage && <div className="text-green-600 mb-2">{voucherMessage}</div>}
           {voucherError && <div className="text-red-500 mb-2">{voucherError}</div>}
           {/* Filter tabs */}
-          <div className="flex items-center gap-6 border-b mb-6">
+          <div className="flex space-x-6 mb-4 border-b">
             <button
               onClick={() => setVoucherFilter('all')}
               className={`py-2 font-medium ${voucherFilter === 'all' ? 'text-[#0066CC] border-b-2 border-[#0066CC]' : 'text-gray-600'}`}
@@ -888,40 +888,23 @@ export default function ProfilePage() {
           </div>
           {/* Voucher Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredVouchers.map(voucher => {
-              // Lấy dữ liệu từ detail nếu có
+            {filteredVouchers.map((voucher) => {
+              const isBehavior = voucher.loai === 'behavior';
+              const code = voucher.ma_voucher;
+              const het_han = voucher.het_han;
+              const da_su_dung = voucher.da_su_dung;
+              // Lấy dữ liệu từ detail nếu có (cho các loại khác)
               const detail = voucher.detail || {};
-              const isGift = voucher.type === 'gift';
-              const code = voucher.voucherCode || voucher.ma_voucher;
-              // Đặt các biến duy nhất ở đây, không lặp lại
-              const percent = detail.phan_tram_giam_gia || voucher.percent || voucher.phan_tram_giam_gia || 0;
-              const maxDiscount = detail.giam_toi_da || voucher.maxDiscount || voucher.giam_toi_da || 0;
-              const minSpend = detail.don_hang_toi_thieu || voucher.minSpend || voucher.don_hang_toi_thieu || 0;
-              const expiresAt = detail.ngay_ket_thuc || voucher.expiresAt || voucher.ngay_ket_thuc;
-              const description = detail.mo_ta || voucher.description || voucher.mo_ta || '';
+              const isGift = voucher.loai === 'gift';
+              const phan_tram = detail.phan_tram_giam_gia || voucher.phan_tram || voucher.phan_tram_giam_gia || 0;
+              const giam_toi_da = detail.giam_toi_da || voucher.giam_toi_da || 0;
+              const don_hang_toi_thieu = detail.don_hang_toi_thieu || voucher.don_hang_toi_thieu || 0;
+              const mo_ta = detail.mo_ta || voucher.mo_ta || '';
               const shopName = detail.shopName || voucher.shopName || (isGift ? 'SHOPEE' : 'POLYSMART');
               const logo = detail.logo || voucher.logo || (isGift ? '' : '/images/voucherlogo.jpg');
-              const isUsed = voucher.isUsed || voucher.isDisabled || voucher.da_su_dung || false;
               return (
-                <div key={code} className={`bg-white rounded-lg shadow-sm flex overflow-hidden relative border ${isUsed ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
-                  {/* Banner mới nếu là gift voucher mới */}
-                  {voucher.isNew && (
-                    <div className="absolute top-0 right-0">
-                      <div className="w-20 h-20 overflow-hidden">
-                        <div className="absolute transform rotate-45 bg-[#D0011B] text-center text-white font-semibold py-1 right-[-30px] top-[15px] w-[100px] text-xs">
-                          Mới
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div key={code} className={`bg-white rounded-lg shadow-sm flex overflow-hidden relative border ${da_su_dung ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
                   <div className="w-1/4 bg-[#D0011B] flex items-center justify-center p-2 relative">
-                    <div
-                      className="absolute top-0 right-[-1px] h-full w-1 bg-repeat-y"
-                      style={{
-                        backgroundImage: 'radial-gradient(circle at 0 5px, white 4px, transparent 5px)',
-                        backgroundSize: '4px 10px'
-                      }}
-                    ></div>
                     <div className="text-center">
                       <img src={logo} alt={shopName} className="w-12 h-12 mx-auto mb-1 rounded-full bg-white object-contain p-1" />
                       <span className="text-white font-bold text-sm uppercase">{shopName}</span>
@@ -930,24 +913,30 @@ export default function ProfilePage() {
                   <div className="w-3/4 p-4 flex flex-col justify-between">
                     <div>
                       <h3 className="font-bold text-gray-800 text-base">
-                        {percent > 0 ? `Giảm ${percent}%` : ''}
-                        {maxDiscount > 0 ? ` Giảm tối đa ₫${maxDiscount.toLocaleString()}` : ''}
-                        {percent === 0 && maxDiscount === 0 ? description : ''}
+                        {isBehavior
+                          ? 'Giảm 500.000đ cho sản phẩm bạn quan tâm'
+                          : phan_tram > 0 ? `Giảm ${phan_tram}%` : ''}
+                        {isBehavior
+                          ? ''
+                          : giam_toi_da > 0 ? ` Giảm tối đa ₫${giam_toi_da.toLocaleString()}` : ''}
+                        {phan_tram === 0 && giam_toi_da === 0 && !isBehavior ? mo_ta : ''}
                       </h3>
-                      <p className="text-gray-600 text-sm">Đơn Tối Thiểu ₫{minSpend.toLocaleString()}</p>
+                      <p className="text-gray-600 text-sm">
+                        {isBehavior
+                          ? 'Không yêu cầu đơn tối thiểu'
+                          : `Đơn Tối Thiểu ₫${don_hang_toi_thieu.toLocaleString()}`}
+                      </p>
                       <p className="text-gray-500 text-xs mt-2">
-                        Hiệu lực đến: {expiresAt ? new Date(expiresAt).toLocaleDateString('vi-VN') : '-'}
-                        {' | '}
-                        <Link href="#" className="text-blue-600 hover:underline">Điều Kiện</Link>
+                        Hiệu lực đến: {het_han ? new Date(het_han).toLocaleDateString('vi-VN') : '-'}
                       </p>
                     </div>
-                    <div className="text-right mt-2">
+                    <div className="mt-4">
                       <button
-                        className={`px-4 py-1 rounded text-sm font-semibold border ${isUsed ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed' : 'bg-[#DBEAFE]/10 text-[#0066CC] border-[#0066CC]'}`}
-                        disabled={isUsed}
-                        tabIndex={isUsed ? -1 : 0}
+                        className={`px-4 py-1 rounded text-sm font-semibold border ${da_su_dung ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed' : 'bg-[#DBEAFE]/10 text-[#0066CC] border-[#0066CC]'}`}
+                        disabled={da_su_dung}
+                        tabIndex={da_su_dung ? -1 : 0}
                       >
-                        {isUsed ? 'Đã sử dụng' : 'Dùng Ngay'}
+                        {da_su_dung ? 'Đã sử dụng' : 'Dùng Ngay'}
                       </button>
                     </div>
                   </div>

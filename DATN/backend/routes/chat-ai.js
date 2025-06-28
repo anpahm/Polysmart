@@ -18,7 +18,7 @@ const STORE_INFO = {
     "Đổi trả trong 7 ngày nếu có lỗi từ nhà sản xuất",
     "Hỗ trợ trả góp 0% lãi suất"
   ],
-  contact: "Hotline: 1900-xxxx, Email: info@polysmart.com"
+  contact: "Hotline: 1900-1234, Email: polysmart79@gmail.com"
 };
 
 const SMART_KEYWORDS = {
@@ -30,15 +30,14 @@ const SMART_KEYWORDS = {
   storage: ['64gb', '128gb', '256gb', '512gb', '1tb', '64 gb', '128 gb', '256 gb', '512 gb', '1 tb']
 };
 
-// Hàm trích xuất từ khóa - Phiên bản ổn định nhất
+// Hàm trích xuất từ khóa - Phiên bản tối ưu cho câu hỏi tự nhiên
 const PRICE_KEYWORDS = {
   cheap: ['rẻ', 'giá rẻ', 'thấp'],
   expensive: ['cao cấp', 'premium', 'đắt', 'giá cao'],
 };
 const STOP_WORDS = [
-    'là', 'có', 'của', 'và', 'em', 'anh', 'chị', 'giá', 'mua', 'bán', 'bao', 'nhiêu', 
-    'không', 'ạ', 'tôi', 'cửa', 'hàng', 'shop', 'mình', 'nào', 'điện', 'thoại',
-    'cho', 'xem', 'tiền', 'về', 'con', 'tư', 'vấn'
+    'là', 'có', 'của', 'và', 'em', 'anh', 'chị', 'không', 'ạ', 'tôi', 'cửa', 'hàng', 'shop', 'mình', 'nào', 'cho', 'về', 'con', 'tư'
+    // ĐÃ LOẠI BỎ: 'giá', 'mua', 'bán', 'bao', 'nhiêu', 'xem', 'tiền', 'điện', 'thoại', 'tư vấn'
 ];
 
 const extractKeywords = (message) => {
@@ -50,29 +49,50 @@ const extractKeywords = (message) => {
     .replace(/\bip\b/g, 'iphone');
     
   const words = normalizedMessage.split(/\s+/);
-  
   const allPriceKeywords = [...PRICE_KEYWORDS.cheap, ...PRICE_KEYWORDS.expensive];
 
-  const nameAndFeatureKeywords = words.filter(word => word.length > 0 && !STOP_WORDS.includes(word) && !allPriceKeywords.includes(word));
+  // Giữ lại các từ khóa liên quan đến sản phẩm, số, màu sắc, dung lượng, v.v.
+  let nameAndFeatureKeywords = words.filter(word => {
+    if (!word || STOP_WORDS.includes(word) || allPriceKeywords.includes(word)) return false;
+    // Giữ lại nếu là số
+    if (/^\d+$/.test(word)) return true;
+    // Giữ lại nếu có trong SMART_KEYWORDS
+    for (const key in SMART_KEYWORDS) {
+      if (SMART_KEYWORDS[key].some(k => k === word)) return true;
+    }
+    // Giữ lại các từ có độ dài > 2 (tránh từ vô nghĩa)
+    if (word.length > 2) return true;
+    return false;
+  });
+
+  // Nếu sau khi lọc mà không còn từ khóa nào, giữ lại các từ có trong SMART_KEYWORDS hoặc là số
+  if (nameAndFeatureKeywords.length === 0) {
+    nameAndFeatureKeywords = words.filter(word => {
+      if (!word) return false;
+      if (/^\d+$/.test(word)) return true;
+      for (const key in SMART_KEYWORDS) {
+        if (SMART_KEYWORDS[key].some(k => k === word)) return true;
+      }
+      return false;
+    });
+  }
+
   const priceKeywords = words.filter(word => allPriceKeywords.includes(word));
 
   return { nameAndFeatureKeywords, priceKeywords };
 };
 
-// Hàm tìm kiếm sản phẩm - Logic AND
+// Hàm tìm kiếm sản phẩm - Logic AND, fallback sang OR nếu không có kết quả
 const searchProducts = async ({ nameAndFeatureKeywords, priceKeywords }) => {
   if (nameAndFeatureKeywords.length === 0) return [];
 
   const matchConditions = {};
 
-  // Tất cả các từ khóa phải xuất hiện trong một trong các trường được chỉ định
+  // Tất cả các từ khóa phải xuất hiện trong một trong các trường được chỉ định (AND)
   matchConditions.$and = nameAndFeatureKeywords.map(keyword => ({
       $or: [
           { TenSP: { $regex: keyword, $options: 'i' } },
-          { 'thong_so_ky_thuat.CPU': { $regex: keyword, $options: 'i' } },
-          { 'thong_so_ky_thuat.Camera': { $regex: keyword, $options: 'i' } },
           { 'variants.dung_luong': { $regex: keyword, $options: 'i' } },
-          { 'variants.ram': { $regex: keyword, $options: 'i' } },
       ]
   }));
   
@@ -105,7 +125,33 @@ const searchProducts = async ({ nameAndFeatureKeywords, priceKeywords }) => {
   ];
 
   try {
-    const products = await Product.aggregate(aggregationPipeline);
+    let products = await Product.aggregate(aggregationPipeline);
+    if (products.length === 0 && nameAndFeatureKeywords.length > 1) {
+      // Nếu truy vấn AND không ra kết quả, thử lại với logic OR chỉ với các từ khóa mạnh nhất (tên sản phẩm và số)
+      const strongKeywords = nameAndFeatureKeywords.filter(word => {
+        // Là số hoặc có trong SMART_KEYWORDS.brands
+        if (/^\d+$/.test(word)) return true;
+        if (SMART_KEYWORDS.brands.includes(word)) return true;
+        return false;
+      });
+      if (strongKeywords.length > 0) {
+        const orMatch = {
+          $or: strongKeywords.map(keyword => ({
+            TenSP: { $regex: keyword, $options: 'i' }
+          }))
+        };
+        const fallbackPipeline = [
+          aggregationPipeline[0],
+          aggregationPipeline[1],
+          { $match: orMatch },
+          aggregationPipeline[3],
+          aggregationPipeline[4],
+          aggregationPipeline[5],
+          aggregationPipeline[6],
+        ];
+        products = await Product.aggregate(fallbackPipeline);
+      }
+    }
     console.log(`[DEBUG] Final search found ${products.length} products with keywords: ${nameAndFeatureKeywords.join(', ')}`);
     return products;
   } catch (error) {

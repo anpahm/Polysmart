@@ -1,4 +1,8 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
+const mongoose = require('mongoose');
+const UserEvent = require('../models/userEventModel');
+const User = require('../models/userModel');
 
 // Tạo transporter cho Gmail
 const transporter = nodemailer.createTransport({
@@ -11,6 +15,8 @@ const transporter = nodemailer.createTransport({
 
 // Hàm gửi email voucher
 const sendVoucherEmail = async (userEmail, userName, voucherCode) => {
+  console.log('EMAIL_USER:', process.env.EMAIL_USER);
+  console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD);
   try {
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -74,6 +80,34 @@ const sendVoucherEmail = async (userEmail, userName, voucherCode) => {
   }
 };
 
+function generateVoucherCode(length = 8) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return 'POLY-' + code;
+}
+
+async function sendEmail(to, voucherCode) {
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'polysmart79@gmail.com',
+      pass: 'osqo augq eamh xkti',
+    },
+  });
+
+  await transporter.sendMail({
+    from: 'Poly Smart <your-email@gmail.com>',
+    to,
+    subject: 'Mã giảm giá dành cho bạn!',
+    text: `Bạn nhận được mã giảm giá 500.000đ cho sản phẩm bạn quan tâm!\nMã giảm giá của bạn: ${voucherCode}`,
+  });
+}
+
 module.exports = {
-  sendVoucherEmail
+  sendVoucherEmail,
+  sendEmail,
+  generateVoucherCode
 }; 

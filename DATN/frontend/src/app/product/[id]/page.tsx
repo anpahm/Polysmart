@@ -9,6 +9,7 @@ import { RootState } from '@/store';
 import { getApiUrl } from "@/config/api"; // Import getApiUrl
 import ProductReviews from "@/components/ProductReviews"; //component của  ThanhHoai 
 import { trackUserEvent } from '@/services/productService';
+import ChatbotAI from '@/components/ChatbotAI';
 
 // Interface for FlashSale data
 interface FlashSaleVariantInHomepage {
@@ -998,6 +999,8 @@ const ProductDetailPage = () => {
           </div>
         </div>
       )}
+      {/* Thêm ChatbotAI ở đây */}
+      <ChatbotAI />
     </div>
   );
 };

@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { fetchAllProducts } from "../services/productService";
 import { Product } from "../types/product";
 import ProductCard from "./ProductCard";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Định nghĩa lại type cho message
 interface ChatMessage {
@@ -11,19 +13,6 @@ interface ChatMessage {
   text: string;
   products?: Product[];
 }
-
-// Danh sách từ khóa không cần thiết để lọc
-const vietnameseStopwords = new Set([
-  "là", "của", "có", "một", "cho", "tôi", "bạn", "tìm", "muốn", "sản phẩm", 
-  "cái", "chiếc", "điện thoại", "iphone", "samsung", "với", "và", "hoặc", 
-  "khi", "thì", "mà", "ở", "tại", "về", "giá", "bao nhiêu"
-]);
-
-// Hàm trích xuất từ khóa, loại bỏ stop words
-const extractKeywords = (text: string) => {
-  const lowercased = text.toLowerCase();
-  return lowercased.split(' ').filter(word => word.length > 1 && !vietnameseStopwords.has(word));
-};
 
 const ChatbotAI = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,88 +62,42 @@ const ChatbotAI = () => {
       from: "user",
       text: trimmedInput,
     };
-    
-    // 2. Lọc sản phẩm dựa trên input của người dùng (CLIENT-SIDE)
-    const keywords = extractKeywords(trimmedInput);
-    let foundProducts: Product[] = [];
-    if (keywords.length > 0) {
-      foundProducts = allProducts.filter(product => {
-        const searchableText = [
-          product.TenSP.toLowerCase(),
-          product.variants?.map(v => `${v.mau?.toLowerCase()} ${v.dung_luong?.toLowerCase()}`).join(' ') || ''
-        ].join(' ');
-        
-        return keywords.every(kw => searchableText.includes(kw));
-      });
-    }
 
-    const currentHistory = messages.map(m => ({ role: m.from, content: m.text }));
-
-    // 3. Chuẩn bị tin nhắn của bot
-    const botMessageId = Date.now() + 1;
-    let initialBotText = "";
-    // Nếu tìm thấy sản phẩm, thêm một câu dẫn
-    if (foundProducts.length > 0 && !loading) {
-        initialBotText = "Dạ, em đã tìm thấy một vài sản phẩm có thể Anh/Chị quan tâm ạ:\n";
-    }
-
-    const botMessage: ChatMessage = {
-        id: botMessageId,
-        from: "bot",
-        text: initialBotText, // Bắt đầu với câu dẫn (nếu có)
-        products: foundProducts.slice(0, 4) // Giới hạn 4 sản phẩm
-    };
-
-    // 4. Cập nhật giao diện với tin nhắn người dùng và tin nhắn bot (với sản phẩm)
-    setMessages((prev) => [...prev, userMessage, botMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-    
+
     try {
-      // 5. Gọi API backend để nhận câu trả lời văn bản từ AI
+      // Gọi API backend để nhận cả reply và products
       const res = await fetch(`http://localhost:3000/api/chat-ai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           message: trimmedInput,
-          history: currentHistory
+          history: messages.map(m => ({ role: m.from, content: m.text }))
         }),
       });
-
-      if (!res.body) throw new Error("Response body is null");
-
-      // 6. Xử lý streaming response và nối vào câu dẫn
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedResponse = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedResponse += chunk;
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === botMessageId
-              ? { ...msg, text: initialBotText + accumulatedResponse } // Nối vào text ban đầu
-              : msg,
-          ),
-        );
-      }
+      const data = await res.json();
+      // Thêm message bot với text và products
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          from: "bot",
+          text: data.reply,
+          products: data.products || []
+        }
+      ]);
     } catch (err) {
-      console.error(err);
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === botMessageId
-            ? {
-                ...msg,
-                text: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
-                products: foundProducts.slice(0, 4) // Vẫn giữ sản phẩm đã tìm thấy
-              }
-            : msg,
-        ),
-      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          from: "bot",
+          text: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+          products: []
+        }
+      ]);
     } finally {
       setLoading(false);
     }
@@ -165,9 +108,23 @@ const ChatbotAI = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-[1000] bg-gray-300 hover:bg-gray-400 text-white w-14 h-14 rounded-full shadow-lg duration-300 ease-in-out flex items-center justify-center"
+          className="fixed bottom-6 right-6 z-[1000] text-white w-14 h-14 rounded-full shadow-lg duration-300 ease-in-out flex items-center justify-center"
           aria-label="Mở chat AI"
-        >🤖
+        >
+          {/* Gemini SVG icon */}
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="16" fill="#fff"/>
+            <path
+              d="M16 4C16 4 20.5 12 28 16C20.5 20 16 28 16 28C16 28 11.5 20 4 16C11.5 12 16 4 16 4Z"
+              fill="url(#gemini-gradient)"
+            />
+            <defs>
+              <linearGradient id="gemini-gradient" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#8AB4F8"/>
+                <stop offset="1" stopColor="#5C6BC0"/>
+              </linearGradient>
+            </defs>
+          </svg>
         </button>
       )}
 
@@ -175,7 +132,7 @@ const ChatbotAI = () => {
       {isOpen && (
         <div className="fixed bottom-4 right-6 w-[440px] h-[680px] bg-white rounded-2xl shadow-2xl z-[1001] flex flex-col font-sans">
           {/* Header */}
-          <div className="bg-gray-800 text-white p-4 rounded-t-2xl flex justify-between items-center">
+          <div className="bg-[#3E8FFC] text-white p-4 rounded-t-2xl flex justify-between items-center">
             <p className="font-semibold text-lg">Poly Smart - Trợ lý AI</p>
             <button
               onClick={() => setIsOpen(false)}
@@ -208,7 +165,15 @@ const ChatbotAI = () => {
                   >
                     {/* Luôn render text trước */}
                     {msg.text && (
-                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                      msg.from === 'bot' ? (
+                        <div className="text-sm whitespace-pre-wrap markdown-table">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.text}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                      )
                     )}
                   </div>
                                     

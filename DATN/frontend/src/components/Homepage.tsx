@@ -534,6 +534,11 @@ const HomePage = () => {
                   .map((variant) => {
                     if (!variant) return null; // Bỏ qua nếu không có biến thể
 
+                    const total = variant.so_luong;
+                    const sold = variant.da_ban;
+                    const remaining = total - sold;
+                    const percent = total > 0 ? Math.round((sold / total) * 100) : 0;
+
                     return (
                       <SwiperSlide key={variant.id_variant}>
                         <Link
@@ -554,9 +559,20 @@ const HomePage = () => {
                                 Flash Sale
                               </span>
                             </div>
-                            {/* Số lượng còn lại */}
-                            <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                              Còn {variant.so_luong - variant.da_ban} sản phẩm
+                            {/* Số lượng còn lại với progress bar */}
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[85%] flex flex-col items-center">
+                              <div className="w-full h-6 rounded-full bg-gray-200 flex items-center relative overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 absolute left-0 top-0 transition-all duration-500"
+                                  style={{ width: `${(remaining / total) * 100}%` }}
+                                ></div>
+                                <div className="w-full h-full flex items-center justify-center z-10 relative">
+                                  <span className="flex items-center gap-1 text-black font-semibold text-sm">
+                                    <span role="img" aria-label="fire">🔥</span>
+                                    Còn {remaining}/{total} suất
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
 

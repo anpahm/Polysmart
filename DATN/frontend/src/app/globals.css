@@ -427,3 +427,23 @@ code, pre {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none;    /* Firefox */
 }
+
+/* Nếu dùng file CSS thường */
+.markdown-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 14px;
+}
+.markdown-table th, .markdown-table td {
+  border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+  padding: 8px 12px;
+  text-align: left;
+}
+.markdown-table th {
+  background: #f3f4f6; /* Tailwind gray-100 */
+  font-weight: 600;
+}
+.markdown-table tr:nth-child(even) {
+  background: #f9fafb; /* Tailwind gray-50 */
+}

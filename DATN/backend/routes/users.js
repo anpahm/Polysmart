@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword } = require('../controllers/userController');
+const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword, forgotPassword } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
@@ -44,5 +44,8 @@ router.post('/change-password', verifyToken, async (req, res) => {
 
 //Lấy tất cả users
 router.get('/', getAllUsers);
+
+// Quên mật khẩu
+router.post('/forgot-password', forgotPassword);
 
 module.exports = router;

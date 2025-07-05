@@ -16,7 +16,6 @@ const checkfile = (req, file, cb) => {
 }
 const upload = multer({storage: storage, fileFilter: checkfile})
 
-////////////////////////////
 const userModel = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');

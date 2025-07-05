@@ -1,5 +1,27 @@
 require('dotenv').config();
 const mongoose = require("mongoose");
+
+// Require all models before connecting to MongoDB
+require('./models/userModel');
+require('./models/orderModel');
+require('./models/bankTransactionModel');
+require('./models/categoryModel');
+require('./models/productModel');
+require('./models/variantModel');
+require('./models/voucherModel');
+require('./models/giftVoucherModel');
+require('./models/userVoucherModel');
+require('./models/newsModel');
+require('./models/newsCategoryModel');
+require('./models/reviewModel');
+require('./models/settingModel');
+require('./models/FlashSale');
+require('./models/FlashSaleVariant');
+require('./models/userEventModel');
+require('./models/luckyWheelResultModel');
+require('./models/imageReviewModel');
+
+// Connect to MongoDB after models are registered
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/DB_ShopTao")
   .then(() => console.log("MongoDB đã kết nối hẹ hẹ hẹ http://localhost:3000/ "))
@@ -29,6 +51,8 @@ const reviewsRouter = require('./routes/reviews');
 const uploadReviewImageRouter = require('./routes/uploadReviewImage');
 const userVouchersRouter = require('./routes/userVouchers');
 const trackEventRouter = require('./routes/trackEvent');
+const bankTransactionsRouter = require('./routes/bankTransactions');
+const autoPaymentRouter = require('./routes/autoPayment');
 
 var app = express();
 
@@ -81,6 +105,8 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/upload-review-image', uploadReviewImageRouter);
 app.use('/api/user-vouchers', userVouchersRouter);
 app.use('/api/track-event', trackEventRouter);
+app.use('/api/bank-transactions', bankTransactionsRouter);
+app.use('/api/auto-payment', autoPaymentRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

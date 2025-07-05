@@ -389,6 +389,45 @@ if (require.main === module) {
   })();
 }
 
+// API sinh mô tả sản phẩm chuẩn SEO bằng AI
+router.post('/generate-product-description', async (req, res) => {
+  const { name, specs } = req.body;
+  if (!name || !specs) {
+    return res.status(400).json({ success: false, message: 'Thiếu tên sản phẩm hoặc thông số kỹ thuật.' });
+  }
+  // Tạo prompt cho AI
+  let specsText = Object.entries(specs).map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('\n');
+  const prompt = `Viết một đoạn mô tả sản phẩm chuẩn SEO, thu hút khách hàng cho sản phẩm sau:\nTên: ${name}\nThông số kỹ thuật:\n${specsText}\nĐoạn mô tả nên ngắn gọn, hấp dẫn, có chứa từ khóa liên quan.`;
+  try {
+    const geminiRes = await axios.post(
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      {
+        contents: [
+          { parts: [ { text: prompt } ] }
+        ]
+      }
+    );
+    let description = '';
+    if (
+      geminiRes.data &&
+      geminiRes.data.candidates &&
+      geminiRes.data.candidates[0] &&
+      geminiRes.data.candidates[0].content &&
+      geminiRes.data.candidates[0].content.parts &&
+      geminiRes.data.candidates[0].content.parts[0] &&
+      geminiRes.data.candidates[0].content.parts[0].text
+    ) {
+      description = geminiRes.data.candidates[0].content.parts[0].text;
+    } else {
+      description = 'Không thể sinh mô tả AI.';
+    }
+    res.json({ success: true, description });
+  } catch (err) {
+    console.error('Lỗi khi gọi Gemini API:', err.message);
+    res.status(500).json({ success: false, message: 'Lỗi AI hoặc mạng.' });
+  }
+});
+
 module.exports = router;
 
 

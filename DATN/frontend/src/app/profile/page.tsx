@@ -7,163 +7,7 @@ import type { RootState } from '../../store';
 import { fetchApi, API_ENDPOINTS, getImageUrl } from '@/config/api';
 import { setUser } from '../../store/userSlice';
 import { useRouter, useSearchParams } from "next/navigation";
-
-const PROFILE_TABS = [
-  { key: "info", label: "Thông tin tài khoản" },
-  { key: "address", label: "Địa chỉ nhận hàng" },
-  { key: "orders", label: "Đơn đặt hàng" },
-  { key: "voucher", label: "Kho Voucher" },
-  { key: "password", label: "Đổi mật khẩu" },
-  { key: "avatar", label: "Ảnh đại diện" },
-  { key: "reviews", label: "Lịch sử đánh giá sản phẩm" },
-  { key: "system", label: "Hệ thống" },
-];
-
-// --- Đơn đặt hàng Shopee style ---
-const ORDER_TABS = [
-  { key: 'all', label: 'Tất cả', count: 5 },
-  { key: 'pending', label: 'Chờ thanh toán', count: 1 },
-  { key: 'shipping', label: 'Vận chuyển', count: 1 },
-  { key: 'waiting', label: 'Chờ giao hàng', count: 2 },
-  { key: 'completed', label: 'Hoàn thành', count: 2 },
-  { key: 'cancelled', label: 'Đã hủy', count: 1 },
-  { key: 'returned', label: 'Trả hàng/Hoàn tiền', count: 1 },
-];
-const mockOrders = [
-  {
-    id: '1',
-    shop: 'Shopee Choice Việt Nam',
-    productImg: 'https://shopdunk.com/images/thumbs/0035754_ipad-a16-11-inch-wi-fi_240.png',
-    productName: 'Tai Nghe Nhét Tai Có Dây WEKOME YC08 Choice EL1-0741-7 Tích Hợp Micro, Cản Tiếng',
-    productType: 'YC08 - TypeC',
-    qty: 1,
-    price: 113724,
-    oldPrice: 168000,
-    status: 'waiting',
-    statusText: 'CHỜ GIAO HÀNG',
-    statusColor: 'text-blue-600',
-    delivered: false,
-    note: 'Vui lòng chỉ nhấn "Đã nhận hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.',
-    isChoice: true,
-  },
-  {
-    id: '2',
-    shop: 'Shopee Choice Việt Nam',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'Tai Nghe Bluetooth',
-    productType: 'Bluetooth',
-    qty: 2,
-    price: 200000,
-    oldPrice: 250000,
-    status: 'completed',
-    statusText: 'HOÀN THÀNH',
-    statusColor: 'text-green-600',
-    delivered: true,
-    note: '',
-    isChoice: true,
-  },
-  {
-    id: '3',
-    shop: 'Shopee Choice Việt Nam',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'Ốp lưng điện thoại',
-    productType: 'iPhone 14',
-    qty: 1,
-    price: 50000,
-    oldPrice: 70000,
-    status: 'pending',
-    statusText: 'CHỜ THANH TOÁN',
-    statusColor: 'text-yellow-500',
-    delivered: false,
-    note: '',
-    isChoice: false,
-  },
-  // Đơn hàng mẫu: Vận chuyển
-  {
-    id: '4',
-    shop: 'Shopee Mall',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'Bàn phím cơ Keychron K2',
-    productType: 'RGB - Gateron Brown',
-    qty: 1,
-    price: 1500000,
-    oldPrice: 1700000,
-    status: 'shipping',
-    statusText: 'ĐANG VẬN CHUYỂN',
-    statusColor: 'text-blue-400',
-    delivered: false,
-    note: '',
-    isChoice: false,
-  },
-  // Đơn hàng mẫu: Chờ giao hàng
-  {
-    id: '5',
-    shop: 'Apple Store',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'iPhone 15 Pro Max',
-    productType: '256GB - Titan Xanh',
-    qty: 1,
-    price: 32990000,
-    oldPrice: 34990000,
-    status: 'waiting',
-    statusText: 'CHỜ GIAO HÀNG',
-    statusColor: 'text-blue-600',
-    delivered: false,
-    note: 'Vui lòng chỉ nhấn "Đã nhận được hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.',
-    isChoice: false,
-  },
-  // Đơn hàng mẫu: Hoàn thành
-  {
-    id: '6',
-    shop: 'Apple Store',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'iPad Air 5',
-    productType: '64GB - Xám',
-    qty: 1,
-    price: 14500000,
-    oldPrice: 15500000,
-    status: 'completed',
-    statusText: 'HOÀN THÀNH',
-    statusColor: 'text-green-600',
-    delivered: true,
-    note: '',
-    isChoice: false,
-  },
-  // Đơn hàng mẫu: Đã hủy
-  {
-    id: '7',
-    shop: 'Tech accessories',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'Sạc dự phòng 20000mAh',
-    productType: 'Màu đen',
-    qty: 1,
-    price: 350000,
-    oldPrice: 450000,
-    status: 'cancelled',
-    statusText: 'ĐÃ HỦY',
-    statusColor: 'text-red-500',
-    delivered: false,
-    note: '',
-    isChoice: false,
-  },
-  // Đơn hàng mẫu: Trả hàng/Hoàn tiền
-  {
-    id: '8',
-    shop: 'Shopee Choice Việt Nam',
-    productImg: 'https://cf.shopee.vn/file/sg-11134201-7rbk2-lk1w7w7w7w7w7w_tn.jpg',
-    productName: 'Chuột máy tính không dây',
-    productType: 'Màu trắng',
-    qty: 1,
-    price: 120000,
-    oldPrice: 150000,
-    status: 'returned',
-    statusText: 'TRẢ HÀNG/HOÀN TIỀN',
-    statusColor: 'text-orange-500',
-    delivered: true,
-    note: 'Yêu cầu trả hàng/hoàn tiền của bạn đã được xử lý.',
-    isChoice: true,
-  },
-];
+import { orderService } from '@/services/orderService';
 
 // Thêm type cho review
 interface ReviewHistoryItem {
@@ -179,6 +23,17 @@ interface ReviewHistoryItem {
   images?: { duong_dan_anh: string; ghi_chu?: string }[];
 }
 
+const PROFILE_TABS = [
+  { key: "info", label: "Thông tin tài khoản" },
+  { key: "address", label: "Địa chỉ nhận hàng" },
+  { key: "orders", label: "Đơn đặt hàng" },
+  { key: "voucher", label: "Kho Voucher" },
+  { key: "password", label: "Đổi mật khẩu" },
+  { key: "avatar", label: "Ảnh đại diện" },
+  { key: "reviews", label: "Lịch sử đánh giá sản phẩm" },
+  { key: "system", label: "Hệ thống" },
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -188,7 +43,7 @@ export default function ProfilePage() {
   // Đơn đặt hàng: tab con
   const orderTypeQuery = searchParams.get("type");
   const [orderTab, setOrderTab] = useState(orderTypeQuery || "all");
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<any[]>([]);
 
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
@@ -326,6 +181,47 @@ export default function ProfilePage() {
         .finally(() => setLoadingReviewHistory(false));
     }
   }, [activeTab, user?._id, user?.email]);
+
+  // Map trạng thái backend sang UI
+  const mapOrderStatus = (orderStatus: string, paymentStatus: string) => {
+    if (orderStatus === 'cancelled') return { status: 'cancelled', statusText: 'ĐÃ HỦY', statusColor: 'text-red-500' };
+    if (orderStatus === 'confirmed' && paymentStatus === 'paid') return { status: 'completed', statusText: 'HOÀN THÀNH', statusColor: 'text-green-600' };
+    if (orderStatus === 'pending' && paymentStatus === 'pending') return { status: 'pending', statusText: 'CHỜ THANH TOÁN', statusColor: 'text-yellow-500' };
+    if (orderStatus === 'shipping') return { status: 'shipping', statusText: 'ĐANG VẬN CHUYỂN', statusColor: 'text-blue-400' };
+    if (orderStatus === 'confirmed' && paymentStatus === 'paid') return { status: 'waiting', statusText: 'CHỜ GIAO HÀNG', statusColor: 'text-blue-600' };
+    return { status: 'waiting', statusText: 'CHỜ GIAO HÀNG', statusColor: 'text-blue-600' };
+  };
+
+  // Map dữ liệu từ backend về format UI
+  const mapOrder = (orderFromApi: any) => {
+    const item = orderFromApi.items[0] || {};
+    const statusObj = mapOrderStatus(orderFromApi.orderStatus, orderFromApi.paymentStatus);
+    return {
+      id: orderFromApi._id,
+      shop: 'PolySmart',
+      productImg: item.image,
+      productName: item.name,
+      productType: item.colorName,
+      qty: item.quantity,
+      price: item.price,
+      oldPrice: item.oldPrice || 0,
+      ...statusObj,
+      delivered: orderFromApi.orderStatus === 'delivered',
+      note: orderFromApi.orderStatus === 'waiting' ? 'Vui lòng chỉ nhấn "Đã nhận hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.' : '',
+      isChoice: false,
+    };
+  };
+
+  // Lấy đơn hàng thực tế khi vào tab 'orders'
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (activeTab === 'orders' && user?._id) {
+        const realOrders = await orderService.getOrdersByUser(user._id);
+        setOrders(Array.isArray(realOrders) ? realOrders.map(mapOrder) : []);
+      }
+    };
+    fetchOrders();
+  }, [activeTab, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -489,6 +385,20 @@ export default function ProfilePage() {
     );
   };
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return;
+    try {
+      await orderService.cancelOrder(orderId);
+      // Sau khi hủy, reload lại danh sách đơn hàng
+      if (user?._id) {
+        const realOrders = await orderService.getOrdersByUser(user._id);
+        setOrders(Array.isArray(realOrders) ? realOrders.map(mapOrder) : []);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Lỗi khi hủy đơn hàng');
+    }
+  };
+
   // Hàm xử lý nhập mã voucher
   const handleAddVoucher = async () => {
     setVoucherMessage('');
@@ -526,6 +436,37 @@ export default function ProfilePage() {
       setVoucherError('Có lỗi khi kiểm tra/lưu mã voucher');
     }
   };
+
+  // Đếm số lượng đơn hàng theo trạng thái thực tế
+  const getOrderTabCounts = (orders: any[]) => {
+    const counts: Record<string, number> = {
+      all: orders.length,
+      pending: 0,
+      shipping: 0,
+      waiting: 0,
+      completed: 0,
+      cancelled: 0,
+      returned: 0,
+    };
+    orders.forEach(order => {
+      if (order.status && counts.hasOwnProperty(order.status)) {
+        counts[order.status]++;
+      }
+    });
+    return counts;
+  };
+  const orderTabCounts = getOrderTabCounts(orders);
+
+  // --- Đơn đặt hàng Shopee style ---
+  const ORDER_TABS = [
+    { key: 'all', label: 'Tất cả', count: orderTabCounts.all },
+    { key: 'pending', label: 'Chờ thanh toán', count: orderTabCounts.pending },
+    { key: 'shipping', label: 'Vận chuyển', count: orderTabCounts.shipping },
+    { key: 'waiting', label: 'Chờ giao hàng', count: orderTabCounts.waiting },
+    { key: 'completed', label: 'Hoàn thành', count: orderTabCounts.completed },
+    { key: 'cancelled', label: 'Đã hủy', count: orderTabCounts.cancelled },
+    { key: 'returned', label: 'Trả hàng/Hoàn tiền', count: orderTabCounts.returned },
+  ];
 
   // --- Render nội dung từng tab ---
   const renderContent = () => {
@@ -636,7 +577,10 @@ export default function ProfilePage() {
                        </>
                     )}
                      {order.status === 'pending' && (
-                       <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                       <button
+                         className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition"
+                         onClick={() => handleCancelOrder(order.id)}
+                       >
                          Hủy Đơn
                        </button>
                      )}

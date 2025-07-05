@@ -197,4 +197,27 @@ exports.getOrders = async (req, res) => {
     console.error('Get orders error:', error);
     res.status(500).json({ success: false, message: 'Đã có lỗi xảy ra khi lấy danh sách đơn hàng' });
   }
+};
+
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+    // Chỉ cho phép hủy nếu chưa hoàn thành/giao hàng
+    if (order.orderStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Đơn hàng đã bị hủy trước đó' });
+    }
+    if (order.orderStatus === 'completed' || order.orderStatus === 'delivered') {
+      return res.status(400).json({ message: 'Không thể hủy đơn đã hoàn thành/giao hàng' });
+    }
+    order.orderStatus = 'cancelled';
+    await order.save();
+    res.json({ success: true, message: 'Đã hủy đơn hàng', order });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi hủy đơn hàng' });
+  }
 }; 

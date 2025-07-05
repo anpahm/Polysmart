@@ -64,4 +64,23 @@ export const orderService = {
       throw new Error(error.message || 'Đã có lỗi xảy ra khi xác nhận thanh toán');
     }
   },
+
+  async getOrdersByUser(userId: string) {
+    try {
+      const result = await fetchApi(`/orders?userId=${userId}`);
+      return result.orders;
+    } catch (error: any) {
+      console.error('Get orders error:', error);
+      return [];
+    }
+  },
+
+  async cancelOrder(orderId: string) {
+    try {
+      const result = await fetchApi(`/orders/${orderId}/cancel`, { method: 'PUT' });
+      return result;
+    } catch (error: any) {
+      throw new Error(error.message || 'Lỗi khi hủy đơn hàng');
+    }
+  },
 }; 

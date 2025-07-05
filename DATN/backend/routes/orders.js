@@ -20,4 +20,7 @@ router.post('/auto-confirm', orderController.autoConfirmOrders);
 // Get all orders (optionally by userId)
 router.get('/', orderController.getOrders);
 
+// Hủy đơn hàng
+router.put('/:orderId/cancel', orderController.cancelOrder);
+
 module.exports = router; 

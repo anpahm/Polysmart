@@ -4,9 +4,12 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { orderService } from '@/services/orderService';
 import type { OrderResponse } from '@/services/orderService';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 
 export default function BankingPaymentPage() {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.user.user);
   const [orderData, setOrderData] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [copied, setCopied] = useState(false);
@@ -59,7 +62,10 @@ export default function BankingPaymentPage() {
   const createOrder = async (orderData: any) => {
     try {
       const order = await orderService.createOrder({
-        customerInfo: orderData.customerInfo,
+        customerInfo: {
+          ...orderData.customerInfo,
+          userId: user?._id
+        },
         items: orderData.items,
         totalAmount: orderData.totalAmount,
         paymentMethod: 'atm'

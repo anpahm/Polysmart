@@ -16,6 +16,12 @@ const flashSaleVariantSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  phan_tram_giam_gia: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: null,
+  },
   so_luong: {
     type: Number,
     required: true,

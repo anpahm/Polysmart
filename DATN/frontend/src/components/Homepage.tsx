@@ -28,6 +28,8 @@ interface FlashSaleVariantInHomepage {
   variant_details?: string;
   product_id: string;
   product_image: string | string[];
+  phan_tram_giam_gia?: number;
+  gia_goc?: number;
 }
 
 interface FlashSale {
@@ -353,6 +355,20 @@ const HomePage = () => {
                   key={variant._id}
                   className="relative group"
                 >
+                  {/* Badge Flash Sale bên trái */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
+                      Flash Sale
+                    </span>
+                  </div>
+                  {/* Badge % giảm giá bên phải */}
+                  {variant.phan_tram_giam_gia && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <span className="bg-yellow-400 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                        -{variant.phan_tram_giam_gia}%
+                      </span>
+                    </div>
+                  )}
                   <span
                     className={`inline-block px-2 py-1 text-xs rounded-md 
                     ${variant.so_luong_hang > 0 
@@ -581,18 +597,26 @@ const HomePage = () => {
                         >
                           {/* Ảnh sản phẩm */}
                           <div className="relative pt-[100%] overflow-hidden">
+                            {/* Badge Flash Sale bên trái */}
+                            <div className="absolute top-2 left-2 z-10">
+                              <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
+                                Flash Sale
+                              </span>
+                            </div>
+                            {/* Badge % giảm giá bên phải */}
+                            {variant.phan_tram_giam_gia && (
+                              <div className="absolute top-2 right-2 z-10">
+                                <span className="bg-yellow-400 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                                  -{variant.phan_tram_giam_gia}%
+                                </span>
+                              </div>
+                            )}
                             <Image
                               src={getImageUrl(variant?.product_image || '')}
                               alt={variant?.product_name || 'Sản phẩm Flash Sale'}
                               fill
                               className="object-contain p-4"
                             />
-                            {/* Badge giá flash sale */}
-                            <div className="absolute top-2 left-2 flex flex-col items-center">
-                              <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
-                                Flash Sale
-                              </span>
-                            </div>
                             {/* Số lượng còn lại với progress bar */}
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[85%] flex flex-col items-center">
                               <div className="w-full h-6 rounded-full bg-gray-200 flex items-center relative overflow-hidden">
@@ -609,7 +633,6 @@ const HomePage = () => {
                               </div>
                             </div>
                           </div>
-
                           {/* Thông tin sản phẩm */}
                           <div className="p-5">
                             <h3 className="text-sm text-[16px] mb-2 line-clamp-2 min-h-[2.5rem] text-gray-800 hover:text-red-600">
@@ -620,12 +643,15 @@ const HomePage = () => {
                                 <span className="text-lg font-bold text-red-600">
                                   {formatCurrency(variant.gia_flash_sale)}
                                 </span>
-                                {/* Giá gốc được lấy từ variant_details, cần parse hoặc có thể truyền thêm giá gốc từ backend */}
-                                {/* Tạm thời hiển thị giá gốc từ variant_details nếu giá flash sale khác giá gốc */}
-                                {variant.variant_details && variant.gia_flash_sale !== parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')) && (
-                                    <span className="text-sm text-gray-400 line-through">
-                                      {formatCurrency(parseFloat(variant.variant_details.split('(Giá gốc: ')[1]?.replace(')', '')))}
-                                    </span>
+                                {variant.gia_goc && variant.gia_flash_sale !== variant.gia_goc && (
+                                  <span className="text-sm text-gray-400 line-through">
+                                    {formatCurrency(variant.gia_goc)}
+                                  </span>
+                                )}
+                                {variant.gia_goc && variant.gia_flash_sale && variant.gia_goc > variant.gia_flash_sale && (
+                                  <span className="text-xs text-green-600 font-semibold">
+                                    Tiết kiệm {(variant.gia_goc - variant.gia_flash_sale).toLocaleString()}₫
+                                  </span>
                                 )}
                               </div>
                             </div>

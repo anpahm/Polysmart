@@ -15,6 +15,7 @@ import ChatbotAI from '@/components/ChatbotAI';
 interface FlashSaleVariantInHomepage {
   id_variant: string;
   gia_flash_sale: number;
+  phan_tram_giam_gia?: number;
 }
 interface FlashSale {
   flashSaleVariants: FlashSaleVariantInHomepage[];
@@ -53,6 +54,7 @@ const ProductDetailPage = () => {
   const [isClient, setIsClient] = useState(false);
   const [flashSalePrice, setFlashSalePrice] = useState<number | null>(null); // State for flash sale price
   const user = useSelector((state: RootState) => state.user.user);
+  const [flashSaleVariants, setFlashSaleVariants] = useState<any[]>([]);
 
   useEffect(() => {
     setIsClient(true);
@@ -111,6 +113,8 @@ const ProductDetailPage = () => {
         } else {
           setFlashSalePrice(null);
         }
+
+        setFlashSaleVariants(activeFlashSales.flatMap(sale => sale.flashSaleVariants));
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -502,6 +506,18 @@ const ProductDetailPage = () => {
                 {originPrice.toLocaleString()}₫
               </div>
             )}
+            {/* Hiển thị badge % giảm giá nếu có */}
+            {selectedVariant && flashSaleVariants.length > 0 && (() => {
+              const flashSaleVariant = flashSaleVariants.find((v: any) => v.id_variant === selectedVariant._id);
+              if (flashSaleVariant && flashSaleVariant.phan_tram_giam_gia) {
+                return (
+                  <span className="ml-3 bg-yellow-400 text-red-700 text-base font-bold px-3 py-1 rounded-full">
+                    -{flashSaleVariant.phan_tram_giam_gia}%
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </div>
           {/* Chỉ hiển thị phần chọn dung lượng nếu có biến thể và có giá trị hợp lệ */}
           {product.variants && product.variants.length > 0 && storages.length > 0 && (

@@ -24,6 +24,7 @@ interface Product {
 interface FlashSaleVariantData {
   id_variant: string;
   gia_flash_sale: number;
+  phan_tram_giam_gia?: number;
   so_luong: number;
   product_name?: string; // For display purposes
   variant_details?: string; // For display purposes
@@ -44,6 +45,7 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [inputTypeMap, setInputTypeMap] = useState<Record<string, 'gia' | 'phantram'>>({});
 
   // Fetch products for variant selection
   useEffect(() => {
@@ -80,11 +82,26 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
     setSelectedVariants(prev => prev.filter(sv => sv.id_variant !== id_variant));
   };
 
+  const handleInputTypeChange = (id_variant: string, type: 'gia' | 'phantram') => {
+    setInputTypeMap(prev => ({ ...prev, [id_variant]: type }));
+    if (type === 'phantram') {
+      setSelectedVariants(prev => prev.map(sv =>
+        sv.id_variant === id_variant ? { ...sv, phan_tram_giam_gia: 0, gia_flash_sale: sv.gia_flash_sale } : sv
+      ));
+    }
+  };
+
   const handleVariantChange = (id_variant: string, field: string, value: any) => {
     setSelectedVariants(prev =>
-      prev.map(sv =>
-        sv.id_variant === id_variant ? { ...sv, [field]: value } : sv
-      )
+      prev.map(sv => {
+        if (sv.id_variant !== id_variant) return sv;
+        if (field === 'phan_tram_giam_gia') {
+          const gia_goc = parseFloat(sv.variant_details?.match(/Giá gốc: ([\d.]+)/)?.[1] || '0');
+          const gia_flash_sale = Math.round(gia_goc * (1 - value / 100));
+          return { ...sv, phan_tram_giam_gia: value, gia_flash_sale };
+        }
+        return { ...sv, [field]: value };
+      })
     );
   };
 
@@ -124,6 +141,7 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
         flashSaleVariants: selectedVariants.map(sv => ({
           id_variant: sv.id_variant,
           gia_flash_sale: sv.gia_flash_sale,
+          phan_tram_giam_gia: inputTypeMap[sv.id_variant] === 'phantram' ? sv.phan_tram_giam_gia : undefined,
           so_luong: sv.so_luong,
         })),
       };
@@ -259,14 +277,38 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
                       <p className="text-sm text-gray-700 dark:text-gray-300">{sv.variant_details}</p>
                     </div>
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-2 md:mt-0">
-                      <input
-                        type="number"
-                        placeholder="Giá Flash Sale"
-                        value={sv.gia_flash_sale}
-                        onChange={(e) => handleVariantChange(sv.id_variant, 'gia_flash_sale', parseFloat(e.target.value))}
-                        className="w-full md:w-32 rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                        required
-                      />
+                      <div className="flex items-center gap-2">
+                        <label>
+                          <input type="radio" name={`inputType-${sv.id_variant}`} checked={inputTypeMap[sv.id_variant] !== 'phantram'} onChange={() => handleInputTypeChange(sv.id_variant, 'gia')} /> Giá
+                        </label>
+                        <label>
+                          <input type="radio" name={`inputType-${sv.id_variant}`} checked={inputTypeMap[sv.id_variant] === 'phantram'} onChange={() => handleInputTypeChange(sv.id_variant, 'phantram')} /> % Giảm
+                        </label>
+                      </div>
+                      {inputTypeMap[sv.id_variant] === 'phantram' ? (
+                        <input
+                          type="number"
+                          placeholder="% giảm giá"
+                          value={sv.phan_tram_giam_gia ?? ''}
+                          min={0}
+                          max={100}
+                          onChange={e => handleVariantChange(sv.id_variant, 'phan_tram_giam_gia', parseFloat(e.target.value))}
+                          className="w-full md:w-24 rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          required
+                        />
+                      ) : (
+                        <input
+                          type="number"
+                          placeholder="Giá Flash Sale"
+                          value={sv.gia_flash_sale}
+                          onChange={e => handleVariantChange(sv.id_variant, 'gia_flash_sale', parseFloat(e.target.value))}
+                          className="w-full md:w-32 rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                          required
+                        />
+                      )}
+                      <span className="text-xs text-gray-500">{inputTypeMap[sv.id_variant] === 'phantram' && sv.gia_flash_sale ? `Giá sale: ${sv.gia_flash_sale.toLocaleString()}₫` : ''}</span>
+                    </div>
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mt-2 md:mt-0">
                       <input
                         type="number"
                         placeholder="Số lượng"

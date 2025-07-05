@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Category, Product, ProductVariant, Banner, HomePageData } from './cautrucdata';
+import type { Category, Product, ProductVariant, Banner, HomePageData } from './cautrucdata';
 import { getApiUrl } from '@/config/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
@@ -23,6 +23,7 @@ interface FlashSale {
   start_time: string;
   end_time: string;
   trang_thai: boolean;
+  phan_tram_giam_gia?: number;
 }
 
 interface NewsItem {
@@ -445,28 +446,28 @@ useEffect(() => {
                 const variant = flashSale.id_variant;
                 return (
                   <SwiperSlide key={flashSale._id}>
-                    <Link 
+                    <Link
                       href={`/product/${product._id}`}
-                      className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                      className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group relative w-[285px] h-[410px] block"
                     >
+                      {/* Badge Flash Sale bên trái */}
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">Flash Sale</span>
+                      </div>
+                      {/* Badge % giảm giá bên phải */}
+                      {flashSale.phan_tram_giam_gia && (
+                        <div className="absolute top-3 right-3 z-10">
+                          <span className="bg-yellow-400 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">-{flashSale.phan_tram_giam_gia}%</span>
+                        </div>
+                      )}
                       {/* Ảnh sản phẩm */}
-                      <div className="relative pt-[100%] overflow-hidden">
+                      <div className="relative flex items-center justify-center pt-10 bg-white">
                         <Image
                           src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                           alt={product.TenSP}
                           fill
                           className="object-contain p-4"
                         />
-                        {/* Badge giá flash sale */}
-                        <div className="absolute top-2 left-2 flex flex-col items-center">
-                          <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
-                            Flash Sale
-                          </span>
-                        </div>
-                        {/* Số lượng còn lại */}
-                        <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-                          Còn {flashSale.so_luong_flash_sale - flashSale.da_ban} sản phẩm
-                        </div>
                       </div>
                       
                       {/* Thông tin sản phẩm */}
@@ -479,9 +480,11 @@ useEffect(() => {
                             <span className="text-lg font-bold text-red-600">
                               {formatCurrency(flashSale.gia_flash_sale)}
                             </span>
-                            <span className="text-sm text-gray-400 line-through">
-                              {formatCurrency(variant.gia)}
-                            </span>
+                            {variant.gia && flashSale.gia_flash_sale !== variant.gia && (
+                              <span className="text-sm text-gray-400 line-through">
+                                {formatCurrency(variant.gia)}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

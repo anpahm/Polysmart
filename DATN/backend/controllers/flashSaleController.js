@@ -22,10 +22,12 @@ exports.getAllFlashSales = async (req, res) => {
       const variantsData = fs.flashSaleVariants.map(fsv => ({
         id_variant: fsv.id_variant ? fsv.id_variant._id : null,
         gia_flash_sale: fsv.gia_flash_sale,
+        phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,
         so_luong: fsv.so_luong,
         da_ban: fsv.da_ban,
         product_name: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.TenSP : 'N/A',
         variant_details: fsv.id_variant ? `${fsv.id_variant.dung_luong} - ${fsv.id_variant.mau} (Giá gốc: ${fsv.id_variant.gia})` : 'N/A',
+        gia_goc: fsv.id_variant ? fsv.id_variant.gia : null,
         product_id: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham._id : null,
         product_image: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.hinh : null,
       }));
@@ -72,10 +74,12 @@ exports.getActiveFlashSales = async (req, res) => {
       const variantsData = fs.flashSaleVariants.map(fsv => ({
         id_variant: fsv.id_variant ? fsv.id_variant._id : null,
         gia_flash_sale: fsv.gia_flash_sale,
+        phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,
         so_luong: fsv.so_luong,
         da_ban: fsv.da_ban,
         product_name: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.TenSP : 'N/A',
         variant_details: fsv.id_variant ? `${fsv.id_variant.dung_luong} - ${fsv.id_variant.mau} (Giá gốc: ${fsv.id_variant.gia})` : 'N/A',
+        gia_goc: fsv.id_variant ? fsv.id_variant.gia : null,
         product_id: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham._id : null,
         product_image: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.hinh : null,
       }));
@@ -117,10 +121,12 @@ exports.getFlashSaleById = async (req, res) => {
     const variantsData = flashSale.flashSaleVariants.map(fsv => ({
       id_variant: fsv.id_variant ? fsv.id_variant._id : null,
       gia_flash_sale: fsv.gia_flash_sale,
+      phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,
       so_luong: fsv.so_luong,
       da_ban: fsv.da_ban,
       product_name: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.TenSP : 'N/A',
       variant_details: fsv.id_variant ? `${fsv.id_variant.dung_luong} - ${fsv.id_variant.mau} (Giá gốc: ${fsv.id_variant.gia})` : 'N/A',
+      gia_goc: fsv.id_variant ? fsv.id_variant.gia : null,
       product_id: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham._id : null,
       product_image: fsv.id_variant && fsv.id_variant.id_san_pham ? fsv.id_variant.id_san_pham.hinh : null,
     }));
@@ -158,10 +164,19 @@ exports.createFlashSale = async (req, res) => {
     const createdFlashSaleVariants = [];
     if (flashSaleVariants && flashSaleVariants.length > 0) {
       for (const variantData of flashSaleVariants) {
+        // Lấy giá gốc của variant
+        const variant = await Variant.findById(variantData.id_variant);
+        let gia_goc = variant?.gia || 0;
+        let phan_tram_giam_gia = variantData.phan_tram_giam_gia ?? null;
+        let gia_flash_sale = variantData.gia_flash_sale;
+        if (phan_tram_giam_gia !== null && !isNaN(phan_tram_giam_gia)) {
+          gia_flash_sale = Math.round(gia_goc * (1 - phan_tram_giam_gia / 100));
+        }
         const newFlashSaleVariant = new FlashSaleVariant({
           id_flash_sale: savedFlashSaleEvent._id,
           id_variant: variantData.id_variant,
-          gia_flash_sale: variantData.gia_flash_sale,
+          gia_flash_sale,
+          phan_tram_giam_gia,
           so_luong: variantData.so_luong,
         });
         createdFlashSaleVariants.push(await newFlashSaleVariant.save());
@@ -206,10 +221,18 @@ exports.updateFlashSale = async (req, res) => {
 
     // Variants to add or update
     for (const variantData of flashSaleVariants) {
-      const existingFlashSaleVariant = await FlashSaleVariant.findOneAndUpdate(
+      // Lấy giá gốc của variant
+      const variant = await Variant.findById(variantData.id_variant);
+      let gia_goc = variant?.gia || 0;
+      let phan_tram_giam_gia = variantData.phan_tram_giam_gia ?? null;
+      let gia_flash_sale = variantData.gia_flash_sale;
+      if (phan_tram_giam_gia !== null && !isNaN(phan_tram_giam_gia)) {
+        gia_flash_sale = Math.round(gia_goc * (1 - phan_tram_giam_gia / 100));
+      }
+      await FlashSaleVariant.findOneAndUpdate(
         { id_flash_sale: flashSale._id, id_variant: variantData.id_variant },
-        { gia_flash_sale: variantData.gia_flash_sale, so_luong: variantData.so_luong },
-        { new: true, upsert: true } // Create if not exists, return updated document
+        { gia_flash_sale, phan_tram_giam_gia, so_luong: variantData.so_luong },
+        { new: true, upsert: true }
       );
     }
 
@@ -259,6 +282,7 @@ exports.getAllFlashSaleVariants = async (req, res) => {
       id_flash_sale: fsv.id_flash_sale ? fsv.id_flash_sale._id : null,
       id_variant: fsv.id_variant ? fsv.id_variant._id : null,
       gia_flash_sale: fsv.gia_flash_sale,
+      phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,
       so_luong: fsv.so_luong,
       da_ban: fsv.da_ban,
       an_hien: fsv.an_hien,

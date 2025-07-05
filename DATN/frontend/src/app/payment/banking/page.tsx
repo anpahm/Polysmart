@@ -11,7 +11,6 @@ export default function BankingPaymentPage() {
   const router = useRouter();
   const user = useSelector((state: RootState) => state.user.user);
   const [orderData, setOrderData] = useState<any>(null);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -24,20 +23,6 @@ export default function BankingPaymentPage() {
     } else {
       router.push('/cart');
     }
-
-    // Set up countdown timer
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(timer);
-          router.push('/cart');
-          return 0;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [router]);
 
   useEffect(() => {
@@ -47,6 +32,7 @@ export default function BankingPaymentPage() {
       try {
         const res = await fetch(`/api/orders/${orderData.id}`);
         const data = await res.json();
+        console.log("Order status polling:", data); // Thêm log để debug
         if (data.paymentStatus === 'paid' || data.orderStatus === 'confirmed') {
           clearInterval(interval);
           router.push('/payment-result?status=success');
@@ -92,7 +78,7 @@ export default function BankingPaymentPage() {
       // Kiểm tra trạng thái đơn hàng trước
       const res = await fetch(`/api/orders/${orderData.id}`);
       const data = await res.json();
-
+      console.log("Order status on verify:", data); // Thêm log để debug khi bấm nút
       if (data.paymentStatus === 'paid' || data.orderStatus === 'confirmed') {
         router.push('/payment-result?status=success');
       } else {
@@ -116,9 +102,6 @@ export default function BankingPaymentPage() {
     );
   }
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
   return (
     <div className="min-h-screen bg-gray-100 py-12">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
@@ -140,7 +123,7 @@ export default function BankingPaymentPage() {
         <div className="mb-6 flex justify-center">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <img 
-              src={`https://img.vietqr.io/image/${orderData.bankInfo.bankName}-${orderData.bankInfo.accountNumber}-compact.png?amount=${orderData.totalAmount}&addInfo=${orderData.transferContent}&accountName=${encodeURIComponent(orderData.bankInfo.accountName)}`}
+              src={`https://img.vietqr.io/image/ACB-17418271-compact.png?amount=${orderData.totalAmount}&addInfo=${orderData.transferContent}&accountName=${encodeURIComponent(orderData.bankInfo.accountName)}`}
               alt="VietQR Payment Code"
               className="w-48 h-48 object-contain"
             />
@@ -154,9 +137,9 @@ export default function BankingPaymentPage() {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Số tài khoản:</span>
               <div className="flex items-center gap-2">
-                <span className="font-medium">{orderData.bankInfo.accountNumber}</span>
+                <span className="font-medium">17418271</span>
                 <button
-                  onClick={() => handleCopyText(orderData.bankInfo.accountNumber)}
+                  onClick={() => 17418271}
                   className="text-blue-600 hover:text-blue-700"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -167,11 +150,11 @@ export default function BankingPaymentPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Tên tài khoản:</span>
-              <span className="font-medium">{orderData.bankInfo.accountName}</span>
+              <span className="font-medium">Chu Quang Dũng</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Chi nhánh:</span>
-              <span className="font-medium">{orderData.bankInfo.branch}</span>
+              <span className="font-medium">HCM</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Nội dung chuyển khoản:</span>
@@ -193,13 +176,6 @@ export default function BankingPaymentPage() {
               Đã sao chép vào clipboard!
             </div>
           )}
-        </div>
-
-        <div className="text-center my-6">
-          <p className="text-gray-600">Đơn hàng sẽ hết hạn sau:</p>
-          <p className="text-xl font-semibold text-gray-800">
-            {minutes}:{seconds.toString().padStart(2, '0')}
-          </p>
         </div>
 
         <div className="space-y-3">

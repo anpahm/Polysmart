@@ -12,17 +12,17 @@ exports.createOrder = async (req, res) => {
     //   return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin giao hàng' });
     // }
 
-    // Kiểm tra trùng lặp đơn hàng (KHÔNG kiểm tra transferContent)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     const duplicateOrder = await Order.findOne({
-      'customerInfo.fullName': customerInfo.fullName,
-      'customerInfo.phone': customerInfo.phone,
-      'customerInfo.address': customerInfo.address,
-      'customerInfo.city': customerInfo.city,
-      totalAmount,
-      paymentMethod,
-      paymentStatus: 'pending'
+      'customerInfo.phone': req.body.customerInfo.phone,
+      totalAmount: req.body.totalAmount,
+      paymentMethod: req.body.paymentMethod,
+      paymentStatus: 'pending',
+      createdAt: { $gte: fiveMinutesAgo }
     });
+
     if (duplicateOrder) {
+      // Nếu đơn hàng cũ vẫn pending trong 5 phút, trả về đơn cũ
       return res.status(200).json({
         message: 'Đơn hàng đã tồn tại (pending)',
         order: {
@@ -34,7 +34,7 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // Nếu không có, mới sinh transferContent và tạo đơn hàng mới
+    // Nếu không có đơn pending trong 5 phút, tạo đơn mới
     const order = new Order({
       customerInfo,
       items,

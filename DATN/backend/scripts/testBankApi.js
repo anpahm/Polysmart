@@ -16,9 +16,9 @@ async function testBankApi() {
     console.log('🚀 Testing Bank API...');
     
     // Thông tin từ .env
-    const bankCode = process.env.BANK_PASSWORD || 'Mk123456@';
-    const accountNumber = process.env.BANK_ACCOUNT_NUMBER || '8824882445';
-    const token = process.env.BANK_TOKEN || 'F33A14C5-1467-0CFD-7BF1-BF13780A420C';
+    const bankCode = process.env.BANK_PASSWORD || 'Qd96350a';
+    const accountNumber = process.env.BANK_ACCOUNT_NUMBER || '17418271';
+    const token = process.env.BANK_TOKEN || 'BF00AF9D-1C93-A134-679D-79DE8E43D509';
     
     console.log('📋 Configuration:');
     console.log('- Bank Code:', bankCode);
@@ -26,7 +26,7 @@ async function testBankApi() {
     console.log('- Token:', token);
     
     // Gọi API
-    const url = `https://api.web2m.com/historyapibidvv3/${bankCode}/${accountNumber}/${token}`;
+    const url = `https://api.web2m.com/historyapiopenacbv3/${token}`;
     console.log('🌐 Calling API:', url);
     
     const response = await axios.get(url, {

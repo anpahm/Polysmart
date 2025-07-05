@@ -4,14 +4,14 @@ const Order = require('../models/orderModel');
 
 class BankApiService {
   constructor() {
-    this.baseUrl = 'https://api.web2m.com/historyapibidvv3';
-    this.timeout = 20000; // 20 seconds
+    this.baseUrl = 'https://api.web2m.com/historyapiopenacbv3';
+    this.timeout = 10000; // 10 seconds
   }
 
   // Gọi API để lấy lịch sử giao dịch
   async fetchTransactionHistory(bankCode, accountNumber, token) {
     try {
-      const url = `${this.baseUrl}/${bankCode}/${accountNumber}/${token}`;
+      const url = `${this.baseUrl}/${token}`;
       
       console.log(`Fetching transactions from: ${url}`);
       

@@ -7,4 +7,4 @@ export interface BankInfo {
   logo: string;
 }
 
-export type BankId = 'vcb'; 
+export type BankId = 'acb'; 

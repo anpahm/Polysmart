@@ -12,6 +12,11 @@ class CronManager {
   constructor() {
     this.processor = autoPaymentProcessor;
     this.cronConfigs = {
+      '7sec': {
+        name: '7 giây',
+        interval: 7 * 1000,
+        description: 'Chạy mỗi 7 giây - Tần suất siêu cao (test)'
+      },
       // Các cấu hình cron job khác nhau
       '20sec': {
         name: '20 giây',

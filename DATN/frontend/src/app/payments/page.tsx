@@ -85,7 +85,7 @@ export default function PaymentsPage() {
   const [voucherDiscount, setVoucherDiscount] = useState(0);
 
   // Phí vận chuyển mặc định
-  const SHIPPING_FEE = 50000;
+  const SHIPPING_FEE = 0;
 
   const [orderLoading, setOrderLoading] = useState(false);
 
@@ -459,13 +459,10 @@ export default function PaymentsPage() {
                 <span>-{formatVND(voucherDiscount)}</span>
               </div>
             )}
-            <div className="flex justify-between text-gray-700">
-              <span>Phí vận chuyển:</span>
-              <span>{formatVND(SHIPPING_FEE)}</span>
-            </div>
+
             <div className="flex justify-between font-bold text-lg text-gray-800">
               <span>Tổng cộng:</span>
-              <span className="text-blue-600">{formatVND(cartDetails.total - voucherDiscount + SHIPPING_FEE)}</span>
+              <span className="text-blue-600">{formatVND(cartDetails.total - voucherDiscount)}</span>
             </div>
           </div>
 

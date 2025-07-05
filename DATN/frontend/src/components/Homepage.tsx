@@ -14,6 +14,10 @@ import { Fullscreen } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import LuckyWheel from './LuckyWheel';
 import GiftVoucher from './GiftVoucher';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import { fetchRecommendedProducts } from '@/services/productService';
+import PetMascot from './PetMascot';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -122,6 +126,10 @@ const HomePage = () => {
   const totalSlides = Math.ceil(data.iPhoneProducts.length / productsPerSlide);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [showFlashSale, setShowFlashSale] = useState(false);
+  const user = useSelector((state: RootState) => state.user.user);
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+  const [loadingRecommend, setLoadingRecommend] = useState(false);
+  const [aiAdvice, setAiAdvice] = useState("");
 
   // Tính thời gian kết thúc flash sale và kiểm tra trạng thái hiển thị
   useEffect(() => {
@@ -386,6 +394,35 @@ const HomePage = () => {
       .then((data: NewsItem[]) => setNews(data));
   }, []);
 
+  // Fetch recommended products for user
+  useEffect(() => {
+    if (!user || !user._id) {
+      setRecommendedProducts([]);
+      setAiAdvice("");
+      return;
+    }
+    setLoadingRecommend(true);
+    fetchRecommendedProducts(user._id)
+      .then((products) => setRecommendedProducts(products))
+      .catch(() => setRecommendedProducts([]))
+      .finally(() => setLoadingRecommend(false));
+
+    // Fetch AI advice message
+    fetch(`/api/ai-advice?userId=${user._id}`)
+      .then(res => res.json())
+      .then(data => {
+        let msg = data.message || "";
+        if (Array.isArray(msg)) msg = msg[0] || "";
+        if (typeof msg === "string") {
+          // Lấy câu đầu tiên, ưu tiên tách theo dấu xuống dòng, nếu không có thì tách theo dấu chấm
+          msg = msg.split('\n')[0];
+          if (msg.length > 180) msg = msg.split('. ')[0] + '.';
+        }
+        setAiAdvice(msg);
+      })
+      .catch(() => setAiAdvice(""));
+  }, [user]);
+
   if (loading) {
     return <div className="mt-16 flex justify-center items-center min-h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
@@ -393,11 +430,8 @@ const HomePage = () => {
     
   }
 
-
   return (
     <div className="mt-0">
-      {/* Lucky Wheel Section */}
-      <LuckyWheel />
       {/* Banner Slider */}
       <div className="container mx-auto overflow-hidden">
         <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
@@ -616,7 +650,123 @@ const HomePage = () => {
           </div>
         </section>
       )}
-
+<GiftVoucher />
+      {/* Gợi ý cho bạn Section */}
+      {user && user._id && recommendedProducts.length > 0 && (
+        <section className="section bg-white">
+          <div className="container mx-auto px-40 bg-white">
+            <div className="section-header flex justify-between items-center mb-6 bg-white">
+              <PetMascot message={aiAdvice || "Xin chào, đây là gợi ý cho bạn!"} />
+            </div>
+            <div className="relative group bg-white">
+              <Swiper
+                modules={[Navigation]}
+                navigation={{
+                  nextEl: '.recommend-next',
+                  prevEl: '.recommend-prev',
+                }}
+                spaceBetween={20}
+                slidesPerView={1}
+                slidesPerGroup={1}
+                loop={true}
+                speed={800}
+                breakpoints={{
+                  320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                  480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
+                  768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
+                  1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
+                }}
+                className="mySwiper bg-white"
+              >
+                {recommendedProducts.map((product) => (
+                  <SwiperSlide key={product._id}>
+                    <Link
+                      href={`/product/${product._id}`}
+                      className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    >
+                      {/* Discount Badge */}
+                      {(product.khuyen_mai ?? 0) > 0 && (
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                            Giảm {product.khuyen_mai}%
+                          </span>
+                        </div>
+                      )}
+                      {/* Installment Badge */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                          Trả góp 0%
+                        </span>
+                      </div>
+                      {/* Product Image */}
+                      <div className="relative flex items-center justify-center pt-10 bg-white">
+                        <Image
+                          src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                          alt={product.TenSP}
+                          width="0"
+                          height="0"
+                          className="w-[280px] h-[280px]"
+                        />
+                      </div>
+                      {/* Product Info */}
+                      <div className="flex flex-col pl-4">
+                        <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                          {product.TenSP}
+                          {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
+                            ` ${product.variants[0].dung_luong}`
+                          )}
+                        </h3>
+                        {/* <div className="flex gap-2 mb-1">
+                          <span className="text-[16px] font-bold text-[#0066D6]">
+                            {(() => {
+                              const priceRange = getPriceRange(product.variants);
+                              if (priceRange) {
+                                return formatCurrency(priceRange.minPrice);
+                              }
+                              const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                              const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
+                              return formatCurrency(price * (1 - discount / 100));
+                            })()}
+                          </span>
+                          {(() => {
+                            const priceRange = getPriceRange(product.variants);
+                            if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                              return (
+                                <span className="text-gray-400 line-through text-[14px]">
+                                  {formatCurrency(priceRange.maxPrice)}
+                                </span>
+                              );
+                            }
+                            const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
+                            if (product.khuyen_mai && originalPrice > 0) {
+                              return (
+                                <span className="text-gray-400 line-through text-sm">
+                                  {formatCurrency(originalPrice)}
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div> */}
+                      </div>
+                    </Link>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              <div className="recommend-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="recommend-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {/* iPhone Section */}
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
@@ -1534,7 +1684,7 @@ const HomePage = () => {
               .map(item => (
                 <Link
                   key={item._id}
-                  href={`/news/${item.id_danh_muc._id}/${item._id}`}
+                  href={`/news/${item.id_danhmuc}/${item._id}`}
                   className="bg-white rounded-2xl overflow-hidden shadow border hover:shadow-xl transition-all duration-300 group flex flex-col"
                 >
                   <img
@@ -1557,7 +1707,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      <GiftVoucher />
+      
     </div>
   );
 };

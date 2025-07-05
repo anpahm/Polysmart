@@ -7,12 +7,12 @@ const { sendVoucherEmail, generateVoucherCode } = require('../services/emailServ
 
 // POST /api/track-event
 router.post('/', async (req, res) => {
-  const { userId, eventType, productId } = req.body;
-  if (!userId || !eventType || !productId) {
+  const { userId, eventType, productId, searchKeyword } = req.body;
+  if (!userId || !eventType) {
     return res.status(400).json({ error: 'Missing fields' });
   }
   try {
-    await UserEvent.create({ userId, eventType, productId });
+    await UserEvent.create({ userId, eventType, productId, searchKeyword });
 
     // Kiểm tra điều kiện gửi mã giảm giá
     const events = await UserEvent.find({ userId, productId });

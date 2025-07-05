@@ -5,7 +5,7 @@ const Product = require('../models/productModel');
 const Variant = require('../models/variantModel');
 const Category = require('../models/categoryModel');
 
-const GEMINI_API_KEY = 'AIzaSyAXCsDf7oThw2rjMy6XckdJ3LKPWftYQGk';
+const GEMINI_API_KEY = 'AIzaSyAPXEVF74zh2UgGQiBnJDbwNaZnWBUk61o';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // Thông tin cửa hàng

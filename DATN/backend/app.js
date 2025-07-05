@@ -29,6 +29,8 @@ const reviewsRouter = require('./routes/reviews');
 const uploadReviewImageRouter = require('./routes/uploadReviewImage');
 const userVouchersRouter = require('./routes/userVouchers');
 const trackEventRouter = require('./routes/trackEvent');
+const recommendationsRouter = require('./routes/recommendations');
+const aiAdviceRouter = require('./routes/aiAdvice');
 
 var app = express();
 
@@ -81,6 +83,8 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/upload-review-image', uploadReviewImageRouter);
 app.use('/api/user-vouchers', userVouchersRouter);
 app.use('/api/track-event', trackEventRouter);
+app.use('/api/recommendations', recommendationsRouter);
+app.use('/api/ai-advice', aiAdviceRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

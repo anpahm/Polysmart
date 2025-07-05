@@ -106,8 +106,28 @@ async function sendEmail(to, voucherCode) {
   });
 }
 
+
+//gửi email quên mk-- thanhhoai
+async function sendResetPasswordEmail(to, newPassword) {
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: 'Poly Smart <your-email@gmail.com>',
+    to,
+    subject: 'Mật khẩu mới của bạn',
+    text: `Mật khẩu mới của bạn là: ${newPassword}\nVui lòng đăng nhập và đổi mật khẩu ngay sau khi đăng nhập.`,
+  });
+}
+
 module.exports = {
   sendVoucherEmail,
   sendEmail,
-  generateVoucherCode
+  generateVoucherCode,
+  sendResetPasswordEmail
 }; 

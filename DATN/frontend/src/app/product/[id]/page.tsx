@@ -121,7 +121,7 @@ const ProductDetailPage = () => {
 
     fetchProductAndFlashSale();
 
-  }, [id, variantId]);
+  }, [id, variantId, user]);
 
   // Refetch flash sale price when variant changes
   useEffect(() => {
@@ -229,11 +229,19 @@ const ProductDetailPage = () => {
     }
   };
 
+  // --- TRACKING: Gửi event khi user xem sản phẩm ---
   useEffect(() => {
-    if (user && id) {
-      trackUserEvent('view_product', id as string, user._id);
-    }
-  }, [user, id]);
+    if (!product || !user || !user._id || !id) return;
+    // Chỉ gửi tracking khi product đã load thành công và user đã đăng nhập
+    (async () => {
+      try {
+        await trackUserEvent('view_product', id as string, user._id);
+      } catch (err) {
+        // Không cần xử lý lỗi tracking
+      }
+    })();
+  }, [product, user, id]);
+  // --- END TRACKING ---
 
   if (!isClient) return null;
 

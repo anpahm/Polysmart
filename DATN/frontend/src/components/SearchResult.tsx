@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getApiUrl } from "@/config/api";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import { trackUserEvent } from '@/services/productService';
 
 // Hàm định dạng tiền tệ sang VNĐ
 const formatCurrency = (amount: number) =>
@@ -42,6 +45,7 @@ export default function SearchResult() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionBoxRef = useRef<HTMLDivElement>(null);
+  const user = useSelector((state: RootState) => state.user.user);
 
   // Khi URL thay đổi, cập nhật từ khóa tìm kiếm
   useEffect(() => {
@@ -179,9 +183,12 @@ export default function SearchResult() {
   }, [keyword]);
 
   // Xử lý submit form tìm kiếm
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
+    if (user && user._id && searchInput.trim()) {
+      await trackUserEvent('search', '', user._id, searchInput);
+    }
     router.push(`/search?keyword=${encodeURIComponent(searchInput)}`);
   };
 

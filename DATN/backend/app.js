@@ -53,6 +53,9 @@ const userVouchersRouter = require('./routes/userVouchers');
 const trackEventRouter = require('./routes/trackEvent');
 const bankTransactionsRouter = require('./routes/bankTransactions');
 const autoPaymentRouter = require('./routes/autoPayment');
+const recommendationsRouter = require('./routes/recommendations');
+const aiAdviceRouter = require('./routes/aiAdvice');
+
 
 var app = express();
 
@@ -107,7 +110,8 @@ app.use('/api/user-vouchers', userVouchersRouter);
 app.use('/api/track-event', trackEventRouter);
 app.use('/api/bank-transactions', bankTransactionsRouter);
 app.use('/api/auto-payment', autoPaymentRouter);
-
+app.use('/api/recommendations', recommendationsRouter);
+app.use('/api/ai-advice', aiAdviceRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   res.status(404).json({

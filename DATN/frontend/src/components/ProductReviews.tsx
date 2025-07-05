@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 
+
+//bình luận đánh giá sp
 interface ImageReview {
   duong_dan_anh: string;
   ghi_chu?: string;

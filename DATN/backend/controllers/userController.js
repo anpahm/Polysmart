@@ -19,6 +19,8 @@ const upload = multer({storage: storage, fileFilter: checkfile})
 const userModel = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+//quên mk
+const { sendEmail, sendResetPasswordEmail } = require('../services/emailService');
 
 const register = [upload.single('img'), async (req, res) => {
     try {
@@ -230,5 +232,29 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+//quên mk
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      // Để bảo mật, vẫn trả về thành công (không tiết lộ email tồn tại hay không)
+      return res.json({ message: "Nếu email tồn tại, mật khẩu mới đã được gửi." });
+    }
+    // Tạo mật khẩu mới ngẫu nhiên
+    const newPassword = Math.random().toString(36).slice(-8);
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashPassword;
+    await user.save();
 
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword };
+    // Gửi email mật khẩu mới
+    await sendResetPasswordEmail(email, newPassword);
+
+    res.json({ message: "Nếu email tồn tại, mật khẩu mới đã được gửi." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword, forgotPassword };

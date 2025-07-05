@@ -37,6 +37,25 @@ export default function BankingPaymentPage() {
     return () => clearInterval(timer);
   }, [router]);
 
+  useEffect(() => {
+    if (!orderData) return;
+    // Polling kiểm tra trạng thái đơn hàng mỗi 5 giây
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/${orderData.id}`);
+        const data = await res.json();
+        if (data.paymentStatus === 'paid' || data.orderStatus === 'confirmed') {
+          clearInterval(interval);
+          router.push('/payment-result?status=success');
+        }
+      } catch (err) {
+        // Có thể log lỗi hoặc bỏ qua
+      }
+    }, 5000); // 5 giây
+
+    return () => clearInterval(interval);
+  }, [orderData, router]);
+
   const createOrder = async (orderData: any) => {
     try {
       const order = await orderService.createOrder({
@@ -64,8 +83,16 @@ export default function BankingPaymentPage() {
 
     setIsVerifying(true);
     try {
-      await orderService.verifyPayment(orderData.id, orderData.transferContent);
-      router.push('/payment-result?status=success');
+      // Kiểm tra trạng thái đơn hàng trước
+      const res = await fetch(`/api/orders/${orderData.id}`);
+      const data = await res.json();
+
+      if (data.paymentStatus === 'paid' || data.orderStatus === 'confirmed') {
+        router.push('/payment-result?status=success');
+      } else {
+        alert('Xin chờ đến khi thanh toán thành công! Đơn hàng của bạn vẫn đang được xử lý.');
+        setIsVerifying(false);
+      }
     } catch (error) {
       console.error('Error verifying payment:', error);
       alert('Đã có lỗi xảy ra khi xác nhận thanh toán');

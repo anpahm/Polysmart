@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import toast, { Toaster } from 'react-hot-toast';
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,10 @@ export default function ProductTable() {
   const [videoProduct, setVideoProduct] = useState<Product | null>(null);
   const videoModalRef = useRef<HTMLDivElement>(null);
   const [filterOption, setFilterOption] = useState("top_sold");
+  const [moTaAI, setMoTaAI] = useState('');
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [aiSpecLoading, setAiSpecLoading] = useState(false);
+  const aiSpecTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const router = useRouter();
 
@@ -449,6 +453,47 @@ export default function ProductTable() {
     setImageError("");
   };
 
+  // Thêm hàm normalizeSpecs để chuẩn hóa specs từ AI
+  const normalizeSpecs = (specs: Record<string, any>) => {
+    const result = { ...specs };
+    ['Camera', 'Ket_noi', 'Kich_thuoc_khoi_luong', 'Tien_ich_khac', 'Tinh_nang_camera'].forEach(key => {
+      if (result[key]) {
+        if (Array.isArray(result[key])) return;
+        if (typeof result[key] === 'object') {
+          result[key] = Object.values(result[key]);
+        } else if (typeof result[key] === 'string') {
+          result[key] = result[key].split(',').map((s: string) => s.trim());
+        }
+      }
+    });
+    return result;
+  };
+
+  // Hàm gọi AI sinh thông số kỹ thuật
+  const fetchAISpecs = useCallback(async (productName: string) => {
+    if (!productName) return;
+    setAiSpecLoading(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/generate-product-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: productName })
+      });
+      const data = await res.json();
+      // Nếu API trả về object specs
+      if (data && data.specs && typeof data.specs === 'object') {
+        setNewProduct(prev => ({
+          ...prev,
+          thong_so_ky_thuat: normalizeSpecs({ ...prev.thong_so_ky_thuat, ...data.specs })
+        }));
+      }
+    } catch (err) {
+      // Có thể toast lỗi nếu muốn
+    } finally {
+      setAiSpecLoading(false);
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -665,19 +710,68 @@ export default function ProductTable() {
               </div>
               {/* Thông số kỹ thuật động */}
               <div className="flex flex-col gap-2 mt-2">
-                <label className="font-semibold">Thông số kỹ thuật</label>
+                <label className="font-semibold">Thông số kỹ thuật {aiSpecLoading && <span className='text-xs text-blue-500'>(Đang sinh tự động...)</span>}</label>
                 <input className="border rounded px-3 py-2" placeholder="CPU" value={newProduct.thong_so_ky_thuat.CPU || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, CPU: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Camera (cách nhau dấu phẩy)" value={newProduct.thong_so_ky_thuat.Camera?.join(', ') || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Camera: e.target.value.split(',').map(s => s.trim())}}))} />
+                <input className="border rounded px-3 py-2" placeholder="Camera (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Camera) ? newProduct.thong_so_ky_thuat.Camera.join(', ') : (newProduct.thong_so_ky_thuat.Camera || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Camera: e.target.value.split(',').map(s => s.trim())}}))} />
                 <input className="border rounded px-3 py-2" placeholder="GPU" value={newProduct.thong_so_ky_thuat.GPU || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, GPU: e.target.value}}))} />
                 <input className="border rounded px-3 py-2" placeholder="Công nghệ màn hình" value={newProduct.thong_so_ky_thuat.Cong_nghe_man_hinh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Cong_nghe_man_hinh: e.target.value}}))} />
                 <input className="border rounded px-3 py-2" placeholder="Hệ điều hành" value={newProduct.thong_so_ky_thuat.He_dieu_hanh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, He_dieu_hanh: e.target.value}}))} />
                 <input className="border rounded px-3 py-2" placeholder="Độ phân giải" value={newProduct.thong_so_ky_thuat.Do_phan_giai || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Do_phan_giai: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Kết nối (cách nhau dấu phẩy)" value={newProduct.thong_so_ky_thuat.Ket_noi?.join(', ') || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Ket_noi: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Kích thước khối lượng (cách nhau dấu phẩy)" value={newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong?.join(', ') || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_khoi_luong: e.target.value.split(',').map(s => s.trim())}}))} />
+                <input className="border rounded px-3 py-2" placeholder="Kết nối (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Ket_noi) ? newProduct.thong_so_ky_thuat.Ket_noi.join(', ') : (newProduct.thong_so_ky_thuat.Ket_noi || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Ket_noi: e.target.value.split(',').map(s => s.trim())}}))} />
+                <input className="border rounded px-3 py-2" placeholder="Kích thước khối lượng (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong) ? newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong.join(', ') : (newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_khoi_luong: e.target.value.split(',').map(s => s.trim())}}))} />
                 <input className="border rounded px-3 py-2" placeholder="Kích thước màn hình" value={newProduct.thong_so_ky_thuat.Kich_thuoc_man_hinh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_man_hinh: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Tiện ích khác (cách nhau dấu phẩy)" value={newProduct.thong_so_ky_thuat.Tien_ich_khac?.join(', ') || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tien_ich_khac: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Tính năng camera (cách nhau dấu phẩy)" value={newProduct.thong_so_ky_thuat.Tinh_nang_camera?.join(', ') || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tinh_nang_camera: e.target.value.split(',').map(s => s.trim())}}))} />
+                <input className="border rounded px-3 py-2" placeholder="Tiện ích khác (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Tien_ich_khac) ? newProduct.thong_so_ky_thuat.Tien_ich_khac.join(', ') : (newProduct.thong_so_ky_thuat.Tien_ich_khac || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tien_ich_khac: e.target.value.split(',').map(s => s.trim())}}))} />
+                <input className="border rounded px-3 py-2" placeholder="Tính năng camera (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Tinh_nang_camera) ? newProduct.thong_so_ky_thuat.Tinh_nang_camera.join(', ') : (newProduct.thong_so_ky_thuat.Tinh_nang_camera || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tinh_nang_camera: e.target.value.split(',').map(s => s.trim())}}))} />
+                <button
+                  className="px-4 py-2 bg-green-600 text-white rounded mt-2 disabled:opacity-60"
+                  disabled={loadingAI || !newProduct.TenSP}
+                  onClick={async () => {
+                    setLoadingAI(true);
+                    setMoTaAI('');
+                    // Chuẩn hóa specs trước khi gửi
+                    const specs = { ...newProduct.thong_so_ky_thuat };
+                    ['Camera', 'Ket_noi', 'Kich_thuoc_khoi_luong', 'Tien_ich_khac', 'Tinh_nang_camera'].forEach(key => {
+                      if (specs[key] && typeof specs[key] === 'string') {
+                        specs[key] = specs[key].split(',').map(s => s.trim());
+                      }
+                    });
+                    try {
+                      const res = await fetch('http://localhost:3000/api/generate-product-description', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: newProduct.TenSP,
+                          specs
+                        })
+                      });
+                      const data = await res.json();
+                      if (data.success) setMoTaAI(data.description);
+                      else setMoTaAI('Không thể sinh mô tả AI.');
+                    } catch (err) {
+                      setMoTaAI('Lỗi khi gọi AI.');
+                    } finally {
+                      setLoadingAI(false);
+                    }
+                  }}
+                >
+                  {loadingAI ? 'Đang tạo mô tả...' : 'Tạo mô tả AI'}
+                </button>
+                <button
+                  className="px-3 py-1 bg-blue-500 text-white rounded w-fit mb-2 text-sm disabled:opacity-60"
+                  disabled={aiSpecLoading || !newProduct.TenSP}
+                  onClick={() => fetchAISpecs(newProduct.TenSP)}
+                >
+                  {aiSpecLoading ? 'Đang tạo lại...' : 'Tạo lại thông số AI'}
+                </button>
               </div>
+              {/* Mô tả AI */}
+              <label className="font-semibold mt-2">Mô tả sản phẩm (AI)</label>
+              <textarea
+                className="border rounded px-3 py-2 min-h-[80px]"
+                placeholder="Mô tả sản phẩm (AI sinh ra)"
+                value={moTaAI}
+                onChange={e => setMoTaAI(e.target.value)}
+              />
             </div>
             {/* Cột phải: Ảnh & Video */}
             <div className="flex-1 flex flex-col gap-4 border-l pl-8">

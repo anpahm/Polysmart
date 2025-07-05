@@ -1,5 +1,6 @@
 const GiftVoucher = require('../models/giftVoucherModel');
 const { sendVoucherEmail } = require('../services/emailService');
+const validator = require('validator');
 
 // Hàm tạo mã voucher random
 function generateVoucherCode() {
@@ -15,6 +16,14 @@ function generateVoucherCode() {
 exports.createGiftVoucher = async (req, res) => {
   try {
     const { name, phone, email, qua_duoc_chon, phan_tram, het_han } = req.body;
+
+    // Kiểm tra email hợp lệ
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email không hợp lệ. Vui lòng nhập đúng định dạng email.'
+      });
+    }
 
     // Kiểm tra email đã tồn tại chưa
     const existingVoucher = await GiftVoucher.findOne({ email });

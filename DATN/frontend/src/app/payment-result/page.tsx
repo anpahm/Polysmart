@@ -2,16 +2,22 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useDispatch } from 'react-redux';
+import { setCart } from '@/store/cartSlice';
 
 export default function PaymentResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Clear the pending order from localStorage
     localStorage.removeItem('pendingOrder');
-  }, []);
+    if (status === 'success') {
+      dispatch(setCart([])); // Xóa toàn bộ giỏ hàng khi thanh toán thành công
+    }
+  }, [status, dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12">

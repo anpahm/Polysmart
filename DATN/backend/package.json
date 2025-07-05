@@ -4,7 +4,18 @@
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
-    "seed-news": "node scripts/seedNewsData.js"
+    "seed-news": "node scripts/seedNewsData.js",
+    "auto-payment": "node scripts/autoPaymentProcessor.js",
+    "cron-status": "node scripts/cronManager.js status",
+    "cron-start": "node scripts/cronManager.js start",
+    "cron-stop": "node scripts/cronManager.js stop",
+    "cron-once": "node scripts/cronManager.js once",
+    "cron-20sec": "node scripts/cronManager.js interval 20sec",
+    "cron-1min": "node scripts/cronManager.js interval 1min",
+    "cron-2min": "node scripts/cronManager.js interval 2min",
+    "cron-5min": "node scripts/cronManager.js interval 5min",
+    "cron-10min": "node scripts/cronManager.js interval 10min",
+    "cron-30min": "node scripts/cronManager.js interval 30min"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -33,6 +44,7 @@
     "react-toastify": "^11.0.5",
     "replicate": "^1.0.1",
     "token": "^0.1.0",
+    "validator": "^13.15.15",
     "web": "^0.0.2"
   }
 }

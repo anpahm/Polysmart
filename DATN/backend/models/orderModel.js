@@ -2,11 +2,12 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
   customerInfo: {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     email: String,
-    fullName: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true },
-    city: { type: String, required: true },
+    fullName: { type: String },
+    phone: { type: String },
+    address: { type: String },
+    city: { type: String },
     district: String,
     note: String
   },
@@ -42,5 +43,16 @@ orderSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+// Unique index chống trùng lặp đơn hàng khi paymentStatus là 'pending'
+orderSchema.index(
+  {
+    'customerInfo.phone': 1,
+    totalAmount: 1,
+    paymentMethod: 1,
+    paymentStatus: 1
+  },
+  { unique: true, partialFilterExpression: { paymentStatus: 'pending' } }
+);
 
 module.exports = mongoose.model('Order', orderSchema); 

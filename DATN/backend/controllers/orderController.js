@@ -1,24 +1,47 @@
 const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 const Variant = require('../models/variantModel');
+const BankTransaction = require('../models/bankTransactionModel');
 
 exports.createOrder = async (req, res) => {
   try {
     const { customerInfo, items, totalAmount, paymentMethod } = req.body;
 
     // Validate required fields
-    if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
-      return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin giao hàng' });
+    // if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
+    //   return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin giao hàng' });
+    // }
+
+    // Kiểm tra trùng lặp đơn hàng (KHÔNG kiểm tra transferContent)
+    const duplicateOrder = await Order.findOne({
+      'customerInfo.fullName': customerInfo.fullName,
+      'customerInfo.phone': customerInfo.phone,
+      'customerInfo.address': customerInfo.address,
+      'customerInfo.city': customerInfo.city,
+      totalAmount,
+      paymentMethod,
+      paymentStatus: 'pending'
+    });
+    if (duplicateOrder) {
+      return res.status(200).json({
+        message: 'Đơn hàng đã tồn tại (pending)',
+        order: {
+          id: duplicateOrder._id,
+          transferContent: duplicateOrder.transferContent,
+          bankInfo: duplicateOrder.bankInfo,
+          totalAmount: duplicateOrder.totalAmount
+        }
+      });
     }
 
-    // Create order with initial payment status
+    // Nếu không có, mới sinh transferContent và tạo đơn hàng mới
     const order = new Order({
       customerInfo,
       items,
       totalAmount,
       paymentMethod,
-      paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
-      transferContent: `DH${Date.now().toString().slice(-6)}` // Generate order code
+      paymentStatus: 'pending',
+      transferContent: `DH${Date.now().toString().slice(-6)}`
     });
 
     // If ATM payment, add bank info
@@ -32,26 +55,30 @@ exports.createOrder = async (req, res) => {
     }
 
     // Save order
-    await order.save();
-
-    // Update product quantities (in a real app, you'd want to handle this in a transaction)
-    for (const item of items) {
-      const variant = await Variant.findById(item.variantId);
-      if (variant) {
-        variant.quantity -= item.quantity;
-        await variant.save();
+    try {
+      await order.save();
+      return res.status(201).json({
+        message: 'Đặt hàng thành công',
+        order: {
+          id: order._id,
+          transferContent: order.transferContent,
+          bankInfo: order.bankInfo,
+          totalAmount: order.totalAmount
+        }
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        // Nếu bị duplicate key, trả về đơn hàng cũ
+        const duplicateOrder = await Order.findOne({
+          'customerInfo.phone': req.body.customerInfo.phone,
+          totalAmount: req.body.totalAmount,
+          paymentMethod: req.body.paymentMethod,
+          paymentStatus: 'pending'
+        });
+        return res.status(200).json({ message: 'Đơn hàng đã tồn tại', order: duplicateOrder });
       }
+      throw err;
     }
-
-    res.status(201).json({
-      message: 'Đặt hàng thành công',
-      order: {
-        id: order._id,
-        transferContent: order.transferContent,
-        bankInfo: order.bankInfo,
-        totalAmount: order.totalAmount
-      }
-    });
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({ message: 'Đã có lỗi xảy ra khi đặt hàng' });
@@ -86,11 +113,9 @@ exports.getOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
-    
     if (!order) {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
-
     res.json(order);
   } catch (error) {
     console.error('Get order error:', error);
@@ -121,5 +146,55 @@ exports.verifyBankTransfer = async (req, res) => {
   } catch (error) {
     console.error('Verify bank transfer error:', error);
     res.status(500).json({ message: 'Đã có lỗi xảy ra khi xác nhận thanh toán' });
+  }
+};
+
+// API: Đối soát tự động đơn hàng với bank transactions
+exports.autoConfirmOrders = async (req, res) => {
+  try {
+    const pendingOrders = await Order.find({ paymentStatus: 'pending' });
+    let updated = 0;
+    for (const order of pendingOrders) {
+      try {
+        console.log('Đang kiểm tra order:', order._id, order.totalAmount, order.transferContent);
+        const matchedTx = await BankTransaction.findOne({
+          amount: order.totalAmount,
+          description: { $regex: order.transferContent, $options: 'i' },
+          status: { $in: ['pending', 'completed'] }
+        });
+        if (matchedTx) {
+          order.paymentStatus = 'paid';
+          order.orderStatus = 'confirmed';
+          await order.save();
+          matchedTx.status = 'matched';
+          matchedTx.orderId = order._id;
+          matchedTx.matchedOrder = true;
+          await matchedTx.save();
+          updated++;
+          console.log(`Matched order ${order._id} with transaction ${matchedTx._id}`);
+        }
+      } catch (err) {
+        console.error('Error processing order:', order._id, err);
+      }
+    }
+    res.json({ message: `Đã đối soát xong. Đã cập nhật ${updated} đơn hàng thành công.` });
+  } catch (error) {
+    console.error('Auto confirm orders error:', error);
+    res.status(500).json({ message: 'Lỗi khi đối soát đơn hàng tự động' });
+  }
+};
+
+exports.getOrders = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    let query = {};
+    if (userId) {
+      query['customerInfo.userId'] = userId;
+    }
+    const orders = await Order.find(query).sort({ createdAt: -1 });
+    res.json({ success: true, orders });
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({ success: false, message: 'Đã có lỗi xảy ra khi lấy danh sách đơn hàng' });
   }
 }; 

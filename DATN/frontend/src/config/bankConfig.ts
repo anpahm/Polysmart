@@ -6,7 +6,7 @@ export const bankList: BankInfo[] = [
     name: "Vietcombank",
     accountNumber: "1234567890",
     accountName: "NGUYEN VAN A",
-    branch: "Ha Noi",
+    branch: "Ha Noi6",
     logo: "/images/banks/bidv.jpg"
   }
 ];

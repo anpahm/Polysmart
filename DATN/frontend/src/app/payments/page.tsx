@@ -87,6 +87,8 @@ export default function PaymentsPage() {
   // Phí vận chuyển mặc định
   const SHIPPING_FEE = 50000;
 
+  const [orderLoading, setOrderLoading] = useState(false);
+
   useEffect(() => {
     setMounted(true);
     setLoading(true);
@@ -98,6 +100,7 @@ export default function PaymentsPage() {
           fetch(getApiUrl('flashsales/active'))
         ]);
         
+        if (!provincesRes.ok) throw new Error('Không lấy được danh sách tỉnh thành');
         const provincesData = await provincesRes.json();
         setProvinces(provincesData);
 
@@ -113,7 +116,8 @@ export default function PaymentsPage() {
           setActiveFlashSales(allFlashSaleVariants);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Lỗi lấy tỉnh thành:', error);
+        setProvinces([]);
       } finally {
         setLoading(false);
       }
@@ -211,19 +215,21 @@ export default function PaymentsPage() {
       let res = await fetch(getApiUrl(`gift-vouchers/code/${voucherCode.trim()}`));
       let data = await res.json();
       if (data.success && data.data && !data.data.isUsed && !data.data.isDisabled) {
-        const phan_tram = data.data.percent || 0;
+        const phan_tram = data.data.phan_tram ?? data.data.percent ?? 0;
         const giam_toi_da = data.data.maxDiscount || data.data.giam_toi_da || Infinity;
         setVoucherPercent(phan_tram);
         setVoucherApplied(true);
         // Tính số tiền giảm, có giới hạn tối đa
         const rawDiscount = Math.floor((cartDetails.total * phan_tram) / 100);
         const discount = Math.min(rawDiscount, giam_toi_da);
+        console.log('Gift voucher discount:', discount); // DEBUG
         setVoucherDiscount(discount);
         return;
       }
       // Nếu không phải gift voucher, thử voucher công khai
       res = await fetch(getApiUrl(`vouchers/apply/${voucherCode.trim()}`));
       data = await res.json();
+      console.log('Public voucher API response:', data); // DEBUG
       if (data.success && data.data) {
         const phan_tram = data.data.phan_tram_giam_gia || 0;
         const giam_toi_da = data.data.giam_toi_da || Infinity;
@@ -232,6 +238,7 @@ export default function PaymentsPage() {
         // Tính số tiền giảm, có giới hạn tối đa
         const rawDiscount = Math.floor((cartDetails.total * phan_tram) / 100);
         const discount = Math.min(rawDiscount, giam_toi_da);
+        console.log('Public voucher discount:', discount); // DEBUG
         setVoucherDiscount(discount);
         return;
       }
@@ -241,46 +248,62 @@ export default function PaymentsPage() {
     }
   };
 
-  const handlePlaceOrder = () => {
-    // Validate required fields
-    if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
-      alert("Vui lòng điền đầy đủ thông tin giao hàng!");
-      return;
-    }
+  const handlePlaceOrder = async () => {
+    if (orderLoading) return; // Chặn double submit
+    setOrderLoading(true);
+    try {
+      // Validate required fields
+      // if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.address || !customerInfo.city) {
+      //   alert("Vui lòng điền đầy đủ thông tin giao hàng!");
+      //   setOrderLoading(false);
+      //   return;
+      // }
 
-    // Create order data
-    const orderData = {
-      customerInfo,
-      items: cartDetails.items,
-      totalAmount: cartDetails.total - voucherDiscount,
-      paymentMethod,
-      voucher: voucherApplied ? {
-        code: voucherCode,
-        percent: voucherPercent,
-        discount: voucherDiscount
-      } : undefined,
-    };
+      // Create order data
+      const orderData = {
+        customerInfo,
+        items: cartDetails.items,
+        totalAmount: cartDetails.total - voucherDiscount,
+        paymentMethod,
+        voucher: voucherApplied ? {
+          code: voucherCode,
+          percent: voucherPercent,
+          discount: voucherDiscount
+        } : undefined,
+      };
 
-    // Handle different payment methods
-    switch (paymentMethod) {
-      case "cod":
-        // Handle COD payment
-        alert("Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.");
-        // Here you would typically send the order to your backend
-        console.log("Order Data:", orderData);
-        break;
+      // Handle different payment methods
+      switch (paymentMethod) {
+        case "cod":
+          console.log("Order Data:", orderData);
+          const res = await fetch('/api/orders', {
+            method: 'POST',
+            body: JSON.stringify(orderData),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const data = await res.json();
 
-      case "atm":
-        // Store order data in localStorage for retrieval after payment
-        localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+          if (res.ok) {
+            router.push('/payment-result?status=success');
+          } else {
+            router.push('/payment-result?status=fail');
+          }
+          break;
 
-        // Redirect to bank selection page
-        router.push('/payment/banking');
-        return;
+        case "atm":
+          localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+          router.push('/payment/banking');
+          return;
 
-      default:
-        alert("Vui lòng chọn phương thức thanh toán!");
-        return;
+        default:
+          alert("Vui lòng chọn phương thức thanh toán!");
+          setOrderLoading(false);
+          return;
+      }
+    } catch (err) {
+      alert("Có lỗi khi đặt hàng!");
+    } finally {
+      setOrderLoading(false);
     }
   };
 
@@ -423,8 +446,28 @@ export default function PaymentsPage() {
           {voucherApplied && voucherPercent && (
             <div className="text-green-600 mb-2">Đã áp dụng mã giảm giá: -{formatVND(voucherDiscount)} ({voucherPercent}%)</div>
           )}
-
-          <OrderTotals totalAmount={cartDetails.total - voucherDiscount} shippingFee={SHIPPING_FEE} formatVND={formatVND} />
+       
+          {/* Order Totals with Discount Line */}
+          <div className="space-y-2 mb-6">
+            <div className="flex justify-between text-gray-700">
+              <span>Tạm tính:</span>
+              <span>{formatVND(cartDetails.total)}</span>
+            </div>
+            {voucherApplied && voucherDiscount > 0 && (
+              <div className="flex justify-between text-green-700">
+                <span>Giảm giá:</span>
+                <span>-{formatVND(voucherDiscount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-gray-700">
+              <span>Phí vận chuyển:</span>
+              <span>{formatVND(SHIPPING_FEE)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg text-gray-800">
+              <span>Tổng cộng:</span>
+              <span className="text-blue-600">{formatVND(cartDetails.total - voucherDiscount + SHIPPING_FEE)}</span>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between mt-8">
             <button onClick={() => router.push('/cart')} className="text-blue-600 font-semibold flex items-center gap-2 hover:underline">
@@ -433,8 +476,8 @@ export default function PaymentsPage() {
               </svg>
               Quay về giỏ hàng
             </button>
-            <button onClick={handlePlaceOrder} className="bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors">
-              Đặt hàng
+            <button onClick={handlePlaceOrder} disabled={orderLoading} className="bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors">
+              {orderLoading ? 'Đang xử lý...' : 'Đặt hàng'}
             </button>
           </div>
         </div>

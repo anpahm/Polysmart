@@ -14,4 +14,10 @@ router.put('/:orderId/payment', orderController.updatePaymentStatus);
 // Verify bank transfer
 router.post('/verify-transfer', orderController.verifyBankTransfer);
 
+// Auto confirm orders (đối soát tự động)
+router.post('/auto-confirm', orderController.autoConfirmOrders);
+
+// Get all orders (optionally by userId)
+router.get('/', orderController.getOrders);
+
 module.exports = router; 

@@ -23,4 +23,7 @@ router.get('/', orderController.getOrders);
 // Hủy đơn hàng
 router.put('/:orderId/cancel', orderController.cancelOrder);
 
+// Cập nhật trạng thái đơn hàng (packing, shipping, delivered, ...)
+router.put('/:orderId', orderController.updateOrderStatus);
+
 module.exports = router; 

@@ -2,6 +2,7 @@ const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 const Variant = require('../models/variantModel');
 const BankTransaction = require('../models/bankTransactionModel');
+const FlashSaleVariant = require('../models/FlashSaleVariant');
 
 exports.createOrder = async (req, res) => {
   try {
@@ -34,13 +35,23 @@ exports.createOrder = async (req, res) => {
       });
     }
 
+    // Lấy giá gốc cho từng item
+    const itemsWithOldPrice = await Promise.all(items.map(async (item) => {
+      const variant = await Variant.findById(item.variantId);
+      return {
+        ...item,
+        oldPrice: variant ? variant.gia_goc : undefined
+      };
+    }));
+
     // Nếu không có đơn pending trong 5 phút, tạo đơn mới
     const order = new Order({
       customerInfo,
-      items,
+      items: itemsWithOldPrice,
       totalAmount,
       paymentMethod,
       paymentStatus: 'pending',
+      orderStatus: 'confirming',
       transferContent: `DH${Date.now().toString().slice(-6)}`
     });
 
@@ -57,6 +68,17 @@ exports.createOrder = async (req, res) => {
     // Save order
     try {
       await order.save();
+
+      // Giảm số lượng đã bán của FlashSaleVariant nếu có
+      for (const item of itemsWithOldPrice) {
+        if (item.flashSaleVariantId) {
+          await FlashSaleVariant.updateOne(
+            { _id: item.flashSaleVariantId },
+            { $inc: { da_ban: item.quantity } }
+          );
+        }
+      }
+
       return res.status(201).json({
         message: 'Đặt hàng thành công',
         order: {
@@ -97,7 +119,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
     order.paymentStatus = paymentStatus;
     if (paymentStatus === 'paid') {
-      order.orderStatus = 'confirmed';
+      order.orderStatus = 'packing';
     }
 
     await order.save();
@@ -139,7 +161,7 @@ exports.verifyBankTransfer = async (req, res) => {
     // In a real app, you would verify the transfer with the bank's API
     // For now, we'll just simulate a successful verification
     order.paymentStatus = 'paid';
-    order.orderStatus = 'confirmed';
+    order.orderStatus = 'packing';
     await order.save();
 
     res.json({ message: 'Xác nhận thanh toán thành công', order });
@@ -164,7 +186,7 @@ exports.autoConfirmOrders = async (req, res) => {
         });
         if (matchedTx) {
           order.paymentStatus = 'paid';
-          order.orderStatus = 'confirmed';
+          order.orderStatus = 'packing';
           await order.save();
           matchedTx.status = 'matched';
           matchedTx.orderId = order._id;
@@ -219,5 +241,31 @@ exports.cancelOrder = async (req, res) => {
   } catch (error) {
     console.error('Cancel order error:', error);
     res.status(500).json({ success: false, message: 'Lỗi khi hủy đơn hàng' });
+  }
+};
+
+// Cập nhật trạng thái đơn hàng (packing, shipping, delivered, ...)
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { orderStatus } = req.body;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+    if (orderStatus) {
+      order.orderStatus = orderStatus;
+      // Nếu là đơn COD và chuyển sang delivered thì cập nhật luôn paymentStatus = 'paid'
+      if (order.paymentMethod === 'cod' && orderStatus === 'delivered') {
+        order.paymentStatus = 'paid';
+      }
+      await order.save();
+      return res.json({ success: true, order });
+    } else {
+      return res.status(400).json({ message: 'Thiếu trường orderStatus' });
+    }
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ message: 'Đã có lỗi xảy ra khi cập nhật trạng thái đơn hàng' });
   }
 }; 

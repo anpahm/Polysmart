@@ -69,6 +69,7 @@ function formatVND(num: number) {
 
 export default function PaymentsPage() {
   const cart = useSelector((state: RootState) => state.cart.items);
+  const user = useSelector((state: RootState) => state.user.user);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [activeFlashSales, setActiveFlashSales] = useState<any[]>([]);
@@ -261,7 +262,10 @@ export default function PaymentsPage() {
 
       // Create order data
       const orderData = {
-        customerInfo,
+        customerInfo: {
+          ...customerInfo,
+          userId: user?._id || undefined
+        },
         items: cartDetails.items,
         totalAmount: cartDetails.total - voucherDiscount,
         paymentMethod,
@@ -408,8 +412,8 @@ export default function PaymentsPage() {
               </div>
             )}
             {paymentMethod === "atm" && (
-              <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
-                <p className="text-gray-700">Bạn sẽ được chuyển đến trang thanh toán qua Internet Banking.</p>
+              <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                Bạn sẽ được chuyển đến trang thanh toán qua Internet Banking.
               </div>
             )}
           </div>

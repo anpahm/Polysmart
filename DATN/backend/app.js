@@ -56,7 +56,6 @@ const autoPaymentRouter = require('./routes/autoPayment');
 const recommendationsRouter = require('./routes/recommendations');
 const aiAdviceRouter = require('./routes/aiAdvice');
 
-
 var app = express();
 
 // view engine setup

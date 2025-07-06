@@ -184,12 +184,13 @@ export default function ProfilePage() {
 
   // Map trạng thái backend sang UI
   const mapOrderStatus = (orderStatus: string, paymentStatus: string) => {
+    if (orderStatus === 'confirming') return { status: 'confirming', statusText: 'CHỜ XÁC NHẬN', statusColor: 'text-orange-500' };
+    if (orderStatus === 'packing') return { status: 'packing', statusText: 'CHỜ LẤY HÀNG', statusColor: 'text-yellow-500' };
+    if (orderStatus === 'shipping') return { status: 'shipping', statusText: 'CHỜ GIAO HÀNG', statusColor: 'text-blue-500' };
+    if (orderStatus === 'delivered') return { status: 'delivered', statusText: 'ĐÃ GIAO', statusColor: 'text-green-600' };
+    if (orderStatus === 'returned') return { status: 'returned', statusText: 'TRẢ HÀNG', statusColor: 'text-purple-500' };
     if (orderStatus === 'cancelled') return { status: 'cancelled', statusText: 'ĐÃ HỦY', statusColor: 'text-red-500' };
-    if (orderStatus === 'confirmed' && paymentStatus === 'paid') return { status: 'completed', statusText: 'HOÀN THÀNH', statusColor: 'text-green-600' };
-    if (orderStatus === 'pending' && paymentStatus === 'pending') return { status: 'pending', statusText: 'CHỜ THANH TOÁN', statusColor: 'text-yellow-500' };
-    if (orderStatus === 'shipping') return { status: 'shipping', statusText: 'ĐANG VẬN CHUYỂN', statusColor: 'text-blue-400' };
-    if (orderStatus === 'confirmed' && paymentStatus === 'paid') return { status: 'waiting', statusText: 'CHỜ GIAO HÀNG', statusColor: 'text-blue-600' };
-    return { status: 'waiting', statusText: 'CHỜ GIAO HÀNG', statusColor: 'text-blue-600' };
+    return { status: 'confirming', statusText: 'CHỜ XÁC NHẬN', statusColor: 'text-orange-500' };
   };
 
   // Map dữ liệu từ backend về format UI
@@ -198,6 +199,7 @@ export default function ProfilePage() {
     const statusObj = mapOrderStatus(orderFromApi.orderStatus, orderFromApi.paymentStatus);
     return {
       id: orderFromApi._id,
+      items: orderFromApi.items,
       shop: 'PolySmart',
       productImg: item.image,
       productName: item.name,
@@ -207,13 +209,14 @@ export default function ProfilePage() {
       oldPrice: item.oldPrice || 0,
       ...statusObj,
       delivered: orderFromApi.orderStatus === 'delivered',
-      note: orderFromApi.orderStatus === 'waiting' ? 'Vui lòng chỉ nhấn "Đã nhận hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.' : '',
+      note: '',
       isChoice: false,
     };
   };
 
-  // Lấy đơn hàng thực tế khi vào tab 'orders'
+  // Lấy đơn hàng thực tế khi vào tab 'orders' + polling tự động mỗi 10s
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
     const fetchOrders = async () => {
       if (activeTab === 'orders' && user?._id) {
         const realOrders = await orderService.getOrdersByUser(user._id);
@@ -221,6 +224,12 @@ export default function ProfilePage() {
       }
     };
     fetchOrders();
+    if (activeTab === 'orders' && user?._id) {
+      interval = setInterval(fetchOrders, 10000); // 10 giây
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [activeTab, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -366,23 +375,21 @@ export default function ProfilePage() {
     router.push(`?${params.toString()}`);
   };
 
-  const handleConfirmReceipt = (orderId: string) => {
-    // In a real app, this would be an API call.
-    // For now, we update the local state to simulate the change.
-    setOrders(currentOrders =>
-      currentOrders.map(order => {
-        if (order.id === orderId) {
-          return {
-            ...order,
-            status: 'completed',
-            statusText: 'HOÀN THÀNH',
-            statusColor: 'text-green-600',
-            note: '', // Clear the note after completion
-          };
-        }
-        return order;
-      })
-    );
+  const handleConfirmReceipt = async (orderId: string) => {
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderStatus: 'delivered' }),
+      });
+      // Refetch lại đơn hàng
+      if (user?._id) {
+        const realOrders = await orderService.getOrdersByUser(user._id);
+        setOrders(Array.isArray(realOrders) ? realOrders.map(mapOrder) : []);
+      }
+    } catch (err) {
+      alert('Có lỗi khi xác nhận đã nhận hàng!');
+    }
   };
 
   const handleCancelOrder = async (orderId: string) => {
@@ -441,12 +448,12 @@ export default function ProfilePage() {
   const getOrderTabCounts = (orders: any[]) => {
     const counts: Record<string, number> = {
       all: orders.length,
-      pending: 0,
-      shipping: 0,
-      waiting: 0,
-      completed: 0,
-      cancelled: 0,
-      returned: 0,
+      confirming: 0, // Chờ xác nhận
+      packing: 0,    // Chờ lấy hàng
+      shipping: 0,   // Chờ giao hàng
+      delivered: 0,  // Đã giao
+      returned: 0,   // Trả hàng
+      cancelled: 0,  // Đã hủy
     };
     orders.forEach(order => {
       if (order.status && counts.hasOwnProperty(order.status)) {
@@ -457,15 +464,15 @@ export default function ProfilePage() {
   };
   const orderTabCounts = getOrderTabCounts(orders);
 
-  // --- Đơn đặt hàng Shopee style ---
+  // --- Đơn đặt hàng style mới ---
   const ORDER_TABS = [
     { key: 'all', label: 'Tất cả', count: orderTabCounts.all },
-    { key: 'pending', label: 'Chờ thanh toán', count: orderTabCounts.pending },
-    { key: 'shipping', label: 'Vận chuyển', count: orderTabCounts.shipping },
-    { key: 'waiting', label: 'Chờ giao hàng', count: orderTabCounts.waiting },
-    { key: 'completed', label: 'Hoàn thành', count: orderTabCounts.completed },
+    { key: 'confirming', label: 'Chờ xác nhận', count: orderTabCounts.confirming },
+    { key: 'packing', label: 'Chờ lấy hàng', count: orderTabCounts.packing },
+    { key: 'shipping', label: 'Chờ giao hàng', count: orderTabCounts.shipping },
+    { key: 'delivered', label: 'Đã giao', count: orderTabCounts.delivered },
+    { key: 'returned', label: 'Trả hàng', count: orderTabCounts.returned },
     { key: 'cancelled', label: 'Đã hủy', count: orderTabCounts.cancelled },
-    { key: 'returned', label: 'Trả hàng/Hoàn tiền', count: orderTabCounts.returned },
   ];
 
   // --- Render nội dung từng tab ---
@@ -524,6 +531,14 @@ export default function ProfilePage() {
                         Giao hàng thành công
                       </span>
                     )}
+                    {/* Hiển thị trạng thái thanh toán */}
+                    {(order.status !== 'delivered' && !order.delivered && order.paymentStatus !== 'paid') && (
+                      order.paymentMethod === 'cod' ? (
+                        <span className="ml-4 text-gray-500 text-xs">Thanh toán khi nhận hàng (COD)</span>
+                      ) : (
+                        <span className="ml-4 text-yellow-600 text-xs">Chưa thanh toán</span>
+                      )
+                    )}
                   </div>
                   <span className={`${order.statusColor} text-sm font-bold uppercase`}>{order.statusText}</span>
                 </div>
@@ -541,9 +556,9 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {/* Chú thích nhỏ */}
-                {order.note && (
+                {order.status === 'shipping' && (
                   <div className="px-6 py-2 text-xs text-gray-500 bg-[#fff8f6] border-b border-[#f2f2f2]">
-                    {order.note}
+                    Vui lòng chỉ nhấn "Đã nhận hàng" khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
                   </div>
                 )}
                 {/* Tổng tiền + nút thao tác dưới cùng */}
@@ -553,7 +568,7 @@ export default function ProfilePage() {
                     <span className="text-[#0066CC] font-bold text-2xl">{order.price.toLocaleString()}₫</span>
                   </div>
                   <div className="flex justify-end gap-3">
-                    {order.status === 'waiting' && (
+                    {order.status === 'shipping' && (
                       <>
                         <button
                           onClick={() => handleConfirmReceipt(order.id)}
@@ -561,39 +576,54 @@ export default function ProfilePage() {
                         >
                           Đã Nhận Hàng
                         </button>
+                      </>
+                    )}
+                    {order.status === 'delivered' && (
+                      <>
+                        <button
+                          className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition"
+                          onClick={() => {
+                            const productId = order.items?.[0]?.productId;
+                            if (productId) {
+                              router.push(`/product/${productId}`);
+                            } else {
+                              alert('Không tìm thấy sản phẩm để mua lại!');
+                            }
+                          }}
+                        >
+                          Mua Lại
+                        </button>
+                        <button
+                          className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition"
+                          onClick={() => {
+                            const productId = order.items?.[0]?.productId;
+                            if (productId) {
+                              router.push(`/product/${productId}`);
+                            } else {
+                              alert('Không tìm thấy sản phẩm để đánh giá!');
+                            }
+                          }}
+                        >
+                          Đánh Giá
+                        </button>
                         <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
                           Yêu Cầu Trả Hàng/Hoàn Tiền
                         </button>
                       </>
                     )}
-                    {order.status === 'completed' && (
-                       <>
-                         <button className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition">
-                           Mua Lại
-                         </button>
-                         <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
-                           Đánh Giá
-                         </button>
-                       </>
+                    {order.status === 'returned' && (
+                      <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
+                        Xem Chi Tiết
+                      </button>
                     )}
-                     {order.status === 'pending' && (
-                       <button
-                         className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition"
-                         onClick={() => handleCancelOrder(order.id)}
-                       >
-                         Hủy Đơn
-                       </button>
-                     )}
-                     {order.status === 'cancelled' && (
-                       <button className="bg-[#0066CC] text-white px-7 py-2 rounded font-bold text-base hover:bg-[#599BDE] transition">
-                         Mua Lại
-                       </button>
-                     )}
-                     {order.status === 'returned' && (
-                       <button className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition">
-                         Xem Chi Tiết
-                       </button>
-                     )}
+                    {['confirming','packing'].includes(order.status) && (
+                      <button
+                        className="border border-gray-300 text-gray-700 px-7 py-2 rounded font-bold text-base hover:bg-gray-100 transition"
+                        onClick={() => handleCancelOrder(order.id)}
+                      >
+                        Hủy Đơn
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

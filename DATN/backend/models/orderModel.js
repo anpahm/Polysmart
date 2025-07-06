@@ -16,6 +16,7 @@ const orderSchema = new mongoose.Schema({
     variantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Variant', required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
+    oldPrice: { type: Number },
     name: String,
     image: String,
     colorName: String
@@ -25,8 +26,8 @@ const orderSchema = new mongoose.Schema({
   paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
   orderStatus: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'], 
-    default: 'pending' 
+    enum: ['confirming', 'packing', 'shipping', 'delivered', 'returned', 'cancelled'], 
+    default: 'confirming' 
   },
   transferContent: String, // Mã giao dịch
   bankInfo: {

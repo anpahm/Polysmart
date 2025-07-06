@@ -38,7 +38,7 @@ export const orderService = {
     customerInfo: CustomerInfo;
     items: OrderItem[];
     totalAmount: number;
-    paymentMethod: 'cod' | 'atm';
+    paymentMethod: 'cod' | 'atm' | 'momo';
   }): Promise<OrderResponse> {
     try {
       const result = await fetchApi('/orders', {

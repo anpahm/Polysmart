@@ -13,6 +13,7 @@ export interface CartItem {
   selectedColor: number;
   colorName?: string;
   quantity: number;
+  flashSaleVariantId?: string;
 }
 
 interface CartState {

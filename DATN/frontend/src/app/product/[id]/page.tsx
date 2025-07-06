@@ -615,6 +615,10 @@ const ProductDetailPage = () => {
                   onClick={() => {
                     if (!product || !selectedVariant) return;
 
+                    // Tìm flashSaleVariantId nếu là flash sale
+                    const flashSaleVariant = flashSaleVariants.find((v: any) => v.id_variant === selectedVariant._id);
+                    const flashSaleVariantId = flashSaleVariant ? flashSaleVariant._id : undefined;
+
                     // Thêm tracking hành vi thêm vào giỏ hàng
                     if (user) {
                       trackUserEvent('add_to_cart', product._id, user._id);
@@ -632,6 +636,7 @@ const ProductDetailPage = () => {
                       selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
                       colorName: selectedVariant.mau || '',
                       quantity: 1,
+                      flashSaleVariantId
                     }));
 
                     // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng
@@ -769,6 +774,10 @@ const ProductDetailPage = () => {
                 onClick={() => {
                   if (!product || !selectedVariant) return;
 
+                  // Tìm flashSaleVariantId nếu là flash sale
+                  const flashSaleVariant = flashSaleVariants.find((v: any) => v.id_variant === selectedVariant._id);
+                  const flashSaleVariantId = flashSaleVariant ? flashSaleVariant._id : undefined;
+
                   // Thêm tracking hành vi thêm vào giỏ hàng
                   if (user) {
                     trackUserEvent('add_to_cart', product._id, user._id);
@@ -786,6 +795,7 @@ const ProductDetailPage = () => {
                     selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
                     colorName: selectedVariant.mau || '',
                     quantity: 1,
+                    flashSaleVariantId
                   }));
 
                   // Thêm các sản phẩm mua kèm đã chọn vào giỏ hàng

@@ -188,4 +188,26 @@ const searchProducts = async (req, res) => {
   }
 };
 
-module.exports = { getAllProducts, getProductById, addPro, uploadImage, deletePro, editPro, searchProducts };
+// Đếm số lượng sản phẩm đang hiện
+const countProducts = async (req, res) => {
+  try {
+    const count = await products.countDocuments({ an_hien: true });
+    res.status(200).json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi đếm sản phẩm: ' + error.message });
+  }
+};
+
+// Lấy top sản phẩm bán chạy/ế
+const getTopProducts = async (req, res) => {
+  try {
+    const { type = 'best', limit = 5 } = req.query;
+    const sortOrder = type === 'worst' ? 1 : -1;
+    const topProducts = await products.find({ an_hien: true }).sort({ ban_chay: sortOrder }).limit(Number(limit));
+    res.status(200).json(topProducts);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi lấy top sản phẩm: ' + error.message });
+  }
+};
+
+module.exports = { getAllProducts, getProductById, addPro, uploadImage, deletePro, editPro, searchProducts, countProducts, getTopProducts };

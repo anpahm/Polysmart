@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ChartOne from "../Charts/ChartOne";
 import ChartTwo from "../Charts/ChartTwo";
 import ChatCard from "../Chat/ChatCard";
@@ -12,6 +12,14 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const ECommerce: React.FC = () => {
+  const [productCount, setProductCount] = useState<string>("...");
+  useEffect(() => {
+    fetch("/api/products/count")
+      .then((res) => res.json())
+      .then((data) => setProductCount(data.count?.toString() || "0"))
+      .catch(() => setProductCount("0"));
+  }, []);
+
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
@@ -57,7 +65,7 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Tổng sản phẩm" total="2.450" rate="2.59%" levelUp>
+        <CardDataStats title="Tổng sản phẩm" total={productCount} rate="" levelUp>
           <svg
             className="fill-primary dark:fill-white"
             width="22"

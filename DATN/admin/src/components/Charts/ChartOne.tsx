@@ -1,7 +1,7 @@
 "use client";
 
 import { ApexOptions } from "apexcharts";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -71,7 +71,14 @@ const options: ApexOptions = {
     },
   },
   dataLabels: {
-    enabled: false,
+    enabled: true,
+    formatter: function (val: number) {
+      return val.toLocaleString('vi-VN') + '₫';
+    },
+    style: {
+      fontSize: '12px',
+      fontWeight: 'bold',
+    },
   },
   markers: {
     size: 4,
@@ -117,7 +124,6 @@ const options: ApexOptions = {
       },
     },
     min: 0,
-    max: 100,
   },
 };
 
@@ -129,17 +135,35 @@ interface ChartOneState {
 }
 
 const ChartOne: React.FC = () => {
-  const series = [
-      {
-        name: "Product One",
-        data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30, 45],
-      },
+  const [type, setType] = useState<'day' | 'week' | 'month'>('day');
+  const [series, setSeries] = useState<any[]>([{ name: 'Doanh thu', data: [] }]);
+  const [categories, setCategories] = useState<string[]>([]);
 
-      {
-        name: "Product Two",
-        data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39, 51],
-      },
-    ]
+  useEffect(() => {
+    fetch(`/api/orders/revenue?type=${type}`)
+      .then(res => res.json())
+      .then(data => {
+        const cat = data.map((item: any) => {
+          if (type === 'month') return `${item._id.year}-${item._id.month.toString().padStart(2, '0')}`;
+          if (type === 'week') return `${item._id.year}-W${item._id.week.toString().padStart(2, '0')}`;
+          return `${item._id.year}-${item._id.month.toString().padStart(2, '0')}-${item._id.day.toString().padStart(2, '0')}`;
+        });
+        setCategories(cat);
+        setSeries([{ name: 'Doanh thu', data: data.map((item: any) => item.totalRevenue) }]);
+      })
+      .catch(() => {
+        setCategories([]);
+        setSeries([{ name: 'Doanh thu', data: [] }]);
+      });
+  }, [type]);
+
+  const chartOptions = {
+    ...options,
+    xaxis: {
+      ...options.xaxis,
+      categories,
+    },
+  };
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-8">
@@ -150,39 +174,23 @@ const ChartOne: React.FC = () => {
               <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-primary"></span>
             </span>
             <div className="w-full">
-              <p className="font-semibold text-primary">Total Revenue</p>
-              <p className="text-sm font-medium">12.04.2022 - 12.05.2022</p>
-            </div>
-          </div>
-          <div className="flex min-w-47.5">
-            <span className="mr-2 mt-1 flex h-4 w-full max-w-4 items-center justify-center rounded-full border border-secondary">
-              <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-secondary"></span>
-            </span>
-            <div className="w-full">
-              <p className="font-semibold text-secondary">Total Sales</p>
-              <p className="text-sm font-medium">12.04.2022 - 12.05.2022</p>
+              <p className="font-semibold text-primary">Doanh thu</p>
+              <p className="text-sm font-medium">Theo {type === 'day' ? 'ngày' : type === 'week' ? 'tuần' : 'tháng'}</p>
             </div>
           </div>
         </div>
         <div className="flex w-full max-w-45 justify-end">
           <div className="inline-flex items-center rounded-md bg-whiter p-1.5 dark:bg-meta-4">
-            <button className="rounded bg-white px-3 py-1 text-xs font-medium text-black shadow-card hover:bg-white hover:shadow-card dark:bg-boxdark dark:text-white dark:hover:bg-boxdark">
-              Day
-            </button>
-            <button className="rounded px-3 py-1 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark">
-              Week
-            </button>
-            <button className="rounded px-3 py-1 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark">
-              Month
-            </button>
+            <button onClick={() => setType('day')} className={`rounded px-3 py-1 text-xs font-medium ${type==='day' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Day</button>
+            <button onClick={() => setType('week')} className={`rounded px-3 py-1 text-xs font-medium ${type==='week' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Week</button>
+            <button onClick={() => setType('month')} className={`rounded px-3 py-1 text-xs font-medium ${type==='month' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:hover:bg-boxdark'}`}>Month</button>
           </div>
         </div>
       </div>
-
       <div>
         <div id="chartOne" className="-ml-5">
           <ReactApexChart
-            options={options}
+            options={chartOptions}
             series={series}
             type="area"
             height={350}

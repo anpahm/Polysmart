@@ -268,4 +268,47 @@ exports.updateOrderStatus = async (req, res) => {
     console.error('Update order status error:', error);
     res.status(500).json({ message: 'Đã có lỗi xảy ra khi cập nhật trạng thái đơn hàng' });
   }
+};
+
+// Thống kê doanh thu theo ngày/tuần/tháng
+exports.getRevenueStats = async (req, res) => {
+  try {
+    const { type } = req.query;
+    let groupId = null;
+    let dateFormat = null;
+    if (type === 'month') {
+      groupId = { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } };
+      dateFormat = "%Y-%m";
+    } else if (type === 'week') {
+      groupId = { year: { $year: "$createdAt" }, week: { $isoWeek: "$createdAt" } };
+      dateFormat = "%G-W%V";
+    } else {
+      // default: day
+      groupId = { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } };
+      dateFormat = "%Y-%m-%d";
+    }
+    const stats = await Order.aggregate([
+      { $match: { orderStatus: 'delivered' } },
+      { $group: {
+          _id: groupId,
+          totalRevenue: { $sum: "$totalAmount" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1, "_id.week": 1, "_id.day": 1 } }
+    ]);
+    res.status(200).json(stats);
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi thống kê doanh thu: ' + error.message });
+  }
+};
+
+// Lấy danh sách đơn hàng chưa xác nhận
+exports.getPendingOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ orderStatus: 'confirming' }).sort({ createdAt: -1 });
+    res.json({ success: true, orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi khi lấy danh sách đơn hàng chưa xác nhận: ' + error.message });
+  }
 }; 

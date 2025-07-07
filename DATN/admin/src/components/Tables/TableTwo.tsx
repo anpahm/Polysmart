@@ -10,57 +10,26 @@ const getImageUrl = (imageUrl: string | undefined): string => {
 };
 
 const FILTER_OPTIONS = [
-  { value: "top_sold", label: "Bán chạy nhất" },
-  { value: "least_sold", label: "Bán ít nhất" },
-  { value: "newest", label: "Mới nhất" },
-  { value: "oldest", label: "Cũ nhất" },
-  { value: "hot", label: "Sản phẩm hot" },
-  { value: "hidden", label: "Đang ẩn" },
+  { value: "best", label: "Bán chạy nhất" },
+  { value: "worst", label: "Bán ít nhất" },
 ];
 
 const TableTwo = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [filterOption, setFilterOption] = useState("top_sold");
+  const [filterOption, setFilterOption] = useState("best");
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/products")
+    fetch(`/api/products/top?type=${filterOption}&limit=5`)
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(() => setProducts([]));
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    let arr = [...products];
-    switch (filterOption) {
-      case "top_sold":
-        arr = arr.sort((a, b) => (b.ban_chay || 0) - (a.ban_chay || 0));
-        break;
-      case "least_sold":
-        arr = arr.sort((a, b) => (a.ban_chay || 0) - (b.ban_chay || 0));
-        break;
-      case "newest":
-        arr = arr.sort((a, b) => new Date(b.ngay_tao).getTime() - new Date(a.ngay_tao).getTime());
-        break;
-      case "oldest":
-        arr = arr.sort((a, b) => new Date(a.ngay_tao).getTime() - new Date(b.ngay_tao).getTime());
-        break;
-      case "hot":
-        arr = arr.filter(p => p.hot);
-        break;
-      case "hidden":
-        arr = arr.filter(p => p.an_hien === false);
-        break;
-      default:
-        break;
-    }
-    return arr.slice(0, 5);
-  }, [products, filterOption]);
+  }, [filterOption]);
 
   return (
     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-center justify-between px-4 py-6 md:px-6 xl:px-7.5">
         <h4 className="text-xl font-semibold text-black dark:text-white">
-          Sản phẩm nổi bật
+          Top sản phẩm {filterOption === 'best' ? 'bán chạy' : 'bán ít'}
         </h4>
         <select
           className="border rounded px-3 py-2"
@@ -72,7 +41,6 @@ const TableTwo = () => {
           ))}
         </select>
       </div>
-
       <div className="grid grid-cols-6 border-t border-stroke px-4 py-4.5 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
         <div className="col-span-3 flex items-center">
           <p className="font-medium">Tên sản phẩm</p>
@@ -81,17 +49,13 @@ const TableTwo = () => {
           <p className="font-medium">Danh mục</p>
         </div>
         <div className="col-span-1 flex items-center">
-          <p className="font-medium">Giá</p>
-        </div>
-        <div className="col-span-1 flex items-center">
           <p className="font-medium">Lượt bán</p>
         </div>
         <div className="col-span-1 flex items-center">
           <p className="font-medium">Trạng thái</p>
         </div>
       </div>
-
-      {filteredProducts.map((product, key) => (
+      {products.map((product, key) => (
         <div
           className="grid grid-cols-6 border-t border-stroke px-4 py-4.5 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5"
           key={product._id || key}
@@ -117,12 +81,7 @@ const TableTwo = () => {
             </p>
           </div>
           <div className="col-span-1 flex items-center">
-            <p className="text-sm text-black dark:text-white">
-              {product.price ? `$${product.price}` : (product.gia ? `${product.gia}₫` : "Chưa có giá")}
-            </p>
-          </div>
-          <div className="col-span-1 flex items-center">
-            <p className="text-sm text-black dark:text-white">{product.ban_chay || product.sold || 0}</p>
+            <p className="text-sm text-black dark:text-white">{product.ban_chay || 0}</p>
           </div>
           <div className="col-span-1 flex items-center">
             <span className={`text-xs px-2 py-1 rounded-full ${product.an_hien === false ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
@@ -131,6 +90,9 @@ const TableTwo = () => {
           </div>
         </div>
       ))}
+      {products.length === 0 && (
+        <div className="p-4 text-center text-gray-500">Không có sản phẩm nào.</div>
+      )}
     </div>
   );
 };

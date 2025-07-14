@@ -195,6 +195,10 @@ export default function ProfilePage() {
 
   // Map dữ liệu từ backend về format UI
   const mapOrder = (orderFromApi: any) => {
+    // Tính tổng tiền thực tế của đơn hàng
+    const totalAmount = Array.isArray(orderFromApi.items)
+      ? orderFromApi.items.reduce((sum: number, item: any) => sum + (item.price * (item.quantity || 1)), 0)
+      : 0;
     const item = orderFromApi.items[0] || {};
     const statusObj = mapOrderStatus(orderFromApi.orderStatus, orderFromApi.paymentStatus);
     return {
@@ -207,6 +211,7 @@ export default function ProfilePage() {
       qty: item.quantity,
       price: item.price,
       oldPrice: item.oldPrice || 0,
+      totalAmount, // Thêm trường tổng tiền
       ...statusObj,
       delivered: orderFromApi.orderStatus === 'delivered',
       note: '',
@@ -542,19 +547,23 @@ export default function ProfilePage() {
                   </div>
                   <span className={`${order.statusColor} text-sm font-bold uppercase`}>{order.statusText}</span>
                 </div>
-                {/* Sản phẩm - chiều ngang */}
-                <div className="flex items-center gap-4 px-6 py-4 border-b border-[#f2f2f2]">
-                  <img src={order.productImg} alt="product" className="w-20 h-20 object-contain border rounded bg-white" />
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="font-medium text-base truncate text-gray-900">{order.productName}</div>
-                    <div className="text-xs text-gray-500 mt-1">Phân loại hàng: {order.productType}</div>
-                    <div className="text-xs text-gray-500">x{order.qty}</div>
+                {/* Hiển thị tất cả sản phẩm trong đơn hàng */}
+                {order.items && order.items.length > 0 && order.items.map((item: any, idx: number) => (
+                  <div key={item._id || idx} className="flex items-center gap-4 px-6 py-4 border-b border-[#f2f2f2] last:border-b-0">
+                    <img src={item.image} alt="product" className="w-20 h-20 object-contain border rounded bg-white" />
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="font-medium text-base truncate text-gray-900">{item.name}</div>
+                      <div className="text-xs text-gray-500 mt-1">Phân loại hàng: {item.colorName}</div>
+                      <div className="text-xs text-gray-500">x{item.quantity}</div>
+                    </div>
+                    <div className="text-right min-w-[120px] flex flex-col items-end justify-center">
+                      {item.oldPrice && item.oldPrice > item.price && (
+                        <span className="line-through text-gray-400 text-sm mr-2">{item.oldPrice.toLocaleString()}₫</span>
+                      )}
+                      <span className="text-[#0066CC] font-bold text-lg">{item.price.toLocaleString()}₫</span>
+                    </div>
                   </div>
-                  <div className="text-right min-w-[120px] flex flex-col items-end justify-center">
-                    <span className="line-through text-gray-400 text-sm mr-2">{order.oldPrice.toLocaleString()}₫</span>
-                    <span className="text-[#0066CC] font-bold text-lg">{order.price.toLocaleString()}₫</span>
-                  </div>
-                </div>
+                ))}
                 {/* Chú thích nhỏ */}
                 {order.status === 'shipping' && (
                   <div className="px-6 py-2 text-xs text-gray-500 bg-[#fff8f6] border-b border-[#f2f2f2]">
@@ -565,7 +574,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600 text-base">Thành tiền:</span>
-                    <span className="text-[#0066CC] font-bold text-2xl">{order.price.toLocaleString()}₫</span>
+                    <span className="text-[#0066CC] font-bold text-2xl">{order.totalAmount.toLocaleString()}₫</span>
                   </div>
                   <div className="flex justify-end gap-3">
                     {order.status === 'shipping' && (

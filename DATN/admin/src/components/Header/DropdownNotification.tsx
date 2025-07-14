@@ -1,13 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ClickOutside from "@/components/ClickOutside";
+import { getApiUrl } from "@/config/api";
 
 const DropdownNotification = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const [newOrders, setNewOrders] = useState<any[]>([]);
+  const [prevOrderCount, setPrevOrderCount] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Polling API lấy đơn hàng mới mỗi 10 giây
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    const fetchNewOrders = async () => {
+      try {
+        const res = await fetch(getApiUrl("/orders/pending"));
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setNewOrders(data.orders);
+          setNotifying(data.orders.length > 0);
+          // Phát âm thanh nếu có thêm đơn hàng mới
+          if (data.orders.length > prevOrderCount && prevOrderCount !== 0) {
+            audioRef.current?.play();
+          }
+          setPrevOrderCount(data.orders.length);
+        }
+      } catch (err) {
+        // Silent error
+      }
+    };
+    fetchNewOrders();
+    timer = setInterval(fetchNewOrders, 10000);
+    return () => clearInterval(timer);
+  }, [prevOrderCount]);
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
+      <audio ref={audioRef} src="/thongbao.mp3" preload="auto" />
       <li>
         <Link
           onClick={() => {
@@ -51,69 +81,26 @@ const DropdownNotification = () => {
             </div>
 
             <ul className="flex h-auto flex-col overflow-y-auto">
-              <li>
-                <Link
-                  className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="#"
-                >
-                  <p className="text-sm">
-                    <span className="text-black dark:text-white">
-                      Edit your information in a swipe
-                    </span>{" "}
-                    Sint occaecat cupidatat non proident, sunt in culpa qui
-                    officia deserunt mollit anim.
-                  </p>
-
-                  <p className="text-xs">12 May, 2025</p>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="#"
-                >
-                  <p className="text-sm">
-                    <span className="text-black dark:text-white">
-                      It is a long established fact
-                    </span>{" "}
-                    that a reader will be distracted by the readable.
-                  </p>
-
-                  <p className="text-xs">24 Feb, 2025</p>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="#"
-                >
-                  <p className="text-sm">
-                    <span className="text-black dark:text-white">
-                      There are many variations
-                    </span>{" "}
-                    of passages of Lorem Ipsum available, but the majority have
-                    suffered
-                  </p>
-
-                  <p className="text-xs">04 Jan, 2025</p>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="#"
-                >
-                  <p className="text-sm">
-                    <span className="text-black dark:text-white">
-                      There are many variations
-                    </span>{" "}
-                    of passages of Lorem Ipsum available, but the majority have
-                    suffered
-                  </p>
-
-                  <p className="text-xs">01 Dec, 2024</p>
-                </Link>
-              </li>
+              {newOrders.length === 0 && (
+                <li className="px-4.5 py-3 text-gray-400">Không có đơn hàng mới cần xác nhận.</li>
+              )}
+              {newOrders.map((order) => (
+                <li key={order._id}>
+                  <Link
+                    className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+                    href={`/order/orders/${order._id}`}
+                  >
+                    <p className="text-sm">
+                      <span className="text-black dark:text-white font-bold">
+                        Đơn hàng mới cần xác nhận
+                      </span>{" "}
+                      Khách: {order.customerInfo?.fullName || order.customerInfo?.email || 'Ẩn danh'}
+                    </p>
+                    <p className="text-xs">Tổng tiền: {order.totalAmount?.toLocaleString()}₫</p>
+                    <p className="text-xs">Thời gian: {new Date(order.createdAt).toLocaleString()}</p>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         )}

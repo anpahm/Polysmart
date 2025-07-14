@@ -44,7 +44,7 @@ router.get('/:userId', async (req, res) => {
     // 2. Chuẩn bị prompt cho Gemini
     const listProductNames = viewedProducts.map(p => p.TenSP).join(', ');
     const allProductNames = allProducts.map(p => p.TenSP).join(', ');
-    const prompt = `Tôi đã xem các sản phẩm: ${listProductNames}. Tôi đã thêm vào giỏ: ${cartProductNames.join(', ')}. Tôi đã tìm kiếm các từ khóa: ${searchKeywords.join(', ')}. Bạn hãy gợi ý 8 sản phẩm phù hợp nhất trong danh sách sau phù hợp với nhu cầu của tôi chỉ trả về một câu tóm tắt, không liệt kê sản phẩm: ${allProductNames}. Với mỗi sản phẩm gợi ý, hãy ghi rõ lý do tại sao bạn chọn sản phẩm đó cho tôi. Trả về theo dạng: Tên sản phẩm: Lý do gợi ý.`;
+    const prompt = `Tôi đã xem các sản phẩm: ${listProductNames}. Tôi đã thêm vào giỏ: ${cartProductNames.join(', ')}. Tôi đã tìm kiếm các từ khóa: ${searchKeywords.join(', ')}. Bạn hãy gợi ý 8 sản phẩm phù hợp nhất trong danh sách sau phù hợp với nhu cầu của tôi chỉ trả về một câu tóm tắt, không liệt kê sản phẩm: ${allProductNames}.`;
     const geminiPayload = {
       contents: [
         { parts: [ { text: prompt } ] }

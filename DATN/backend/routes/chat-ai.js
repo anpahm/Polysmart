@@ -428,6 +428,72 @@ router.post('/generate-product-description', async (req, res) => {
   }
 });
 
+// API sinh thông số kỹ thuật tự động bằng AI
+router.post('/generate-product-specs', async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: 'Thiếu tên sản phẩm.' });
+  }
+  
+  const prompt = `Dựa trên tên sản phẩm "${name}", hãy sinh ra thông số kỹ thuật chi tiết. Trả về kết quả dưới dạng JSON object với các trường sau:
+{
+  "CPU": "tên chip xử lý",
+  "Camera": ["camera chính", "camera phụ", "camera selfie"],
+  "GPU": "tên GPU",
+  "Cong_nghe_man_hinh": "công nghệ màn hình",
+  "He_dieu_hanh": "hệ điều hành",
+  "Do_phan_giai": "độ phân giải màn hình",
+  "Ket_noi": ["wifi", "bluetooth", "5g", "4g"],
+  "Kich_thuoc_khoi_luong": ["kích thước", "trọng lượng"],
+  "Kich_thuoc_man_hinh": "kích thước màn hình",
+  "Tien_ich_khac": ["tính năng 1", "tính năng 2"],
+  "Tinh_nang_camera": ["tính năng camera 1", "tính năng camera 2"]
+}
+
+Chỉ trả về JSON object, không có text khác.`;
+  
+  try {
+    const geminiRes = await axios.post(
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      {
+        contents: [
+          { parts: [ { text: prompt } ] }
+        ]
+      }
+    );
+    
+    let specs = {};
+    if (
+      geminiRes.data &&
+      geminiRes.data.candidates &&
+      geminiRes.data.candidates[0] &&
+      geminiRes.data.candidates[0].content &&
+      geminiRes.data.candidates[0].content.parts &&
+      geminiRes.data.candidates[0].content.parts[0] &&
+      geminiRes.data.candidates[0].content.parts[0].text
+    ) {
+      const responseText = geminiRes.data.candidates[0].content.parts[0].text;
+      try {
+        // Tìm JSON trong response
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          specs = JSON.parse(jsonMatch[0]);
+        } else {
+          specs = {};
+        }
+      } catch (parseError) {
+        console.error('Lỗi parse JSON:', parseError);
+        specs = {};
+      }
+    }
+    
+    res.json({ success: true, specs });
+  } catch (err) {
+    console.error('Lỗi khi gọi Gemini API:', err.message);
+    res.status(500).json({ success: false, message: 'Lỗi AI hoặc mạng.' });
+  }
+});
+
 module.exports = router;
 
 

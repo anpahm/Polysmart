@@ -42,11 +42,17 @@ export default function VariantProductPage({ productId }: { productId: string })
     const fetchVariants = async () => {
       try {
         const res = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`);
-        if (!res.ok) throw new Error("Không tìm thấy biến thể hoặc lỗi server");
-        const data = await res.json();
-        setVariants(data);
-        setCurrentImgs(Array(data.length).fill(0));
-        setError("");
+        if (!res.ok) {
+          // Nếu không tìm thấy variant, không coi đó là lỗi, chỉ set danh sách rỗng
+          setVariants([]);
+          setCurrentImgs([]);
+          setError("");
+        } else {
+          const data = await res.json();
+          setVariants(data);
+          setCurrentImgs(Array(data.length).fill(0));
+          setError("");
+        }
       } catch (error: any) {
         setVariants([]);
         setCurrentImgs([]);
@@ -267,20 +273,40 @@ export default function VariantProductPage({ productId }: { productId: string })
               <div className="pl-10 w-2/3 flex flex-col gap-4">
                 <label className="font-semibold mb-1">Giá bán <span className="text-red-500">*</span></label>
                 <input
-                  type="number"
+                  type="text"
                   className="border rounded px-3 py-2"
                   placeholder="Nhập giá bán (VND)"
-                  value={form.gia ?? ""}
-                  onChange={e => setForm(f => ({ ...f, gia: Number(e.target.value) }))}
+                  value={form.gia === 0 ? '' : (form.gia ?? '').toString()}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === '' || /^\d+$/.test(value)) {
+                      setForm(f => ({ ...f, gia: value === '' ? 0 : Number(value) }));
+                    }
+                  }}
+                  onFocus={e => {
+                    if (form.gia === 0) {
+                      e.target.select();
+                    }
+                  }}
                   required
                 />
                 <label className="font-semibold mb-1">Giá gốc</label>
                 <input
-                  type="number"
+                  type="text"
                   className="border rounded px-3 py-2"
                   placeholder="Nhập giá gốc (VND)"
-                  value={form.gia_goc ?? ""}
-                  onChange={e => setForm(f => ({ ...f, gia_goc: Number(e.target.value) }))}
+                  value={form.gia_goc === 0 ? '' : (form.gia_goc ?? '').toString()}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === '' || /^\d+$/.test(value)) {
+                      setForm(f => ({ ...f, gia_goc: value === '' ? 0 : Number(value) }));
+                    }
+                  }}
+                  onFocus={e => {
+                    if (form.gia_goc === 0) {
+                      e.target.select();
+                    }
+                  }}
                 />
                 <label className="font-semibold mb-1">Dung lượng <span className="text-red-500">*</span></label>
                 <input
@@ -300,11 +326,21 @@ export default function VariantProductPage({ productId }: { productId: string })
                 />
                 <label className="font-semibold mb-1">Số lượng hàng</label>
                 <input
-                  type="number"
+                  type="text"
                   className="border rounded px-3 py-2"
                   placeholder="Nhập số lượng tồn kho"
-                  value={form.so_luong_hang ?? ""}
-                  onChange={e => setForm(f => ({ ...f, so_luong_hang: Number(e.target.value) }))}
+                  value={form.so_luong_hang === 0 ? '' : (form.so_luong_hang ?? '').toString()}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === '' || /^\d+$/.test(value)) {
+                      setForm(f => ({ ...f, so_luong_hang: value === '' ? 0 : Number(value) }));
+                    }
+                  }}
+                  onFocus={e => {
+                    if (form.so_luong_hang === 0) {
+                      e.target.select();
+                    }
+                  }}
                 />
                 <div className="flex items-center gap-2 mt-2">
                   <input
@@ -337,7 +373,22 @@ export default function VariantProductPage({ productId }: { productId: string })
         </div>
       )}
       {variants.length === 0 ? (
-        <div>Không có biến thể nào cho sản phẩm này.</div>
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <div className="mb-4">
+            <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có biến thể nào</h3>
+          <p className="text-gray-500 mb-6">Sản phẩm này chưa có biến thể nào. Hãy tạo biến thể đầu tiên để có thể bán sản phẩm.</p>
+          <button
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+            onClick={handleAdd}
+          >
+            <FaPlus className="w-4 h-4" />
+            Tạo biến thể đầu tiên
+          </button>
+        </div>
       ) : (
         <table className="min-w-full border">
           <thead>

@@ -75,10 +75,9 @@ export default function ProductTable() {
   const [videoProduct, setVideoProduct] = useState<Product | null>(null);
   const videoModalRef = useRef<HTMLDivElement>(null);
   const [filterOption, setFilterOption] = useState("top_sold");
-  const [moTaAI, setMoTaAI] = useState('');
-  const [loadingAI, setLoadingAI] = useState(false);
   const [aiSpecLoading, setAiSpecLoading] = useState(false);
   const aiSpecTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [autoGenerateSpecs, setAutoGenerateSpecs] = useState(true);
 
   const router = useRouter();
 
@@ -377,6 +376,19 @@ export default function ProductTable() {
     }
 
     try {
+      // Chuẩn bị dữ liệu trước khi gửi
+      const productData = {
+        ...newProduct,
+        thong_so_ky_thuat: normalizeSpecs(newProduct.thong_so_ky_thuat || {}),
+        khuyen_mai: Number(newProduct.khuyen_mai) || 0,
+        ban_chay: Number(newProduct.ban_chay) || 0,
+        an_hien: Boolean(newProduct.an_hien),
+        hot: Boolean(newProduct.hot),
+        video: Array.isArray(newProduct.video) ? newProduct.video : []
+      };
+
+      console.log('Dữ liệu sản phẩm sẽ gửi:', productData);
+
       const res = await fetch(
         editProduct 
           ? `http://localhost:3000/api/products/${editProduct._id}`
@@ -384,13 +396,17 @@ export default function ProductTable() {
         {
           method: editProduct ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newProduct)
+          body: JSON.stringify(productData)
         }
       );
 
-      if (!res.ok) throw new Error('Có lỗi xảy ra');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+      }
 
       const data = await res.json();
+      console.log('Response từ server:', data);
       
       if (editProduct) {
         setProducts(prev => prev.map(p => p._id === data._id ? data : p));
@@ -416,7 +432,9 @@ export default function ProductTable() {
       setEditProduct(null);
 
     } catch (error) {
-      toast.error('Có lỗi xảy ra!');
+      console.error('Lỗi khi lưu sản phẩm:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra';
+      toast.error(`Có lỗi xảy ra: ${errorMessage}`);
     }
   };
 
@@ -456,16 +474,43 @@ export default function ProductTable() {
   // Thêm hàm normalizeSpecs để chuẩn hóa specs từ AI
   const normalizeSpecs = (specs: Record<string, any>) => {
     const result = { ...specs };
-    ['Camera', 'Ket_noi', 'Kich_thuoc_khoi_luong', 'Tien_ich_khac', 'Tinh_nang_camera'].forEach(key => {
+    
+    // Danh sách các trường cần xử lý đặc biệt
+    const arrayFields = ['Camera', 'Ket_noi', 'Kich_thuoc_khoi_luong', 'Tien_ich_khac', 'Tinh_nang_camera'];
+    
+    arrayFields.forEach(key => {
       if (result[key]) {
-        if (Array.isArray(result[key])) return;
-        if (typeof result[key] === 'object') {
-          result[key] = Object.values(result[key]);
-        } else if (typeof result[key] === 'string') {
-          result[key] = result[key].split(',').map((s: string) => s.trim());
+        try {
+          if (Array.isArray(result[key])) {
+            // Đã là array, chỉ cần làm sạch
+            result[key] = result[key].filter(item => item && item.toString().trim() !== '');
+          } else if (typeof result[key] === 'object') {
+            // Object, chuyển thành array
+            result[key] = Object.values(result[key]).filter(item => item && item.toString().trim() !== '');
+          } else if (typeof result[key] === 'string') {
+            // String, split theo dấu phẩy
+            result[key] = result[key]
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(item => item !== '');
+          }
+        } catch (error) {
+          console.error(`Lỗi xử lý field ${key}:`, error);
+          result[key] = [];
         }
+      } else {
+        // Nếu không có giá trị, set thành array rỗng
+        result[key] = [];
       }
     });
+    
+    // Làm sạch các trường string khác
+    Object.keys(result).forEach(key => {
+      if (!arrayFields.includes(key) && typeof result[key] === 'string') {
+        result[key] = result[key].trim();
+      }
+    });
+    
     return result;
   };
 
@@ -474,25 +519,83 @@ export default function ProductTable() {
     if (!productName) return;
     setAiSpecLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/generate-product-description', {
+      console.log('Gửi request đến AI với tên:', productName);
+      const res = await fetch('http://localhost:3000/api/generate-product-specs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: productName })
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      // Nếu API trả về object specs
-      if (data && data.specs && typeof data.specs === 'object') {
+      console.log('Response từ AI:', data);
+      
+      // Kiểm tra và xử lý dữ liệu an toàn
+      if (data && data.success && data.specs && typeof data.specs === 'object') {
+        console.log('Specs nhận được:', data.specs);
+        
+        // Lọc và làm sạch dữ liệu trước khi set
+        const cleanedSpecs = Object.entries(data.specs).reduce((acc, [key, value]) => {
+          if (value !== null && value !== undefined && value !== '') {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>);
+        
         setNewProduct(prev => ({
           ...prev,
-          thong_so_ky_thuat: normalizeSpecs({ ...prev.thong_so_ky_thuat, ...data.specs })
+          thong_so_ky_thuat: normalizeSpecs({ ...prev.thong_so_ky_thuat, ...cleanedSpecs })
         }));
+        toast.success('Đã tự động điền thông số kỹ thuật!');
+      } else {
+        console.log('Không nhận được specs hợp lệ:', data);
+        toast.error('Không thể tạo thông số kỹ thuật tự động');
       }
     } catch (err) {
-      // Có thể toast lỗi nếu muốn
+      console.error('Lỗi khi gọi AI:', err);
+      toast.error('Không thể tạo thông số kỹ thuật tự động');
     } finally {
       setAiSpecLoading(false);
     }
   }, []);
+
+  // Tự động sinh thông số kỹ thuật khi nhập tên sản phẩm
+  useEffect(() => {
+    if (!autoGenerateSpecs) return;
+    
+    if (aiSpecTimeout.current) {
+      clearTimeout(aiSpecTimeout.current);
+    }
+
+    if (newProduct.TenSP && newProduct.TenSP.length > 3) {
+      // Kiểm tra xem đã có thông số kỹ thuật chưa
+      const hasExistingSpecs = newProduct.thong_so_ky_thuat && 
+        Object.keys(newProduct.thong_so_ky_thuat).length > 0 &&
+        Object.values(newProduct.thong_so_ky_thuat).some(value => 
+          value && (typeof value === 'string' ? value.trim() !== '' : true)
+        );
+      
+      // Chỉ tạo AI nếu chưa có thông số kỹ thuật
+      if (!hasExistingSpecs) {
+        console.log('Sẽ gọi AI sau 2s cho:', newProduct.TenSP);
+        aiSpecTimeout.current = setTimeout(() => {
+          console.log('Đang gọi AI cho:', newProduct.TenSP);
+          fetchAISpecs(newProduct.TenSP);
+        }, 2000); // Đợi 2 giây sau khi người dùng ngừng gõ
+      } else {
+        console.log('Sản phẩm đã có thông số kỹ thuật, không cần tạo AI');
+      }
+    }
+
+    return () => {
+      if (aiSpecTimeout.current) {
+        clearTimeout(aiSpecTimeout.current);
+      }
+    };
+  }, [newProduct.TenSP, newProduct.thong_so_ky_thuat, fetchAISpecs, autoGenerateSpecs]);
 
   if (loading) {
     return (
@@ -650,198 +753,451 @@ export default function ProductTable() {
 
       {/* Modal thêm/sửa sản phẩm */}
       {showModal && (
-        <div className="fixed z-150 flex items-center justify-center backdrop-blur-sm top-5 left-30 right-0 bottom-0 w-full h-full">
-          <div className="bg-white rounded-xl shadow-lg p-8 flex flex-row gap-8 overflow-y-auto max-h-[70vh] max-w-[1000px] w-full">
-            {/* Cột trái: Thông tin sản phẩm */}
-            <div className="flex-1 flex flex-col gap-4">
-              <h2 className="text-xl font-bold mb-2 text-blue-700">{editProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h2>
-              <input
-                className="border rounded px-3 py-2"
-                placeholder="Tên sản phẩm"
-                value={newProduct.TenSP}
-                onChange={e => setNewProduct({...newProduct, TenSP: e.target.value})}
-              />
-              <select
-                className="border rounded px-3 py-2"
-                value={newProduct.id_danhmuc}
-                onChange={e => setNewProduct({...newProduct, id_danhmuc: e.target.value})}
-              >
-                <option value="">-- Chọn danh mục --</option>
-                {categories.map(cat => (
-                  <option key={cat._id} value={cat._id}>{cat.ten_danh_muc}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                className="border rounded px-3 py-2"
-                placeholder="Khuyến mãi (%)"
-                value={newProduct.khuyen_mai}
-                onChange={e => setNewProduct({...newProduct, khuyen_mai: Number(e.target.value)})}
-              />
-              <input
-                type="number"
-                className="border rounded px-3 py-2"
-                placeholder="Lượt bán"
-                value={newProduct.ban_chay}
-                onChange={e => setNewProduct({...newProduct, ban_chay: Number(e.target.value)})}
-              />
-              <input
-                type="date"
-                className="border rounded px-3 py-2"
-                placeholder="Ngày tạo"
-                value={newProduct.ngay_tao}
-                onChange={e => setNewProduct({...newProduct, ngay_tao: e.target.value})}
-              />
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={newProduct.an_hien}
-                  onChange={e => setNewProduct({...newProduct, an_hien: e.target.checked})}
-                />
-                <span>Hiện sản phẩm</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={newProduct.hot}
-                  onChange={e => setNewProduct({...newProduct, hot: e.target.checked})}
-                />
-                <span>Hot</span>
-              </div>
-              {/* Thông số kỹ thuật động */}
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="font-semibold">Thông số kỹ thuật {aiSpecLoading && <span className='text-xs text-blue-500'>(Đang sinh tự động...)</span>}</label>
-                <input className="border rounded px-3 py-2" placeholder="CPU" value={newProduct.thong_so_ky_thuat.CPU || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, CPU: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Camera (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Camera) ? newProduct.thong_so_ky_thuat.Camera.join(', ') : (newProduct.thong_so_ky_thuat.Camera || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Camera: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="GPU" value={newProduct.thong_so_ky_thuat.GPU || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, GPU: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Công nghệ màn hình" value={newProduct.thong_so_ky_thuat.Cong_nghe_man_hinh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Cong_nghe_man_hinh: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Hệ điều hành" value={newProduct.thong_so_ky_thuat.He_dieu_hanh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, He_dieu_hanh: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Độ phân giải" value={newProduct.thong_so_ky_thuat.Do_phan_giai || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Do_phan_giai: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Kết nối (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Ket_noi) ? newProduct.thong_so_ky_thuat.Ket_noi.join(', ') : (newProduct.thong_so_ky_thuat.Ket_noi || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Ket_noi: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Kích thước khối lượng (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong) ? newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong.join(', ') : (newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_khoi_luong: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Kích thước màn hình" value={newProduct.thong_so_ky_thuat.Kich_thuoc_man_hinh || ''} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_man_hinh: e.target.value}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Tiện ích khác (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Tien_ich_khac) ? newProduct.thong_so_ky_thuat.Tien_ich_khac.join(', ') : (newProduct.thong_so_ky_thuat.Tien_ich_khac || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tien_ich_khac: e.target.value.split(',').map(s => s.trim())}}))} />
-                <input className="border rounded px-3 py-2" placeholder="Tính năng camera (cách nhau dấu phẩy)" value={Array.isArray(newProduct.thong_so_ky_thuat.Tinh_nang_camera) ? newProduct.thong_so_ky_thuat.Tinh_nang_camera.join(', ') : (newProduct.thong_so_ky_thuat.Tinh_nang_camera || '')} onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Tinh_nang_camera: e.target.value.split(',').map(s => s.trim())}}))} />
-                <button
-                  className="px-4 py-2 bg-green-600 text-white rounded mt-2 disabled:opacity-60"
-                  disabled={loadingAI || !newProduct.TenSP}
-                  onClick={async () => {
-                    setLoadingAI(true);
-                    setMoTaAI('');
-                    // Chuẩn hóa specs trước khi gửi
-                    const specs = { ...newProduct.thong_so_ky_thuat };
-                    ['Camera', 'Ket_noi', 'Kich_thuoc_khoi_luong', 'Tien_ich_khac', 'Tinh_nang_camera'].forEach(key => {
-                      if (specs[key] && typeof specs[key] === 'string') {
-                        specs[key] = specs[key].split(',').map(s => s.trim());
-                      }
-                    });
-                    try {
-                      const res = await fetch('http://localhost:3000/api/generate-product-description', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          name: newProduct.TenSP,
-                          specs
-                        })
-                      });
-                      const data = await res.json();
-                      if (data.success) setMoTaAI(data.description);
-                      else setMoTaAI('Không thể sinh mô tả AI.');
-                    } catch (err) {
-                      setMoTaAI('Lỗi khi gọi AI.');
-                    } finally {
-                      setLoadingAI(false);
-                    }
-                  }}
-                >
-                  {loadingAI ? 'Đang tạo mô tả...' : 'Tạo mô tả AI'}
-                </button>
-                <button
-                  className="px-3 py-1 bg-blue-500 text-white rounded w-fit mb-2 text-sm disabled:opacity-60"
-                  disabled={aiSpecLoading || !newProduct.TenSP}
-                  onClick={() => fetchAISpecs(newProduct.TenSP)}
-                >
-                  {aiSpecLoading ? 'Đang tạo lại...' : 'Tạo lại thông số AI'}
-                </button>
-              </div>
-              {/* Mô tả AI */}
-              <label className="font-semibold mt-2">Mô tả sản phẩm (AI)</label>
-              <textarea
-                className="border rounded px-3 py-2 min-h-[80px]"
-                placeholder="Mô tả sản phẩm (AI sinh ra)"
-                value={moTaAI}
-                onChange={e => setMoTaAI(e.target.value)}
-              />
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 pt-20">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-4xl relative max-h-[85vh] overflow-y-auto">
+            {/* Header */}
+            <div className="border-b pb-4 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Ảnh & Video sản phẩm</h2>
+              <p className="text-gray-600 text-sm mt-1">Upload hình ảnh và video cho sản phẩm</p>
             </div>
-            {/* Cột phải: Ảnh & Video */}
-            <div className="flex-1 flex flex-col gap-4 border-l pl-8">
-              <h3 className="font-semibold mb-2">Ảnh & Video sản phẩm</h3>
-              {/* Ảnh sản phẩm */}
-              <input
-                type="file"
-                accept="image/*"
-                className="border rounded px-3 py-2 text-black"
-                onChange={handleImageChange}
-              />
-              {newProduct.hinh && (
-                <div className="relative w-24 h-24 mt-2">
-                  <Image
-                    src={getImageUrl(newProduct.hinh)}
-                    alt="Ảnh sản phẩm"
-                    fill
-                    className="object-cover rounded"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/no-image.png';
-                      console.error('Error loading image:', newProduct.hinh);
-                    }}
-                    sizes="96px"
-                    style={{ objectFit: 'cover', borderRadius: '0.375rem' }}
-                  />
-                </div>
-              )}
-              {imageError && (
-                <div className="text-red-600 text-sm mt-1">{imageError}</div>
-              )}
-              {/* Video sản phẩm */}
-              <input
-                type="file"
-                accept="video/*"
-                multiple
-                className="border rounded px-3 py-2 text-black"
-                onChange={handleVideoChange}
-              />
-              <div className="flex flex-col gap-2">
-                {newProduct.video && newProduct.video.map((videoUrl, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <video width={160} height={90} controls src={`http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`} />
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => setNewProduct(prev => ({
-                        ...prev,
-                        video: prev.video?.filter((_, i) => i !== idx) || []
-                      }))}
-                    >
-                      Xóa
-                    </button>
+
+            {/* Form content */}
+            <div className="space-y-6">
+              {/* Basic product info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-700">Thông tin sản phẩm</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tên sản phẩm *</label>
+                    <input
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Nhập tên sản phẩm..."
+                      value={newProduct.TenSP}
+                      onChange={e => setNewProduct({...newProduct, TenSP: e.target.value})}
+                    />
+                    {aiSpecLoading && (
+                      <div className="mt-2 flex items-center gap-2 text-blue-600 text-sm">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span>Đang tạo thông số...</span>
+                      </div>
+                    )}
                   </div>
-                ))}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục *</label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      value={newProduct.id_danhmuc}
+                      onChange={e => setNewProduct({...newProduct, id_danhmuc: e.target.value})}
+                    >
+                      <option value="">-- Chọn danh mục --</option>
+                      {categories.map(cat => (
+                        <option key={cat._id} value={cat._id}>{cat.ten_danh_muc}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Khuyến mãi (%)</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="0"
+                      value={newProduct.khuyen_mai === 0 ? '' : newProduct.khuyen_mai.toString()}
+                      onChange={e => {
+                        const value = e.target.value;
+                        if (value === '' || /^\d+$/.test(value)) {
+                          setNewProduct({...newProduct, khuyen_mai: value === '' ? 0 : Number(value)});
+                        }
+                      }}
+                      onFocus={e => {
+                        if (newProduct.khuyen_mai === 0) {
+                          e.target.select();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Lượt bán</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="0"
+                      value={newProduct.ban_chay === 0 ? '' : newProduct.ban_chay.toString()}
+                      onChange={e => {
+                        const value = e.target.value;
+                        if (value === '' || /^\d+$/.test(value)) {
+                          setNewProduct({...newProduct, ban_chay: value === '' ? 0 : Number(value)});
+                        }
+                      }}
+                      onFocus={e => {
+                        if (newProduct.ban_chay === 0) {
+                          e.target.select();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ngày tạo</label>
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      value={newProduct.ngay_tao}
+                      onChange={e => setNewProduct({...newProduct, ngay_tao: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-6">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="an_hien"
+                      checked={newProduct.an_hien}
+                      onChange={e => setNewProduct({...newProduct, an_hien: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="an_hien" className="text-sm font-medium text-gray-700">Hiện sản phẩm</label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="hot"
+                      checked={newProduct.hot}
+                      onChange={e => setNewProduct({...newProduct, hot: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="hot" className="text-sm font-medium text-gray-700">Sản phẩm hot</label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="auto_specs"
+                      checked={autoGenerateSpecs}
+                      onChange={e => setAutoGenerateSpecs(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="auto_specs" className="text-sm font-medium text-gray-700">Tự động sinh</label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông số kỹ thuật */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="text-lg font-semibold text-gray-700">Thông số kỹ thuật</h3>
+                  <div className="flex items-center gap-3">
+                    {aiSpecLoading && <span className='text-xs text-blue-500 animate-pulse'>Đang sinh tự động...</span>}
+                    {(() => {
+                      const hasExistingSpecs = newProduct.thong_so_ky_thuat && 
+                        Object.keys(newProduct.thong_so_ky_thuat).length > 0 &&
+                        Object.values(newProduct.thong_so_ky_thuat).some(value => 
+                          value && (typeof value === 'string' ? value.trim() !== '' : true)
+                        );
+                      
+                      if (hasExistingSpecs) {
+                        return (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                            ✓ Đã có thông số
+                          </span>
+                        );
+                      }
+                      
+                      return (
+                        <button
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                          disabled={aiSpecLoading || !newProduct.TenSP}
+                          onClick={() => fetchAISpecs(newProduct.TenSP)}
+                        >
+                          {aiSpecLoading ? 'Đang tạo...' : '🔄 Tạo AI'}
+                        </button>
+                      );
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">CPU</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="Apple A16 Bionic" 
+                        value={newProduct.thong_so_ky_thuat.CPU || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, CPU: e.target.value}}))} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">GPU</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="Apple GPU 5-core" 
+                        value={newProduct.thong_so_ky_thuat.GPU || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, GPU: e.target.value}}))} 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Camera</label>
+                    <input 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                      placeholder="48MP, 12MP, 12MP (cách nhau dấu phẩy)" 
+                      value={Array.isArray(newProduct.thong_so_ky_thuat.Camera) ? newProduct.thong_so_ky_thuat.Camera.join(', ') : (newProduct.thong_so_ky_thuat.Camera || '')} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const cameraArray = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+                        setNewProduct(prev => ({
+                          ...prev, 
+                          thong_so_ky_thuat: {
+                            ...prev.thong_so_ky_thuat, 
+                            Camera: cameraArray
+                          }
+                        }));
+                      }} 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Công nghệ màn hình</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="OLED" 
+                        value={newProduct.thong_so_ky_thuat.Cong_nghe_man_hinh || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Cong_nghe_man_hinh: e.target.value}}))} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Hệ điều hành</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="iOS 17" 
+                        value={newProduct.thong_so_ky_thuat.He_dieu_hanh || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, He_dieu_hanh: e.target.value}}))} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Độ phân giải</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="2556 x 1179" 
+                        value={newProduct.thong_so_ky_thuat.Do_phan_giai || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Do_phan_giai: e.target.value}}))} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Kích thước màn hình</label>
+                      <input 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                        placeholder="6.7 inch" 
+                        value={newProduct.thong_so_ky_thuat.Kich_thuoc_man_hinh || ''} 
+                        onChange={e => setNewProduct(prev => ({...prev, thong_so_ky_thuat: {...prev.thong_so_ky_thuat, Kich_thuoc_man_hinh: e.target.value}}))} 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Kết nối</label>
+                    <input 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                      placeholder="WiFi 6, Bluetooth 5.3, 5G (cách nhau dấu phẩy)" 
+                      value={Array.isArray(newProduct.thong_so_ky_thuat.Ket_noi) ? newProduct.thong_so_ky_thuat.Ket_noi.join(', ') : (newProduct.thong_so_ky_thuat.Ket_noi || '')} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const ketNoiArray = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+                        setNewProduct(prev => ({
+                          ...prev, 
+                          thong_so_ky_thuat: {
+                            ...prev.thong_so_ky_thuat, 
+                            Ket_noi: ketNoiArray
+                          }
+                        }));
+                      }} 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Kích thước & Khối lượng</label>
+                    <input 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                      placeholder="159.9 x 76.7 x 7.85 mm, 206g (cách nhau dấu phẩy)" 
+                      value={Array.isArray(newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong) ? newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong.join(', ') : (newProduct.thong_so_ky_thuat.Kich_thuoc_khoi_luong || '')} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const kichThuocArray = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+                        setNewProduct(prev => ({
+                          ...prev, 
+                          thong_so_ky_thuat: {
+                            ...prev.thong_so_ky_thuat, 
+                            Kich_thuoc_khoi_luong: kichThuocArray
+                          }
+                        }));
+                      }} 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tiện ích khác</label>
+                    <input 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                      placeholder="Face ID, MagSafe, IP68 (cách nhau dấu phẩy)" 
+                      value={Array.isArray(newProduct.thong_so_ky_thuat.Tien_ich_khac) ? newProduct.thong_so_ky_thuat.Tien_ich_khac.join(', ') : (newProduct.thong_so_ky_thuat.Tien_ich_khac || '')} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const tienIchArray = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+                        setNewProduct(prev => ({
+                          ...prev, 
+                          thong_so_ky_thuat: {
+                            ...prev.thong_so_ky_thuat, 
+                            Tien_ich_khac: tienIchArray
+                          }
+                        }));
+                      }} 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tính năng camera</label>
+                    <input 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm" 
+                      placeholder="Cinematic mode, ProRAW, Night mode (cách nhau dấu phẩy)" 
+                      value={Array.isArray(newProduct.thong_so_ky_thuat.Tinh_nang_camera) ? newProduct.thong_so_ky_thuat.Tinh_nang_camera.join(', ') : (newProduct.thong_so_ky_thuat.Tinh_nang_camera || '')} 
+                      onChange={e => {
+                        const value = e.target.value;
+                        const tinhNangArray = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+                        setNewProduct(prev => ({
+                          ...prev, 
+                          thong_so_ky_thuat: {
+                            ...prev.thong_so_ky_thuat, 
+                            Tinh_nang_camera: tinhNangArray
+                          }
+                        }));
+                      }} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Image upload section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-700">Ảnh chính sản phẩm</h3>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="image-upload"
+                    onChange={handleImageChange}
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="text-gray-400 mb-3">
+                      <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Click để chọn ảnh</p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF tối đa 10MB</p>
+                  </label>
+                </div>
+
+                {newProduct.hinh && (
+                  <div className="relative w-20 h-20 border rounded-lg overflow-hidden">
+                    <Image
+                      src={getImageUrl(newProduct.hinh)}
+                      alt="Ảnh sản phẩm"
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/no-image.png';
+                      }}
+                      sizes="80px"
+                    />
+                  </div>
+                )}
+
+                {imageError && (
+                  <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{imageError}</div>
+                )}
+              </div>
+
+              {/* Video upload section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-700">Video sản phẩm</h3>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    multiple
+                    className="hidden"
+                    id="video-upload"
+                    onChange={handleVideoChange}
+                  />
+                  <label htmlFor="video-upload" className="cursor-pointer">
+                    <div className="text-gray-400 mb-3">
+                      <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M15 10l4.501-4.5a2 2 0 012.998 0L27 10M15 10v28a2 2 0 002 2h14a2 2 0 002-2V10M15 10h12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">Click để chọn video</p>
+                    <p className="text-xs text-gray-500">MP4, MOV tối đa 100MB</p>
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  {newProduct.video && newProduct.video.map((videoUrl, idx) => (
+                    <div key={idx} className="relative border rounded-lg overflow-hidden">
+                      <video 
+                        width="100%" 
+                        height="120" 
+                        controls 
+                        className="w-full"
+                        src={`http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`} 
+                      />
+                      <button
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors"
+                        onClick={() => setNewProduct(prev => ({
+                          ...prev,
+                          video: prev.video?.filter((_, i) => i !== idx) || []
+                        }))}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="flex gap-2 mt-6">
+
+            {/* Nút đóng */}
+            <button 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors z-10" 
+              onClick={() => setShowModal(false)}
+            >
+              ×
+            </button>
+
+            {/* Action buttons */}
+            <div className="flex justify-center gap-4 mt-8 pt-6 border-t border-gray-200">
               <button
-                className="px-4 py-2 bg-gray-200 rounded h-[40px]"
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
                 onClick={() => setShowModal(false)}
               >
                 Hủy
               </button>
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded  h-[40px]"
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
                 onClick={handleSaveProduct}
               >
-                Lưu
+                {editProduct ? 'Cập nhật' : 'Thêm sản phẩm'}
               </button>
             </div>
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold" onClick={() => setShowModal(false)}>&times;</button>
           </div>
         </div>
       )}

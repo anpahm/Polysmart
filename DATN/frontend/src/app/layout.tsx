@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from 'next/font/google';
 import Header from "@/components/Header";
+import SmoothScrollProvider from "../components/SmoothScrollProvider";
 import Footer from "@/components/Footer";
 import './globals.css'; 
 import ReduxProvider from '../providers/ReduxProvider';
@@ -31,9 +32,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ReduxProvider>
           <Header />
+          <SmoothScrollProvider>
           <main className="pt-16">
             {children}
           </main>
+          </SmoothScrollProvider>
           <Footer />
         </ReduxProvider>
         <ChatbotAI />

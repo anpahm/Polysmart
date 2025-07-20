@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
 import { setUser } from '../store/userSlice';
+import { usePathname } from 'next/navigation';
 
 const getImageUrl = (url: string | string[]) => {
   // Nếu url là mảng, lấy phần tử đầu tiên
@@ -68,6 +69,7 @@ const Header = () => {
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
   const router = useRouter();
   const dispatch = useDispatch();
+  const pathname = usePathname();
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -250,7 +252,7 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}
-      style={{ backgroundColor: '#515154' }}
+      style={{ backgroundColor: pathname === '/hero' ? '#000' : '#515154' }}
     >
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16 relative">
@@ -341,7 +343,8 @@ const Header = () => {
 
             <div className="relative group">
               <button className="text-gray-300 hover:text-white px-2 py-1 rounded-md text-sm font-medium flex items-center">
-                Dịch vụ
+                <a href="/hero">   Dịch vụ</a>
+             
                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>

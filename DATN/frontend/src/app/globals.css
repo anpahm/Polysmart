@@ -447,3 +447,19 @@ code, pre {
 .markdown-table tr:nth-child(even) {
   background: #f9fafb; /* Tailwind gray-50 */
 }
+
+html, body {
+  overflow-x: hidden !important;
+}
+
+@font-face {
+  font-family: 'SF Pro';
+  src: url('../fonts/SF-Pro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body[data-route-hero] {
+  font-family: 'SF Pro', 'Segoe UI', 'Roboto', Arial, sans-serif !important;
+}

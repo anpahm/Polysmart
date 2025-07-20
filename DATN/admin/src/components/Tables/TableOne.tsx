@@ -1,3 +1,5 @@
+"use client";
+
 import { BRAND } from "@/types/brand";
 import Image from "next/image";
 import { useEffect, useState } from "react";

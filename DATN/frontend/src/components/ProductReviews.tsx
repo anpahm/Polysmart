@@ -16,12 +16,14 @@ interface Review {
     _id: string;
     TenKH?: string;
     email: string;
+    avatar?: string;
   };
   ma_san_pham: string;
   so_sao: number;
   binh_luan: string;
   ngay_danh_gia: string;
   images?: ImageReview[];
+  phan_hoi?: string;
 }
 
 interface ProductReviewsProps {
@@ -57,6 +59,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
   const [product, setProduct] = useState(null);
+  const [replyInputs, setReplyInputs] = useState<{ [id: string]: string }>({});
 
   const user = useSelector((state: RootState) => state.user?.user);
   const userId = user?._id;
@@ -108,6 +111,21 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
     setSoSao(5);
     setBinhLuan('');
     setImages([]);
+    setRefresh(r => r + 1);
+  };
+
+  const handleReply = async (parentId: string) => {
+    if (!user) return alert('Bạn cần đăng nhập để phản hồi!');
+    const reply = replyInputs[parentId];
+    if (!reply) return;
+    await axios.post('/api/reviews', {
+      ma_nguoi_dung: user._id,
+      ma_san_pham,
+      so_sao: 5,
+      binh_luan: reply,
+      parent_id: parentId
+    });
+    setReplyInputs(inputs => ({ ...inputs, [parentId]: '' }));
     setRefresh(r => r + 1);
   };
 
@@ -258,13 +276,8 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
         {filtered.map(r => (
           <div key={r._id} className="flex gap-4 border-b pb-6">
             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              {/* Avatar có thể lấy từ user info nếu có */}
-              {r.ma_nguoi_dung && (r.ma_nguoi_dung as any).avatar ? (
-                <img
-                  src={getImageUrl((r.ma_nguoi_dung as any).avatar)}
-                  alt={r.ma_nguoi_dung.TenKH || r.ma_nguoi_dung.email || 'avatar'}
-                  className="w-full h-full object-cover"
-                />
+              {r.ma_nguoi_dung && r.ma_nguoi_dung.avatar ? (
+                <img src={getImageUrl(r.ma_nguoi_dung.avatar)} alt={r.ma_nguoi_dung.TenKH || r.ma_nguoi_dung.email || 'avatar'} className="w-full h-full object-cover" />
               ) : (
                 <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" d="M12 2.5a5.5 5.5 0 00-3.096 10.047 9.005 9.005 0 00-5.9 8.18.75.75 0 001.5.045 7.5 7.5 0 0114.993 0 .75.75 0 001.499-.044 9.005 9.005 0 00-5.9-8.181A5.5 5.5 0 0012 2.5zM8 8a4 4 0 118 0 4 4 0 01-8 0z" clipRule="evenodd" />
@@ -287,15 +300,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
                   ))}
                 </div>
                 <span className="text-sm text-gray-500">{new Date(r.ngay_danh_gia).toLocaleDateString('vi-VN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                  year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 })}</span>
               </div>
               <p className="text-gray-800 mb-3 text-[15px]">{r.binh_luan}</p>
-              {/* Hình ảnh */}
               {r.images && r.images.length > 0 && (
                 <div className="grid grid-cols-4 gap-4">
                   {r.images.map((img, i) => (
@@ -303,10 +311,25 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
                       <img
                         src={getImageUrl(img.duong_dan_anh)}
                         alt={img.ghi_chu || 'review'}
-                        className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        className="w-[70px] h-[70px] object-contain bg-white border rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                       />
                     </div>
                   ))}
+                </div>
+              )}
+              {/* PHẢN HỒI QTV */}
+              {r.phan_hoi && (
+                <div className="flex gap-3 mt-4 ml-2">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center border-2 border-red-500">
+                    <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z" /></svg>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-red-600">Quản Trị Viên</span>
+                      <span className="ml-1 bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded">QTV</span>
+                    </div>
+                    <div className="bg-gray-100 rounded px-3 py-2 mt-1 text-gray-800">{r.phan_hoi}</div>
+                  </div>
                 </div>
               )}
             </div>

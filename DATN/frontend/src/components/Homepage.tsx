@@ -18,6 +18,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { fetchRecommendedProducts } from '@/services/productService';
 import PetMascot from './PetMascot';
+import GridiPhone from './GridiPhone';
+import GridiPad from './GridiPad';
+import GridMac from './GridMac';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -132,6 +135,63 @@ const HomePage = () => {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loadingRecommend, setLoadingRecommend] = useState(false);
   const [aiAdvice, setAiAdvice] = useState("");
+
+  const [specialBanners] = useState<Banner[]>([
+    {
+      id: 1,
+      image: '/images/ipsl.png',
+      title: 'Banner 1',
+      subtitle: '',
+      link: '#',
+    },
+    {
+      id: 2,
+      image: '/images/ron12.png',
+      title: 'Banner 2',
+      subtitle: '',
+      link: '#',
+    },
+    {
+      id: 3,
+      image: '/images/ron13.jpg',
+      title: 'Banner 3',
+      subtitle: '',
+      link: '#',
+    },
+  ]);
+  const [specialBannersiPad] = useState<Banner[]>([
+    {
+      id: 1,
+
+      image: '/images/ronlap1.jpg',
+      title: 'Banner 1',
+      subtitle: '',
+      link: '#',
+    },
+    {
+      id: 2,
+      image: '/images/ronlapbn.png',
+      title: 'Banner 2',
+      subtitle: '',
+      link: '#',
+    },
+  ]);
+  const [specialBannersMac] = useState<Banner[]>([
+    {
+      id: 1,
+      image: '/images/bnmac.png',
+      title: 'Banner 1',
+      subtitle: '',
+      link: '#',
+    },
+    {
+      id: 2,
+      image: '/images/bnmac1.png',
+      title: 'Banner 2',
+      subtitle: '',
+      link: '#',
+    },
+  ]);
 
   // Tính thời gian kết thúc flash sale và kiểm tra trạng thái hiển thị
   useEffect(() => {
@@ -447,7 +507,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="mt-0">
+    <div className="mt-0" style={{ fontFamily: "SF Pro, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       {/* Banner Slider */}
       <div className="container mx-auto overflow-hidden">
         <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
@@ -661,16 +721,17 @@ const HomePage = () => {
                     );
                   })}
               </Swiper>
+
               {/* Custom Navigation Buttons for Flash Sale Swiper */}
               <div className="flash-sale-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                      <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
               <div className="flash-sale-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                      <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
             </div>
           </div>
@@ -742,38 +803,7 @@ const HomePage = () => {
                             ` ${product.variants[0].dung_luong}`
                           )}
                         </h3>
-                        {/* <div className="flex gap-2 mb-1">
-                          <span className="text-[16px] font-bold text-[#0066D6]">
-                            {(() => {
-                              const priceRange = getPriceRange(product.variants);
-                              if (priceRange) {
-                                return formatCurrency(priceRange.minPrice);
-                              }
-                              const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                              const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
-                              return formatCurrency(price * (1 - discount / 100));
-                            })()}
-                          </span>
-                          {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                              return (
-                                <span className="text-gray-400 line-through text-[14px]">
-                                  {formatCurrency(priceRange.maxPrice)}
-                                </span>
-                              );
-                            }
-                            const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                            if (product.khuyen_mai && originalPrice > 0) {
-                              return (
-                                <span className="text-gray-400 line-through text-sm">
-                                  {formatCurrency(originalPrice)}
-                                </span>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </div> */}
+                        
                       </div>
                     </Link>
                   </SwiperSlide>
@@ -793,6 +823,179 @@ const HomePage = () => {
           </div>
         </section>
       )}
+      {/* Special Product Section - Sản phẩm nổi bật */}
+      <section  style={{background:'#fff'}}>
+      <div style={{
+        position: 'relative',
+        width: 1278,
+        margin: '0 auto',
+        zIndex: 30,
+        background:'#fff',
+        paddingTop:90,
+      }}>
+        <img
+          src="/images/anhcuacam.png"
+          alt="Điện thoại kế bên số 1"
+          style={{
+            height: 314,
+            maxWidth: 558,
+            objectFit: 'contain',
+            position: 'absolute',
+            top: 0,
+            right: 50,
+            zIndex: 30,
+          }}
+        />
+      </div>
+      <section
+        className="relative mx-auto flex items-center justify-center"
+        style={{
+          background: `url('/images/maucam.png') center/cover no-repeat`,
+          width: 1278,
+          height: 827,
+          minWidth: '320px',
+          maxWidth: '100vw',
+          overflowX: 'auto',
+        }}
+      >
+        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
+          {/* Left: Slide sản phẩm nổi bật */}
+          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
+            {/* Ảnh motcam.png + chữ in trên ảnh */}
+            <div
+              className="flex items-center justify-center text-center"
+              style={{
+                backgroundImage: "url('/images/motcam.png')",
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                width: 732,
+                height: 108,
+              }}
+            >
+              <p className="w-full"  style={{textAlign:'left', paddingLeft:90}}>
+                <b style={{fontSize:22, fontWeight:400,color:'#fff'}}>CHỈ CÓ TẠI POLYSMART </b><br />
+                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}> MÁY SIÊU TỐT - GIÁ SIÊU HỜI</span>
+              </p>
+            </div>
+            {/* Card lớn bao 3 card nhỏ */}
+            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
+              <div className="flex items-center mb-6">
+                <h2 className="text-3xl font-bold text-black">Điện thoại nổi bật nhất</h2>
+              </div>
+              <Swiper
+                modules={[Navigation]}
+                navigation
+                spaceBetween={24}
+                slidesPerView={3}
+                loop={true}
+                className="w-full h-full"
+              >
+                {data.iPhoneProducts.map((product) => (
+                  <SwiperSlide key={product._id} className="h-full">
+                  
+                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                      <div className="relative flex items-center justify-center pt-10 bg-white">
+                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                          <Image
+                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                            alt={product.TenSP}
+                            className="w-[180px] h-[160px] object-contain"
+                            width={170}
+                            height={140}
+                          />
+                          {product.khuyen_mai && (
+                            <img
+                              src="/images/khungfl.png"
+                              alt="Khung Flash Sale"
+                              className="absolute left-0 pointer-events-none"
+                              style={{ zIndex: 10, width:185, height: 176 }}
+                            />
+                          )}
+                        </div>
+                        {/* % giảm giá nếu có */}
+                        {product.khuyen_mai && (
+                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        {/* Lựa chọn dung lượng */}
+                        {product.variants && product.variants.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {product.variants
+                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
+                                  style={{ borderRadius: 18,}}
+                                >
+                                  {variant.dung_luong}
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                        {/* Giá tiền nằm ngoài chip dung lượng */}
+                        {(() => {
+                          const variants = product.variants?.filter(
+                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                          ) || [];
+                          if (variants.length === 0) return null;
+                          const minPrice = Math.min(...variants.map(v => v.gia));
+                          const hasDiscount = !!product.khuyen_mai;
+                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
+                          return (
+                            <div className="items-center mt-2">
+                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
+                                {formatCurrency(salePrice)}
+                              </span> 
+                              {hasDiscount && (
+                                <span className="text-[10px] text-gray-400 line-through ml-2">
+                                  {formatCurrency(minPrice)}
+                                </span> 
+                              )}
+                              
+                            </div>
+                          );
+                        })()}
+                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
+                                <p>Hỗ trợ trả góp 0%</p>
+                                <p>Thu cũ đổi mới</p>
+                                <p>Ưu đãi khách hàng thân thiết</p>
+                        </div>
+                      </div>
+                    </Link>
+               
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+             
+            </div>
+          </div>
+          {/* Right: Banner slide */}
+          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
+              <Swiper
+                modules={[Autoplay]}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                loop={true}
+                className="w-[455px] h-[515px]"
+                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
+              >
+                {(specialBanners || []).map((banner, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div
+                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
+                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
+                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+        </div>
+      </section>
+      </section>
+    
       {/* iPhone Section */}
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
@@ -921,7 +1124,179 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      <GridiPhone/>
 
+      <section style={{background:'#fff'}}>
+      <div style={{
+        position: 'relative',
+        width: 1278,
+        margin: '0 auto',
+        zIndex: 30,
+        background:'#fff',
+        paddingTop:90,
+      }}>
+        <img
+          src="/images/anhcuatim.png"
+          alt="Điện thoại kế bên số 1"
+          style={{
+            height: 314,
+            maxWidth: 558,
+            objectFit: 'contain',
+            position: 'absolute',
+            top: 0,
+            right: 50,
+            zIndex: 30,
+          }}
+        />
+      </div>
+      <section
+        className="relative mx-auto flex items-center justify-center"
+        style={{
+          background: `url('/images/mautim.png') center/cover no-repeat`,
+          width: 1278,
+          height: 827,
+          minWidth: '320px',
+          maxWidth: '100vw',
+          overflowX: 'auto',
+        }}
+      >
+        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
+          {/* Left: Slide sản phẩm nổi bật */}
+          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
+            {/* Ảnh motcam.png + chữ in trên ảnh */}
+            <div
+              className="flex items-center justify-center text-center"
+              style={{
+                backgroundImage: "url('/images/mottim.png')",
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                width: 732,
+                height: 108,
+              }}
+            >
+              <p className="w-full" style={{textAlign:'left', paddingLeft:90}}>
+                <b style={{fontSize:22, fontWeight:400,color:'#fff',}}>CHỈ CÓ TẠI POLYSMART </b><br />
+                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}> TRẢI NGHIỆM THỊ GIÁC TUYỆT VỜI</span>
+              </p>
+            </div>
+            {/* Card lớn bao 3 card nhỏ */}
+            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
+              <div className="flex items-center mb-6">
+                <h2 className="text-3xl font-bold text-black">iPad bán chạy nhất</h2>
+              </div>
+              <Swiper
+                modules={[Navigation]}
+                navigation
+                spaceBetween={24}
+                slidesPerView={3}
+                loop={true}
+                className="w-full h-full"
+              >
+                {data.iPhoneProducts.map((product) => (
+                  <SwiperSlide key={product._id} className="h-full">
+                  
+                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                      <div className="relative flex items-center justify-center pt-10 bg-white">
+                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                          <Image
+                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                            alt={product.TenSP}
+                            className="w-[180px] h-[160px] object-contain"
+                            width={170}
+                            height={140}
+                          />
+                          {product.khuyen_mai && (
+                            <img
+                              src="/images/khungfl.png"
+                              alt="Khung Flash Sale"
+                              className="absolute left-0 pointer-events-none"
+                              style={{ zIndex: 10, width:185, height: 176 }}
+                            />
+                          )}
+                        </div>
+                        {/* % giảm giá nếu có */}
+                        {product.khuyen_mai && (
+                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        {/* Lựa chọn dung lượng */}
+                        {product.variants && product.variants.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {product.variants
+                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
+                                  style={{ borderRadius: 18,}}
+                                >
+                                  {variant.dung_luong}
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                        {/* Giá tiền nằm ngoài chip dung lượng */}
+                        {(() => {
+                          const variants = product.variants?.filter(
+                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                          ) || [];
+                          if (variants.length === 0) return null;
+                          const minPrice = Math.min(...variants.map(v => v.gia));
+                          const hasDiscount = !!product.khuyen_mai;
+                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
+                          return (
+                            <div className="items-center mt-2">
+                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
+                                {formatCurrency(salePrice)}
+                              </span> 
+                              {hasDiscount && (
+                                <span className="text-[10px] text-gray-400 line-through ml-2">
+                                  {formatCurrency(minPrice)}
+                                </span> 
+                              )}
+                              
+                            </div>
+                          );
+                        })()}
+                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
+                                <p>Hỗ trợ trả góp 0%</p>
+                                <p>Thu cũ đổi mới</p>
+                                <p>Ưu đãi khách hàng thân thiết</p>
+                        </div>
+                      </div>
+                    </Link>
+               
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+             
+            </div>
+          </div>
+          {/* Right: Banner slide */}
+          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
+              <Swiper
+                modules={[Autoplay]}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                loop={true}
+                className="w-[455px] h-[515px]"
+                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
+              >
+                {(specialBannersiPad || []).map((banner, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div
+                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
+                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
+                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+        </div>
+      </section>
+      </section>
       {/* iPad Section */}
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
@@ -1050,7 +1425,178 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
+      <GridiPad/>
+      <section style={{background:'#fff'}}>
+      <div style={{
+        position: 'relative',
+        width: 1278,
+        margin: '0 auto',
+        zIndex: 30,
+        background:'#fff',
+        paddingTop:90,
+      }}>
+        <img
+          src="/images/anhcuaxanh.png"
+          alt="Điện thoại kế bên số 1"
+          style={{
+            height: 314,
+            maxWidth: 558,
+            objectFit: 'contain',
+            position: 'absolute',
+            top: 0,
+            right: 50,
+            zIndex: 30,
+          }}
+        />
+      </div>
+      <section
+        className="relative mx-auto flex items-center justify-center"
+        style={{
+          background: `url('/images/mauxanh.png') center/cover no-repeat`,
+          width: 1278,
+          height: 827,
+          minWidth: '320px',
+          maxWidth: '100vw',
+          overflowX: 'auto',
+        }}
+      >
+        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
+          {/* Left: Slide sản phẩm nổi bật */}
+          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
+            {/* Ảnh motcam.png + chữ in trên ảnh */}
+            <div
+              className="flex items-center justify-center text-center"
+              style={{
+                backgroundImage: "url('/images/motxanh.png')",
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                width: 732,
+                height: 108,
+              }}
+            >
+              <p className="w-full"  style={{textAlign:'left', paddingLeft:90}}>
+                <b style={{fontSize:22, fontWeight:400,color:'#fff'}}>HIỆU SUẤT CAO</b><br />
+                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}>BÙNG NỔ SÁNG TẠO</span>
+              </p>
+            </div>
+            {/* Card lớn bao 3 card nhỏ */}
+            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
+              <div className="flex items-center mb-6">
+                <h2 className="text-3xl font-bold text-black">Macbook bán chạy nhất</h2>
+              </div>
+              <Swiper
+                modules={[Navigation]}
+                navigation
+                spaceBetween={24}
+                slidesPerView={3}
+                loop={true}
+                className="w-full h-full"
+              >
+                {data.iPhoneProducts.map((product) => (
+                  <SwiperSlide key={product._id} className="h-full">
+                  
+                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                      <div className="relative flex items-center justify-center pt-10 bg-white">
+                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                          <Image
+                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                            alt={product.TenSP}
+                            className="w-[180px] h-[160px] object-contain"
+                            width={170}
+                            height={140}
+                          />
+                          {product.khuyen_mai && (
+                            <img
+                              src="/images/khungfl.png"
+                              alt="Khung Flash Sale"
+                              className="absolute left-0 pointer-events-none"
+                              style={{ zIndex: 10, width:185, height: 176 }}
+                            />
+                          )}
+                        </div>
+                        {/* % giảm giá nếu có */}
+                        {product.khuyen_mai && (
+                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        {/* Lựa chọn dung lượng */}
+                        {product.variants && product.variants.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {product.variants
+                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
+                                  style={{ borderRadius: 18,}}
+                                >
+                                  {variant.dung_luong}
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                        {/* Giá tiền nằm ngoài chip dung lượng */}
+                        {(() => {
+                          const variants = product.variants?.filter(
+                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                          ) || [];
+                          if (variants.length === 0) return null;
+                          const minPrice = Math.min(...variants.map(v => v.gia));
+                          const hasDiscount = !!product.khuyen_mai;
+                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
+                          return (
+                            <div className="items-center mt-2">
+                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
+                                {formatCurrency(salePrice)}
+                              </span> 
+                              {hasDiscount && (
+                                <span className="text-[10px] text-gray-400 line-through ml-2">
+                                  {formatCurrency(minPrice)}
+                                </span> 
+                              )}
+                              
+                            </div>
+                          );
+                        })()}
+                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
+                                <p>Hỗ trợ trả góp 0%</p>
+                                <p>Thu cũ đổi mới</p>
+                                <p>Ưu đãi khách hàng thân thiết</p>
+                        </div>
+                      </div>
+                    </Link>
+               
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+             
+            </div>
+          </div>
+          {/* Right: Banner slide */}
+          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
+              <Swiper
+                modules={[Autoplay]}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                loop={true}
+                className="w-[455px] h-[515px]"
+                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
+              >
+                {(specialBannersMac || []).map((banner, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div
+                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
+                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
+                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+        </div>
+      </section>
+      </section>
       {/* Mac Section */}
       <section className="section bg-white">
         <div className="container mx-auto px-40 bg-white">
@@ -1181,524 +1727,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
-          <div className="section-header flex justify-between items-center mb-6 bg-white">
-              <h2 className="section-title text-2xl font-bold">Watch</h2>
-         
-
-            <Link 
-              href="/watch" 
-              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
-            >
-              <span>Xem tất cả</span>
-              <svg 
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-          <div className="relative group bg-white">
-            <Swiper
-              modules={[Navigation]}
-              navigation={{
-                nextEl: '.watch-next',
-                prevEl: '.watch-prev',
-              }}
-              spaceBetween={20}
-              slidesPerView={1}
-              slidesPerGroup={1}
-              loop={true}
-              speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
-                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
-                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
-                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
-              }}
-              className="mySwiper bg-white"
-            >
-              {data.WatchProducts.map((product) => (
-                <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
-                    {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
-                    )}
-                    {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
-                    </div>
-                    {/* Product Image */}
-                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
-                      <Image
-                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt={product.TenSP}
-                        width="0" 
-                        height="0" 
-                       className="w-[280px] h-[280px]"
-                      />
-                    </div>
-                    {/* Product Info */}
-                    <div className="flex flex-col justify-between px-4 py-14 min-h-[100px] w-[300px]">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
-                        {product.TenSP}
-                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
-                          ` ${product.variants[0].dung_luong}`
-                        )}
-                      </h3>
-                      <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
-                          {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange) {
-                              return formatCurrency(priceRange.minPrice);
-                            }
-                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
-                            return formatCurrency(price * (1 - discount / 100));
-                          })()}
-                        </span>
-                        {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                            return (
-                              <span className="text-gray-400 line-through text-[14px]">
-                                {formatCurrency(priceRange.maxPrice)}
-                              </span>
-                            );
-                          }
-                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                          if (product.khuyen_mai && originalPrice > 0) {
-                            return (
-                              <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(originalPrice)}
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                    </div>
-                  </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="watch-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-            <div className="watch-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
-          {/* Am thanh Section */}
-      <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
-          <div className="section-header flex justify-between items-center mb-6 bg-white">
-            <h2 className="section-title text-2xl font-bold">Âm thanh</h2>
-            <Link 
-              href="/amthanh" 
-              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
-            >
-              <span>Xem tất cả</span>
-              <svg 
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-          <div className="relative group bg-white">
-            <Swiper
-              modules={[Navigation]}
-              navigation={{
-                nextEl: '.amthanh-next',
-                prevEl: '.amthanh-prev',
-              }}
-              spaceBetween={20}
-              slidesPerView={1}
-              slidesPerGroup={1}
-              loop={true}
-              speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
-                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
-                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
-                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
-              }}
-              className="mySwiper bg-white"
-            >
-              {data.AmThanhProducts.map((product) => (
-                <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
-                    {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
-                    )}
-                    {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
-                    </div>
-                    {/* Product Image */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
-                      <Image
-                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt={product.TenSP}
-                        width="0" 
-                        height="0" 
-                        className="w-[280px] h-[280px]"
-                      />
-                    </div>
-                    {/* Product Info */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
-                        {product.TenSP}
-                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
-                          ` ${product.variants[0].dung_luong}`
-                        )}
-                      </h3>
-                      <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
-                          {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange) {
-                              return formatCurrency(priceRange.minPrice);
-                            }
-                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
-                            return formatCurrency(price * (1 - discount / 100));
-                          })()}
-                        </span>
-                        {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                            return (
-                              <span className="text-gray-400 line-through text-[14px]">
-                                {formatCurrency(priceRange.maxPrice)}
-                              </span>
-                            );
-                          }
-                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                          if (product.khuyen_mai && originalPrice > 0) {
-                            return (
-                              <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(originalPrice)}
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                    </div>
-                  </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="amthanh-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-            <div className="amthanh-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
-          {/* Phu kien Section */}
-      <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
-          <div className="section-header flex justify-between items-center mb-6 bg-white">
-            <h2 className="section-title text-2xl font-bold">Phụ kiện</h2>
-            <Link 
-              href="/phukien" 
-              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
-            >
-              <span>Xem tất cả</span>
-              <svg 
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-          <div className="relative group bg-white">
-            <Swiper
-              modules={[Navigation]}
-              navigation={{
-                nextEl: '.phukien-next',
-                prevEl: '.phukien-prev',
-              }}
-              spaceBetween={20}
-              slidesPerView={1}
-              slidesPerGroup={1}
-              loop={true}
-              speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
-                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
-                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
-                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
-              }}
-              className="mySwiper bg-white"
-            >
-              {data.PhuKienProducts.map((product) => (
-                <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
-                    {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
-                    )}
-                    {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
-                    </div>
-                    {/* Product Image */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
-                      <Image
-                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt={product.TenSP}
-                        width="0" 
-                        height="0" 
-                        className="w-[280px] h-[280px]"
-                      />
-                    </div>
-                    {/* Product Info */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
-                        {product.TenSP}
-                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
-                          ` ${product.variants[0].dung_luong}`
-                        )}
-                      </h3>
-                      <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
-                          {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange) {
-                              return formatCurrency(priceRange.minPrice);
-                            }
-                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
-                            return formatCurrency(price * (1 - discount / 100));
-                          })()}
-                        </span>
-                        {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                            return (
-                              <span className="text-gray-400 line-through text-[14px]">
-                                {formatCurrency(priceRange.maxPrice)}
-                              </span>
-                            );
-                          }
-                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                          if (product.khuyen_mai && originalPrice > 0) {
-                            return (
-                              <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(originalPrice)}
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                    </div>
-                  </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="phukien-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-            <div className="phukien-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Camera Section */}  
-      <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
-          <div className="section-header flex justify-between items-center mb-6 bg-white">
-              <h2 className="section-title text-2xl font-bold">Camera</h2>
-            <Link 
-              href="/camera" 
-              className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
-            >
-              <span>Xem tất cả</span>
-              <svg 
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-          <div className="relative group bg-white">
-            <Swiper
-              modules={[Navigation]}
-              navigation={{
-                nextEl: '.camera-next',
-                prevEl: '.camera-prev',
-              }}
-              spaceBetween={20}
-              slidesPerView={1}
-              slidesPerGroup={1}
-              loop={true}
-              speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
-                480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
-                768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
-                1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
-              }}
-              className="mySwiper bg-white"
-            >
-              {data.CameraProducts.map((product) => (
-                <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
-                    {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
-                    )}
-                    {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
-                    </div>
-                    {/* Product Image */}
-                    <div className="relative flex items-center justify-center pt-10 bg-white">
-                      <Image
-                        src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                        alt={product.TenSP}
-                        width="0" 
-                        height="0" 
-                        className="w-[280px] h-[280px]"
-                      />
-                    </div>
-                    {/* Product Info */}
-                    <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
-                        {product.TenSP}
-                        {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
-                          ` ${product.variants[0].dung_luong}`
-                        )}
-                      </h3>
-                      <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
-                          {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange) {
-                              return formatCurrency(priceRange.minPrice);
-                            }
-                            const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                            const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
-                            return formatCurrency(price * (1 - discount / 100));
-                          })()}
-                        </span>
-                        {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
-                            return (
-                              <span className="text-gray-400 line-through text-[14px]">
-                                {formatCurrency(priceRange.maxPrice)}
-                              </span>
-                            );
-                          }
-                          const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
-                          if (product.khuyen_mai && originalPrice > 0) {
-                            return (
-                              <span className="text-gray-400 line-through text-sm">
-                                {formatCurrency(originalPrice)}
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
-                      </div>
-                    </div>
-                  </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="camera-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-            <div className="camera-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                    <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <GridMac/>
       {/* Newsfeed Section */}
       <section className="section bg-white">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
@@ -1733,6 +1762,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      
       
     </div>
   );

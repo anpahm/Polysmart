@@ -17,6 +17,7 @@ export interface ProductVariant {
   kich_thuoc?: string;
   so_luong_hang: number;
   an_hien: boolean;
+  phan_tram_giam_gia?: number;
 }
 
 // Định nghĩa cấu trúc cho Product

@@ -643,44 +643,55 @@ export default function ProfilePage() {
     }
     if (activeTab === "info") {
       return (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Thông tin tài khoản</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col items-stretch">
+          {/* Avatar Preview */}
+          <div className="flex flex-col items-center mb-8 w-full">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-200 shadow mb-3 flex items-center justify-center bg-gray-50">
+              {formData.avatar ? (
+                <img src={getImageUrl(formData.avatar)} alt="Avatar" className="object-cover w-full h-full" />
+              ) : (
+                <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              )}
+            </div>
+            <div className="text-lg font-semibold text-gray-800">{formData.name || 'Người dùng'}</div>
+            <div className="text-sm text-gray-500">{formData.email}</div>
+          </div>
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Tên, Họ:</label>
-              <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" name="name" value={formData.name} onChange={handleChange} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Tên, Họ</label>
+              <input type="text" className="mt-1 block w-full border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" name="name" value={formData.name} onChange={handleChange} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">E-mail:</label>
-              <input type="email" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" name="email" value={formData.email} onChange={handleChange} readOnly />
+              <label className="block text-xs font-semibold text-gray-500 mb-1">E-mail</label>
+              <input type="email" className="mt-1 block w-full border border-gray-200 rounded-lg shadow-sm p-3 bg-gray-100 text-gray-400 cursor-not-allowed" name="email" value={formData.email} onChange={handleChange} readOnly />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Điện thoại:</label>
-              <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Điện thoại</label>
+              <input type="text" className="mt-1 block w-full border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Giới tính:</label>
-              <div className="mt-1 flex items-center space-x-4">
-                <label className="inline-flex items-center">
-                  <input type="radio" className="form-radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleGenderChange} /> Nam
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Giới tính</label>
+              <div className="mt-1 flex items-center space-x-6">
+                <label className="inline-flex items-center text-sm text-gray-700">
+                  <input type="radio" className="form-radio accent-blue-500" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleGenderChange} /> Nam
                 </label>
-                <label className="inline-flex items-center">
-                  <input type="radio" className="form-radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleGenderChange} /> Nữ
+                <label className="inline-flex items-center text-sm text-gray-700">
+                  <input type="radio" className="form-radio accent-blue-500" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleGenderChange} /> Nữ
                 </label>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Ngày sinh:</label>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Ngày sinh</label>
               <div className="mt-1 grid grid-cols-3 gap-2">
-                <select className="border border-gray-300 rounded-md shadow-sm p-2" value={dobDay} onChange={e => handleDateChange(e, 'day')}>
+                <select className="border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" value={dobDay} onChange={e => handleDateChange(e, 'day')}>
                   <option value="">Ngày</option>
                   {[...Array(31)].map((_, i) => <option key={i + 1} value={String(i + 1).padStart(2, '0')}>{i + 1}</option>)}
                 </select>
-                <select className="border border-gray-300 rounded-md shadow-sm p-2" value={dobMonth} onChange={e => handleDateChange(e, 'month')}>
+                <select className="border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" value={dobMonth} onChange={e => handleDateChange(e, 'month')}>
                   <option value="">Tháng</option>
                   {[...Array(12)].map((_, i) => <option key={i + 1} value={String(i + 1).padStart(2, '0')}>Tháng {i + 1}</option>)}
                 </select>
-                <select className="border border-gray-300 rounded-md shadow-sm p-2" value={dobYear} onChange={e => handleDateChange(e, 'year')}>
+                <select className="border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" value={dobYear} onChange={e => handleDateChange(e, 'year')}>
                   <option value="">Năm</option>
                   {[...Array(100)].map((_, i) => {
                     const year = new Date().getFullYear() - i;
@@ -689,15 +700,15 @@ export default function ProfilePage() {
                 </select>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Địa chỉ:</label>
-              <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" name="address" value={formData.address} onChange={handleChange} />
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Địa chỉ</label>
+              <input type="text" className="mt-1 block w-full border border-gray-200 rounded-lg shadow-sm p-3 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" name="address" value={formData.address} onChange={handleChange} />
             </div>
           </div>
-          {successMessage && <div className="mt-4 text-green-600 text-center">{successMessage}</div>}
-          {errorMessage && <div className="mt-4 text-red-600 text-center">{errorMessage}</div>}
-          <div className="mt-6 text-center">
-            <button type="button" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700" onClick={handleSaveInfo}>Lưu lại</button>
+          {successMessage && <div className="mt-6 text-green-600 text-center w-full">{successMessage}</div>}
+          {errorMessage && <div className="mt-6 text-red-600 text-center w-full">{errorMessage}</div>}
+          <div className="mt-8 w-full">
+            <button type="button" className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow hover:from-blue-600 hover:to-blue-800 transition" onClick={handleSaveInfo}>Lưu lại</button>
           </div>
         </div>
       );

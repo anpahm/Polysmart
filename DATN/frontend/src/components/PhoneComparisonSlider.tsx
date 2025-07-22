@@ -16,9 +16,9 @@ const SIDE_TEXT_WIDTH = 245;
 const HANDLE_SIZE = 45;
 
 const comparisonProducts = [
-  { name: 'Galaxy Z Fold3', image: '/images/ssip.jpg', thickness: '14.4', weight: '271' },
-  { name: 'Galaxy Z Fold4', image: '/images/ssip1.jpg', thickness: '14.2', weight: '311' },
-  { name: 'Galaxy Z Fold5', image: '/images/ssip2.jpg', thickness: '13.4', weight: '253' },
+  { name: 'Titan Đen', image: '/images/ssip.jpg', thickness: '14.4', weight: '271' },
+  { name: 'Titan Trắng', image: '/images/ssip1.jpg', thickness: '14.2', weight: '311' },
+  { name: 'Titan Tự Nhiên', image: '/images/ssip2.jpg', thickness: '13.4', weight: '253' },
 ];
 
 const PhoneComparisonSlider: React.FC<PhoneComparisonSliderProps> = ({ left }) => {
@@ -209,7 +209,6 @@ const PhoneComparisonSlider: React.FC<PhoneComparisonSliderProps> = ({ left }) =
           paddingRight: 16,
         }}>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: 28, marginBottom: 8, marginTop: 32 }}>{left.name}</div>
-          <div style={{ color: '#fff', fontSize: 24, fontWeight: 400 }}>Gập <b>{left.thickness} mm</b></div>
         </div>
         {/* Vùng ảnh so sánh */}
         <div
@@ -323,7 +322,6 @@ const PhoneComparisonSlider: React.FC<PhoneComparisonSliderProps> = ({ left }) =
           paddingLeft: 16,
         }}>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: 28, marginBottom: 8, marginTop: 32 }}>{right.name}</div>
-          <div style={{ color: '#fff', fontSize: 24, fontWeight: 400 }}>Gập <b>{right.thickness} mm</b></div>
         </div>
       </div>
       {/* Số liệu so sánh */}
@@ -341,7 +339,7 @@ const PhoneComparisonSlider: React.FC<PhoneComparisonSliderProps> = ({ left }) =
                 display: 'inline-block',
               }}
             >
-              {Math.round((parseFloat(right.thickness) - parseFloat(left.thickness)) * 10) / 10}
+              48MP
             </span>
           </div>
         </div>
@@ -358,7 +356,7 @@ const PhoneComparisonSlider: React.FC<PhoneComparisonSliderProps> = ({ left }) =
                 display: 'inline-block',
               }}
             >
-              {Math.round((parseFloat(right.weight) - parseFloat(left.weight)) * 10) / 10}
+              227
             </span>
             <span style={{ color: '#0099ff', fontWeight: 700, fontSize: 60, marginLeft: 2 }}>g</span>
           </div>

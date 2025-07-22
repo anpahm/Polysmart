@@ -741,11 +741,11 @@ const HomePage = () => {
       {/* Gợi ý cho bạn Section */}
       {user && user._id && recommendedProducts.length > 0 && (
         <section className="section bg-white">
-          <div className="container mx-auto px-40 bg-white">
+          <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
             <div className="section-header flex justify-between items-center mb-6 bg-white">
               <PetMascot message={aiAdvice || "Xin chào, đây là gợi ý cho bạn!"} />
             </div>
-            <div className="relative group bg-white">
+            <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
               <Swiper
                 modules={[Navigation]}
                 navigation={{
@@ -766,21 +766,28 @@ const HomePage = () => {
                 className="mySwiper bg-white"
               >
                 {recommendedProducts.map((product) => (
-                  <SwiperSlide key={product._id}>
+                  <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
                     <Link
                       href={`/product/${product._id}`}
                       className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                     >
                       {/* Discount Badge */}
                       {(product.khuyen_mai ?? 0) > 0 && (
-                        <div className="absolute top-3 left-3 z-10">
-                          <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                            Giảm {product.khuyen_mai}%
-                          </span>
+                        <div className="absolute top-2 -left-1 z-30">
+                          <div className="relative">
+                            <img
+                              src="/images/spanfl.png"
+                              alt="Discount Badge"
+                              className="w-16 h-8"
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+                              Giảm {product.khuyen_mai}%
+                            </span>
+                          </div>
                         </div>
                       )}
                       {/* Installment Badge */}
-                      <div className="absolute top-3 right-3 z-10">
+                      <div className="absolute top-2 right-2 z-10">
                         <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                           Trả góp 0%
                         </span>
@@ -998,7 +1005,7 @@ const HomePage = () => {
     
       {/* iPhone Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
             <Link 
@@ -1016,7 +1023,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white">
+          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1037,21 +1044,28 @@ const HomePage = () => {
               className="mySwiper bg-white"
             >
               {data.iPhoneProducts.map((product) => (
-                <SwiperSlide key={product._id}>
+                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
+                      <div className="absolute top-2 -left-1 z-30">
+                        <div className="relative">
+                          <img
+                            src="/images/spanfl.png"
+                            alt="Discount Badge"
+                            className="w-16 h-8"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+                            Giảm {product.khuyen_mai}%
+                          </span>
+                        </div>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
+                    <div className="absolute top-2 right-2 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
@@ -1299,7 +1313,7 @@ const HomePage = () => {
       </section>
       {/* iPad Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
             <Link 
@@ -1317,7 +1331,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white">
+          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1338,21 +1352,28 @@ const HomePage = () => {
               className="mySwiper bg-white"
             >
               {data.iPadProducts.map((product) => (
-                <SwiperSlide key={product._id}>
+                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
+                      <div className="absolute top-2 -left-1 z-30">
+                        <div className="relative">
+                          <img
+                            src="/images/spanfl.png"
+                            alt="Discount Badge"
+                            className="w-16 h-8"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+                            Giảm {product.khuyen_mai}%
+                          </span>
+                        </div>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
+                    <div className="absolute top-2 right-2 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
@@ -1599,7 +1620,7 @@ const HomePage = () => {
       </section>
       {/* Mac Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
          
@@ -1619,7 +1640,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white">
+          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1640,21 +1661,28 @@ const HomePage = () => {
               className="mySwiper bg-white"
             >
               {data.MacProducts.map((product) => (
-                <SwiperSlide key={product._id}>
+                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
+                      <div className="absolute top-2 -left-1 z-30">
+                        <div className="relative">
+                          <img
+                            src="/images/spanfl.png"
+                            alt="Discount Badge"
+                            className="w-16 h-8"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+                            Giảm {product.khuyen_mai}%
+                          </span>
+                        </div>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
+                    <div className="absolute top-2 right-2 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>

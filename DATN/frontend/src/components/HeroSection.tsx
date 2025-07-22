@@ -480,16 +480,15 @@ const HeroSection = () => {
 {/* SECTION SLIDER NGANG CÔNG NGHỆ CHẾ TÁC */}
 <HorizontalCustomSlider />
 {/* SECTION SO SÁNH KÉO QUA KÉO LẠI */}
-<PhoneComparisonSlider left={{name: 'iPhone 16 Pro',image: '/images/ssip3.jpg',thickness: '1',weight: '199 gram',}}/>
+<PhoneComparisonSlider left={{name: 'Titan Sa Mạc',image: '/images/ssip3.jpg',thickness: '1',weight: '199 gram',}}/>
 {/* SECTION CAMERA ULTRA 200MP */}
 <CameraUltraSection />
 {/* SECTION SO SÁNH CAMERA */}
-<CameraCompareSection selected={selected} setSelected={setSelected} />
+{/* <CameraCompareSection selected={selected} setSelected={setSelected} /> */}
 <NightDetailVideoSection />
-<PinCompareSection selected={selected} setSelected={setSelected} />
+{/* <PinCompareSection selected={selected} setSelected={setSelected} /> */}
 <StoreEverythingSection/>
 <FastScrollSection/>
-<Footer/>
     </>
   );
 };

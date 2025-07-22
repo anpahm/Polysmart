@@ -2,25 +2,66 @@
 import React, { useState } from 'react';
 import Phone3DViewer from './Phone3DViewer';
 
-const colorOptions = [
-  { name: 'Titan Sa Mạc', color: '#977E6B' },
-  { name: 'Titan Tự Nhiên', color: '#959086' },
-  { name: 'Titan Trắng', color: '#D3D1CD' },
-  { name: 'Titan Đen', color: '#181919' },
-];
+class ThreeDErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('3D Component Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 const ColorAnd3DSection: React.FC = () => {
-  const [selectedColor, setSelectedColor] = useState(0);
+  const fallbackComponent = (
+    <div style={{
+      width: 400,
+      aspectRatio: '9/20',
+      maxWidth: '90vw',
+      background: '#333',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      marginBottom: 200,
+      borderRadius: '8px'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📱</div>
+        <div>iPhone 16 Pro</div>
+        <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '8px' }}>
+          Mô hình 3D đang được tải...
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <section style={{ width: '100%',
+    <section style={{ 
+      width: '100%',
       minHeight: '120vh',
       background: '#000',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-start',
       position: 'relative',
-      padding: 0 }}>
+      padding: 0 
+    }}>
       <h2 style={{
         textAlign: 'center',
         fontSize: 48,
@@ -31,18 +72,31 @@ const ColorAnd3DSection: React.FC = () => {
       }}>
         Ngắm nhìn cận cảnh.
       </h2>
-      {/* Container flex cho viewer và nút */}
+      
       <div style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
       }}>
-        {/* 3D Viewer */}
-        <div style={{ width: 400, aspectRatio: '9/20', maxWidth: '90vw', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom:200 }}>
-          <Phone3DViewer />
-        </div>
-        {/* Các nút chọn màu và nút đặt trước */}
+        {/* 3D Viewer with Error Boundary */}
+        <ThreeDErrorBoundary fallback={fallbackComponent}>
+          <div style={{ 
+            width: 400, 
+            aspectRatio: '9/20', 
+            maxWidth: '90vw', 
+            overflow: 'hidden', 
+            background: '#000', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginBottom: 200 
+          }}>
+            <Phone3DViewer />
+          </div>
+        </ThreeDErrorBoundary>
+        
+        {/* Chỉ giữ lại dòng chữ Titan Sa Mạc */}
         <div style={{
           position: 'absolute',
           left: 0,
@@ -51,48 +105,16 @@ const ColorAnd3DSection: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 16,
           zIndex: 2,
         }}>
           {/* Tên màu */}
           <div style={{
             fontSize: 24,
             fontWeight: 700,
-            marginBottom: 30,
-            marginTop: 16,
             textAlign: 'center',
             color: '#fff',
           }}>
-            <p>{colorOptions[selectedColor].name}</p>
-          </div>
-          {/* Dãy nút chọn màu */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 10,
-            background: '#2E2E30',
-            borderRadius: 40,
-            padding: '16px 24px',
-            alignItems: 'center',
-            boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)',
-          }}>
-            {colorOptions.map((opt, idx) => (
-              <button
-                key={opt.name}
-                onClick={() => setSelectedColor(idx)}
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '50%',
-                  border: selectedColor === idx ? '1px solid #F5F5F7' : '2px solid #2E2E30',
-                  background: opt.color,
-                  outline: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                aria-label={opt.name}
-              />
-            ))}
+            <p>Titan Sa Mạc</p>
           </div>
           {/* Nút đặt trước */}
           <button
@@ -113,6 +135,7 @@ const ColorAnd3DSection: React.FC = () => {
             Đặt trước
           </button>
         </div>
+        
         {/* Icon 360° góc phải */}
         <div style={{
           position: 'absolute',

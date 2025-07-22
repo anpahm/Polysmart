@@ -248,18 +248,18 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
         <div className="text-xl font-bold mb-2">ĐÁNH GIÁ SẢN PHẨM</div>
         <div className="flex items-center gap-8">
           <div className="flex flex-col items-center mr-8">
-            <span className="text-4xl font-bold text-red-500">{avgRating} <span className="text-lg text-gray-500 font-normal">trên 5</span></span>
+            <span className="text-4xl font-bold text-yellow-500">{avgRating} <span className="text-lg text-gray-500 font-normal">trên 5</span></span>
             <div className="flex gap-1 mt-1">
               {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" /></svg>
+                <svg key={i} className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" /></svg>
               ))}
             </div>
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex gap-2 mb-2">
-              <button className={`px-3 py-1 rounded border ${filter==='all'?'bg-red-500 text-white':'bg-white text-gray-700'}`} onClick={()=>setFilter('all')}>Tất Cả</button>
+              <button className={`px-3 py-1 rounded border ${filter==='all'?'bg-yellow-500 text-white':'bg-white text-gray-700'}`} onClick={()=>setFilter('all')}>Tất Cả</button>
               {[5,4,3,2,1].map((star,i)=>(
-                <button key={star} className={`px-3 py-1 rounded border ${filter===star?'bg-red-500 text-white':'bg-white text-gray-700'}`} onClick={()=>setFilter(star)}>{star} Sao ({countByStar[i]})</button>
+                <button key={star} className={`px-3 py-1 rounded border ${filter===star?'bg-yellow-500 text-white':'bg-white text-gray-700'}`} onClick={()=>setFilter(star)}>{star} Sao ({countByStar[i]})</button>
               ))}
             </div>
             <div className="flex gap-2">

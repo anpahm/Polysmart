@@ -499,11 +499,15 @@ const HomePage = () => {
       .catch(() => setAiAdvice(""));
   }, [user]);
 
+  // Các biến lọc sản phẩm hot cho từng loại (đặt ngay trước return)
+  const hotIphones: Product[] = data.iPhoneProducts.filter((product: Product) => product.hot === true);
+  const hotIpads: Product[] = data.iPadProducts.filter((product: Product) => product.hot === true);
+  const hotMacs: Product[] = data.MacProducts.filter((product: Product) => product.hot === true);
+
   if (loading) {
     return <div className="mt-16 flex justify-center items-center min-h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
     </div>;
-    
   }
 
   return (
@@ -741,11 +745,11 @@ const HomePage = () => {
       {/* Gợi ý cho bạn Section */}
       {user && user._id && recommendedProducts.length > 0 && (
         <section className="section bg-white">
-          <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
+          <div className="container mx-auto px-40 bg-white">
             <div className="section-header flex justify-between items-center mb-6 bg-white">
               <PetMascot message={aiAdvice || "Xin chào, đây là gợi ý cho bạn!"} />
             </div>
-            <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
+            <div className="relative group bg-white">
               <Swiper
                 modules={[Navigation]}
                 navigation={{
@@ -766,28 +770,21 @@ const HomePage = () => {
                 className="mySwiper bg-white"
               >
                 {recommendedProducts.map((product) => (
-                  <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
+                  <SwiperSlide key={product._id}>
                     <Link
                       href={`/product/${product._id}`}
                       className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                     >
                       {/* Discount Badge */}
                       {(product.khuyen_mai ?? 0) > 0 && (
-                        <div className="absolute top-2 -left-1 z-30">
-                          <div className="relative">
-                            <img
-                              src="/images/spanfl.png"
-                              alt="Discount Badge"
-                              className="w-16 h-8"
-                            />
-                            <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
-                              Giảm {product.khuyen_mai}%
-                            </span>
-                          </div>
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                            Giảm {product.khuyen_mai}%
+                          </span>
                         </div>
                       )}
                       {/* Installment Badge */}
-                      <div className="absolute top-2 right-2 z-10">
+                      <div className="absolute top-3 right-3 z-10">
                         <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                           Trả góp 0%
                         </span>
@@ -897,7 +894,7 @@ const HomePage = () => {
                 loop={true}
                 className="w-full h-full"
               >
-                {data.iPhoneProducts.map((product) => (
+                {hotIphones.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
                     <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
@@ -930,8 +927,8 @@ const HomePage = () => {
                         {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {product.variants
-                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant, idx) => (
+                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant: ProductVariant, idx: number) => (
                                 <span
                                   key={idx}
                                   className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
@@ -945,7 +942,7 @@ const HomePage = () => {
                         {/* Giá tiền nằm ngoài chip dung lượng */}
                         {(() => {
                           const variants = product.variants?.filter(
-                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
                           ) || [];
                           if (variants.length === 0) return null;
                           const minPrice = Math.min(...variants.map(v => v.gia));
@@ -1005,7 +1002,7 @@ const HomePage = () => {
     
       {/* iPhone Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
+        <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
             <Link 
@@ -1023,7 +1020,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1043,29 +1040,22 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {data.iPhoneProducts.map((product) => (
-                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
+              {hotIphones.map((product: Product) => (
+                <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-2 -left-1 z-30">
-                        <div className="relative">
-                          <img
-                            src="/images/spanfl.png"
-                            alt="Discount Badge"
-                            className="w-16 h-8"
-                          />
-                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
-                            Giảm {product.khuyen_mai}%
-                          </span>
-                        </div>
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-3 right-3 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
@@ -1206,7 +1196,7 @@ const HomePage = () => {
                 loop={true}
                 className="w-full h-full"
               >
-                {data.iPhoneProducts.map((product) => (
+                {hotIpads.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
                     <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
@@ -1239,8 +1229,8 @@ const HomePage = () => {
                         {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {product.variants
-                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant, idx) => (
+                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant: ProductVariant, idx: number) => (
                                 <span
                                   key={idx}
                                   className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
@@ -1254,7 +1244,7 @@ const HomePage = () => {
                         {/* Giá tiền nằm ngoài chip dung lượng */}
                         {(() => {
                           const variants = product.variants?.filter(
-                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
                           ) || [];
                           if (variants.length === 0) return null;
                           const minPrice = Math.min(...variants.map(v => v.gia));
@@ -1313,7 +1303,7 @@ const HomePage = () => {
       </section>
       {/* iPad Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
+        <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
             <Link 
@@ -1331,7 +1321,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1351,29 +1341,22 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {data.iPadProducts.map((product) => (
-                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
+              {hotIpads.map((product: Product) => (
+                <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-2 -left-1 z-30">
-                        <div className="relative">
-                          <img
-                            src="/images/spanfl.png"
-                            alt="Discount Badge"
-                            className="w-16 h-8"
-                          />
-                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
-                            Giảm {product.khuyen_mai}%
-                          </span>
-                        </div>
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-3 right-3 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>
@@ -1513,7 +1496,7 @@ const HomePage = () => {
                 loop={true}
                 className="w-full h-full"
               >
-                {data.iPhoneProducts.map((product) => (
+                {hotMacs.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
                     <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
@@ -1546,8 +1529,8 @@ const HomePage = () => {
                         {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {product.variants
-                              .filter(variant => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant, idx) => (
+                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
+                              .map((variant: ProductVariant, idx: number) => (
                                 <span
                                   key={idx}
                                   className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
@@ -1561,7 +1544,7 @@ const HomePage = () => {
                         {/* Giá tiền nằm ngoài chip dung lượng */}
                         {(() => {
                           const variants = product.variants?.filter(
-                            v => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
+                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
                           ) || [];
                           if (variants.length === 0) return null;
                           const minPrice = Math.min(...variants.map(v => v.gia));
@@ -1620,7 +1603,7 @@ const HomePage = () => {
       </section>
       {/* Mac Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white" style={{paddingTop: '16px'}}>
+        <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
          
@@ -1640,7 +1623,7 @@ const HomePage = () => {
               </svg>
             </Link>
           </div>
-          <div className="relative group bg-white overflow-visible" style={{paddingTop: '4px', height: '450px'}}>
+          <div className="relative group bg-white">
             <Swiper
               modules={[Navigation]}
               navigation={{
@@ -1660,29 +1643,22 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {data.MacProducts.map((product) => (
-                <SwiperSlide key={product._id} style={{marginTop: '8px', overflow: 'visible'}}>
+              {hotMacs.map((product: Product) => (
+                <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
                     className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-2 -left-1 z-30">
-                        <div className="relative">
-                          <img
-                            src="/images/spanfl.png"
-                            alt="Discount Badge"
-                            className="w-16 h-8"
-                          />
-                          <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
-                            Giảm {product.khuyen_mai}%
-                          </span>
-                        </div>
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          Giảm {product.khuyen_mai}%
+                        </span>
                       </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-3 right-3 z-10">
                       <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                         Trả góp 0%
                       </span>

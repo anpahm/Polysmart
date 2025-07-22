@@ -112,19 +112,7 @@ const ChatbotAI = () => {
           aria-label="Mở chat AI"
         >
           {/* Gemini SVG icon */}
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="16" fill="#fff"/>
-            <path
-              d="M16 4C16 4 20.5 12 28 16C20.5 20 16 28 16 28C16 28 11.5 20 4 16C11.5 12 16 4 16 4Z"
-              fill="url(#gemini-gradient)"
-            />
-            <defs>
-              <linearGradient id="gemini-gradient" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#8AB4F8"/>
-                <stop offset="1" stopColor="#5C6BC0"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src="/images/chaticon.jpg" alt="Gemini" width={60} height={60} className="rounded-full" />
         </button>
       )}
 

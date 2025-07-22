@@ -86,7 +86,9 @@ export default function PetMascot({ message }: PetMascotProps) {
         className={styles['pet-avatar']}
       />
       <div className={styles['pet-bubble']}>
-        {displayed}
+        <span className={styles['gradient-text']}>
+          {displayed}
+        </span>
         {displayed.length < (message?.length || 0) && <span style={{opacity:0.7}}>|</span>}
       </div>
     </div>

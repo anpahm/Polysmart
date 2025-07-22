@@ -577,23 +577,30 @@ const HomePage = () => {
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32 animate-pulse"></div>
 
               {/* Header with timer - Phần tiêu đề và đếm ngược */}
-              <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-                <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                  <div className="flex items-center">
-                    <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
-                    <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wider mx-3">FLASH SALE</h2>
-                    <span className="text-yellow-300 text-4xl animate-bounce">⚡</span>
-                  </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2 flex flex-col items-center">
-                    <span className="text-white text-sm mb-1">Kết thúc sau</span>
-                    <span className="text-white text-lg font-bold tracking-widest">
-                      {countdown.days}d : {countdown.hours}h : {countdown.minutes}m : {countdown.seconds}s
-                    </span>
+              <div className="flex flex-col md:flex-row justify-between items-center mb-8 relative">
+                {/* Ảnh FLASH SALE ở góc phải */}
+                <div className="absolute top-0 right-20 z-10">
+                  <img 
+                    src="/images/fs.png" 
+                    alt="FLASH SALE" 
+                    className="h-24 w-auto object-contain"
+                    style={{ animation: "flashscale 2.2s ease-in-out infinite" }}
+                  />
+                </div>
+                <div className="bg-opacity-20 rounded-lg px-4 py-2 flex flex-col items-center">
+                  <div className="flex items-center gap-4">
+                    <span className="text-white font-bold text-[20px] mr-1">Kết thúc sau</span>
+                    <div className="flex items-center gap-1">
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-orange-500 font-bold text-[20px] shadow">{countdown.days.toString().padStart(2, '0')}</span>
+                      <span className="text-white font-bold text-[20px] mx-1">:</span>
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-orange-500 font-bold text-[20px] shadow">{countdown.hours.toString().padStart(2, '0')}</span>
+                      <span className="text-white font-bold text-[20px] mx-1">:</span>
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-orange-500 font-bold text-[20px] shadow">{countdown.minutes.toString().padStart(2, '0')}</span>
+                      <span className="text-white font-bold text-[20px] mx-1">:</span>
+                      <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-orange-500 font-bold text-[20px] shadow">{countdown.seconds.toString().padStart(2, '0')}</span>
+                    </div>
                   </div>
                 </div>
-                <Link href="/flash-sale" className="bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300">
-                  Xem tất cả
-                </Link>
               </div>
 
               {/* Products grid - Lưới sản phẩm */}
@@ -662,15 +669,16 @@ const HomePage = () => {
                           {/* Ảnh sản phẩm */}
                           <div className="relative pt-[100%] overflow-hidden">
                             {/* Badge Flash Sale bên trái */}
-                            <div className="absolute top-2 left-2 z-10">
+                            {/* <div className="absolute top-2 left-2 z-10">
                               <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                                 Flash Sale
                               </span>
-                            </div>
+                            </div> */}
                             {/* Badge % giảm giá bên phải */}
+                           
                             {variant.phan_tram_giam_gia && (
                               <div className="absolute top-2 right-2 z-10">
-                                <span className="bg-yellow-400 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                                <span className="bg-[#E23454] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
                                   -{variant.phan_tram_giam_gia}%
                                 </span>
                               </div>
@@ -689,7 +697,7 @@ const HomePage = () => {
                                   style={{ width: `${(remaining / total) * 100}%` }}
                                 ></div>
                                 <div className="w-full h-full flex items-center justify-center z-10 relative">
-                                  <span className="flex items-center gap-1 text-black font-semibold text-sm">
+                                  <span className="flex items-center gap-1 text-white font-semibold text-sm">
                                     <span role="img" aria-label="fire">🔥</span>
                                     Còn {remaining}/{total} suất
                                   </span>
@@ -784,10 +792,12 @@ const HomePage = () => {
                         </div>
                       )}
                       {/* Installment Badge */}
-                      <div className="absolute top-3 right-3 z-10">
-                        <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                          Trả góp 0%
-                        </span>
+                      <div className="absolute top-3 right-3 z-10 w-[81px] h-[30px]">
+                        <img
+                          src="/images/tragop.png" // Đặt đúng tên file ảnh bạn vừa gửi vào public/images/
+                          alt="Trả góp 0%"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       {/* Product Image */}
                       <div className="relative flex items-center justify-center pt-10 bg-white">
@@ -1040,25 +1050,43 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {hotIphones.map((product: Product) => (
+              {data.iPhoneProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
-                    )}
+                            <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
+                            <img
+                              src="/images/spanfl.png" 
+                              alt="Giảm giá"
+                              className="w-full h-full object-contain"
+                            />
+                            <span
+                              className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
+                              style={{
+                                transform: 'translate(-50%, -50%)',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                lineHeight:24,
+                                whiteSpace: 'nowrap',
+                                paddingBottom:5 ,
+                               
+                              }}
+                            >
+                              Giảm {product.khuyen_mai}%
+                            </span>
+                          </div>
+                          )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
+                    <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
+                      <img
+                        src="/images/tragop.png" 
+                        alt="Trả góp 0%"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     {/* Product Image */}
                     <div className="relative flex items-center justify-center pt-10 bg-white">
@@ -1341,25 +1369,43 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {hotIpads.map((product: Product) => (
+              {data.iPadProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
+                      <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
+                      <img
+                        src="/images/spanfl.png" 
+                        alt="Giảm giá"
+                        className="w-full h-full object-contain"
+                      />
+                      <span
+                        className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
+                        style={{
+                          transform: 'translate(-50%, -50%)',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          lineHeight:24,
+                          whiteSpace: 'nowrap',
+                          paddingBottom:5 ,
+                         
+                        }}
+                      >
+                        Giảm {product.khuyen_mai}%
+                      </span>
+                    </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
+                    <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
+                      <img
+                        src="/images/tragop.png" 
+                        alt="Trả góp 0%"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     {/* Product Image */}
                     <div className="relative flex items-center justify-center pt-8 bg-white">
@@ -1606,8 +1652,6 @@ const HomePage = () => {
         <div className="container mx-auto px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
-         
-
             <Link 
               href="/mac" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
@@ -1643,25 +1687,43 @@ const HomePage = () => {
               }}
               className="mySwiper bg-white"
             >
-              {hotMacs.map((product: Product) => (
+              {data.MacProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
                   <Link
                     href={`/product/${product._id}`}
-                    className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
                   >
                     {/* Discount Badge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                          Giảm {product.khuyen_mai}%
-                        </span>
-                      </div>
+                     <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
+                     <img
+                       src="/images/spanfl.png" 
+                       alt="Giảm giá"
+                       className="w-full h-full object-contain"
+                     />
+                     <span
+                       className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
+                       style={{
+                         transform: 'translate(-50%, -50%)',
+                         fontSize: 12,
+                         fontWeight: 700,
+                         lineHeight:24,
+                         whiteSpace: 'nowrap',
+                         paddingBottom:5 ,
+                        
+                       }}
+                     >
+                       Giảm {product.khuyen_mai}%
+                     </span>
+                   </div>
                     )}
                     {/* Installment Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="bg-white border border-blue-500 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-                        Trả góp 0%
-                      </span>
+                    <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
+                      <img
+                        src="/images/tragop.png" 
+                        alt="Trả góp 0%"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     {/* Product Image */}
                     <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">

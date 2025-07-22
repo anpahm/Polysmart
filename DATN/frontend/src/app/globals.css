@@ -23,6 +23,12 @@ code, pre {
   font-family: 'Geist Mono', monospace;
 }
 
+@keyframes flashscale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
 @layer components {
   /* Nút nhấn với hiệu ứng hover nâng cao */
   .btn-primary {

@@ -32,4 +32,7 @@ router.put('/:orderId', orderController.updateOrderStatus);
 // Get order by ID
 router.get('/:orderId', orderController.getOrder);
 
+// Update flash sale quantities for specific order
+router.post('/:orderId/update-flashsale', orderController.updateFlashSaleQuantitiesForOrder);
+
 module.exports = router; 

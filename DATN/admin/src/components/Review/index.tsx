@@ -106,8 +106,8 @@ const ReviewAdminPage: React.FC = () => {
               {filteredReviews.map((r, idx) => (
                 <TableRow key={r._id}>
                   <TableCell>{idx + 1}</TableCell>
-                  <TableCell>{typeof r.ma_san_pham === "object" ? r.ma_san_pham.TenSP : r.ma_san_pham}</TableCell>
-                  <TableCell>{typeof r.ma_nguoi_dung === "object" ? r.ma_nguoi_dung.TenKH : r.ma_nguoi_dung}</TableCell>
+                  <TableCell>{typeof r.ma_san_pham === "object" && r.ma_san_pham ? r.ma_san_pham.TenSP : r.ma_san_pham}</TableCell>
+                  <TableCell>{typeof r.ma_nguoi_dung === "object" && r.ma_nguoi_dung ? r.ma_nguoi_dung.TenKH : r.ma_nguoi_dung || 'N/A'}</TableCell>
                   <TableCell>{r.so_sao} ⭐</TableCell>
                   <TableCell>{r.binh_luan}</TableCell>
                   <TableCell>{new Date(r.ngay_danh_gia).toLocaleString("vi-VN")}</TableCell>

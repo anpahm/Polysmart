@@ -5,6 +5,7 @@ import type { RootState } from '../../store';
 import { removeFromCart, changeQuantity } from '../../store/cartSlice';
 import { useRouter } from 'next/navigation';
 import { getApiUrl } from "@/config/api";
+import { showInfoAlert, showSuccessModal } from '@/utils/sweetAlert';
 
 function formatVND(num: number) {
   return num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -17,7 +18,7 @@ export default function CartPage() {
   const [delivery, setDelivery] = useState({ method: "home", city: "", address: "", note: "", invoice: false });
   const [agree, setAgree] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const [activeFlashSales, setActiveFlashSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,14 +53,7 @@ export default function CartPage() {
     fetchFlashSales();
   }, []);
 
-  useEffect(() => {
-    if (showSuccessModal) {
-      const timer = setTimeout(() => {
-        router.push('/');
-      }, 3000); // 3 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessModal, router]);
+
 
   const handleRemove = (idx: number) => {
     const item = cart[idx];
@@ -125,10 +119,17 @@ export default function CartPage() {
 
   const handleSubmitOrder = () => {
     if (paymentMethod === "cod") {
-      setShowSuccessModal(true);
+      // Hiển thị modal thành công và chuyển hướng
+      showSuccessModal(
+        'Đặt hàng thành công!', 
+        'Hóa đơn của bạn đã được gửi về số điện thoại đã đăng ký.',
+        () => {
+          router.push('/');
+        }
+      );
     } else {
       // Handle other payment methods here (ATM, MoMo)
-      alert(`Chức năng thanh toán ${paymentMethod} đang được phát triển.`);
+      showInfoAlert('Thông báo', `Chức năng thanh toán ${paymentMethod} đang được phát triển.`);
     }
   };
 
@@ -204,17 +205,7 @@ export default function CartPage() {
           </>
         )}
 
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-              <svg className="mx-auto mb-4 w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <h2 className="text-2xl font-bold mb-2">Đặt hàng thành công!</h2>
-              <p className="text-gray-700 mb-4">Hóa đơn của bạn đã được gửi về số điện thoại đã đăng ký.</p>
-              <p className="text-sm text-gray-500">Bạn sẽ được chuyển hướng về trang chủ sau 3 giây...</p>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

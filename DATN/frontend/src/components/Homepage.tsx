@@ -18,9 +18,12 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { fetchRecommendedProducts } from '@/services/productService';
 import PetMascot from './PetMascot';
+import { showWarningAlert } from '@/utils/sweetAlert';
 import GridiPhone from './GridiPhone';
 import GridiPad from './GridiPad';
 import GridMac from './GridMac';
+import AddToCartDemo from './AddToCartDemo';
+import CartNotificationDemo from './CartNotificationDemo';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -135,6 +138,198 @@ const HomePage = () => {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loadingRecommend, setLoadingRecommend] = useState(false);
   const [aiAdvice, setAiAdvice] = useState("");
+  const [isRefreshingFlashSale, setIsRefreshingFlashSale] = useState(false);
+
+  // Function to update flash sale quantity when purchased
+  const updateFlashSaleQuantity = (variantId: string) => {
+    setData(prevData => ({
+      ...prevData,
+      flashSaleProducts: prevData.flashSaleProducts.map(flashSale => ({
+        ...flashSale,
+        flashSaleVariants: flashSale.flashSaleVariants.map(variant => {
+          if (variant.id_variant === variantId) {
+            // Kiểm tra nếu còn hàng
+            if (variant.so_luong > variant.da_ban) {
+              return {
+                ...variant,
+                da_ban: variant.da_ban + 1
+              };
+            }
+          }
+          return variant;
+        })
+      }))
+    }));
+  };
+
+  // Function to handle flash sale product click
+  const handleFlashSaleClick = async (variant: FlashSaleVariantInHomepage) => {
+    try {
+      // Kiểm tra còn hàng không
+      if (variant.so_luong <= variant.da_ban) {
+        showWarningAlert('Hết hàng!', 'Sản phẩm flash sale đã hết hàng', 3000);
+        return;
+      }
+
+      // Chuyển hướng đến trang sản phẩm với flash sale info
+      const url = `/product/${variant?.product_id || ''}?flashsale=${variant.id_variant}&price=${variant.gia_flash_sale}`;
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error navigating to flash sale product:', error);
+    }
+  };
+
+  // Function to refresh flash sale data after successful purchase
+  const refreshFlashSaleData = async () => {
+    try {
+      setIsRefreshingFlashSale(true);
+      console.log('Refreshing flash sale data...'); // Debug log
+      
+      const flashSaleResponse = await fetch(getApiUrl('flashsales/active'));
+      const flashSaleData = await flashSaleResponse.json();
+      const flashSaleProducts: FlashSale[] = Array.isArray(flashSaleData.data) ? flashSaleData.data : [];
+      
+      setData(prevData => ({
+        ...prevData,
+        flashSaleProducts: flashSaleProducts
+      }));
+      
+      console.log('Flash sale data refreshed:', flashSaleProducts); // Debug log
+    } catch (error) {
+      console.error('Error refreshing flash sale data:', error);
+    } finally {
+      setTimeout(() => setIsRefreshingFlashSale(false), 500); // Show loading for a bit
+    }
+  };
+
+  // Function to manually process flash sale order (for testing/fixing)
+  const processFlashSaleOrder = async (orderId: string) => {
+    try {
+      console.log(`Processing flash sale order: ${orderId}`);
+      
+      // First try the dedicated flash sale processing endpoint
+      let response = await fetch(getApiUrl(`orders/${orderId}/process-flashsale`), {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        console.log('Dedicated endpoint failed, trying alternative...');
+        // Alternative: directly update flash sale quantities
+        response = await fetch(getApiUrl(`flashsales/update-quantities`), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ orderId })
+        });
+      }
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Flash sale order processed successfully:', result);
+        // Refresh data after processing
+        setTimeout(() => refreshFlashSaleData(), 1000);
+        return true;
+      } else {
+        const error = await response.text();
+        console.error('Failed to process flash sale order:', error);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error processing flash sale order:', error);
+      return false;
+    }
+  };
+
+  // Function to debug current flash sale state
+  const debugFlashSaleState = () => {
+    console.log('=== FLASH SALE DEBUG ===');
+    console.log('Current flash sale products:', data.flashSaleProducts);
+    
+    data.flashSaleProducts.forEach((flashSale, index) => {
+      console.log(`Flash Sale ${index + 1}:`, {
+        id: flashSale._id,
+        name: flashSale.ten_su_kien,
+        variants: flashSale.flashSaleVariants.map(v => ({
+          id: v.id_variant,
+          product: v.product_name,
+          total: v.so_luong,
+          sold: v.da_ban,
+          remaining: v.so_luong - v.da_ban
+        }))
+      });
+    });
+    console.log('========================');
+  };
+
+  // Expose functions globally for testing
+  useEffect(() => {
+    (window as any).refreshFlashSale = refreshFlashSaleData;
+    (window as any).processFlashSaleOrder = processFlashSaleOrder;
+    (window as any).checkOrderStatus = checkOrderStatus;
+    (window as any).debugFlashSale = debugFlashSaleState;
+    
+    // Helper function to fix flash sale for specific order
+    (window as any).fixFlashSaleOrder = async (orderId: string) => {
+      console.log(`Attempting to fix flash sale for order: ${orderId}`);
+      await processFlashSaleOrder(orderId);
+      await refreshFlashSaleData();
+    };
+
+    // Helper to manually update flash sale quantity
+    (window as any).updateFlashSaleQuantity = async (variantId: string, newSoldCount: number) => {
+      try {
+        const response = await fetch(getApiUrl(`flashsales/variants/${variantId}/update`), {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ da_ban: newSoldCount })
+        });
+        
+        if (response.ok) {
+          console.log(`Updated variant ${variantId} sold count to ${newSoldCount}`);
+          refreshFlashSaleData();
+        } else {
+          console.error('Failed to update flash sale quantity');
+        }
+      } catch (error) {
+        console.error('Error updating flash sale quantity:', error);
+      }
+    };
+
+    // Helper to show current quantities
+    (window as any).showFlashSaleStatus = () => {
+      debugFlashSaleState();
+      const elements = document.querySelectorAll('[data-flash-variant]');
+      elements.forEach(el => {
+        const variantId = el.getAttribute('data-flash-variant');
+        const quantityEl = el.querySelector('.quantity-display');
+        if (quantityEl) {
+          console.log(`UI shows: ${quantityEl.textContent} for variant ${variantId}`);
+        }
+      });
+    };
+    
+    return () => {
+      delete (window as any).refreshFlashSale;
+      delete (window as any).processFlashSaleOrder;
+      delete (window as any).checkOrderStatus;
+      delete (window as any).fixFlashSaleOrder;
+      delete (window as any).debugFlashSale;
+      delete (window as any).updateFlashSaleQuantity;
+      delete (window as any).showFlashSaleStatus;
+    };
+  }, []);
+
+  // Function to handle successful purchase (call this after payment success)
+  const handlePurchaseSuccess = (variantId: string) => {
+    // Refresh data from server to get latest quantities
+    refreshFlashSaleData();
+    
+    // Optional: Show success message
+    // toast.success('Mua hàng thành công!');
+  };
 
   const [specialBanners] = useState<Banner[]>([
     {
@@ -351,7 +546,7 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  // Auto refresh Flash Sale data every minute to check for expired events
+  // Auto refresh Flash Sale data every minute to check for expired events and quantity updates
   useEffect(() => {
     const refreshFlashSaleData = async () => {
       try {
@@ -368,8 +563,126 @@ const HomePage = () => {
       }
     };
 
-    // Refresh every minute
-    const interval = setInterval(refreshFlashSaleData, 60000);
+    // Refresh every 30 seconds to catch quantity updates from purchases
+    const interval = setInterval(refreshFlashSaleData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Refresh when page becomes visible (user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Refresh flash sale data when user returns to the page
+        refreshFlashSaleData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Listen for purchase success events
+  useEffect(() => {
+    const handlePurchaseSuccess = (event: any) => {
+      if (event.detail && event.detail.type === 'flashsale_purchase') {
+        // Refresh immediately when a flash sale purchase is made
+        setTimeout(() => {
+          refreshFlashSaleData();
+        }, 1000); // Small delay to ensure backend is updated
+      }
+    };
+
+    window.addEventListener('purchaseSuccess', handlePurchaseSuccess);
+    return () => window.removeEventListener('purchaseSuccess', handlePurchaseSuccess);
+  }, []);
+
+  // Check for order success on component mount
+  useEffect(() => {
+    const checkOrderSuccess = () => {
+      // Check URL params for order success
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderSuccess = urlParams.get('order_success');
+      const flashsaleOrder = urlParams.get('flashsale_order');
+      const orderId = urlParams.get('order_id');
+      
+      // Check localStorage for recent order
+      const recentOrder = localStorage.getItem('recent_flashsale_order');
+      const lastOrderCheck = localStorage.getItem('last_order_check');
+      
+      if (orderSuccess === 'true' || flashsaleOrder === 'true' || recentOrder || orderId) {
+        // Clear the localStorage flag
+        if (recentOrder) {
+          localStorage.removeItem('recent_flashsale_order');
+        }
+        
+        // If we have an order ID, check its status
+        if (orderId && orderId !== lastOrderCheck) {
+          checkOrderStatus(orderId);
+          localStorage.setItem('last_order_check', orderId);
+        }
+        
+        // Refresh flash sale data multiple times to ensure update
+        setTimeout(() => refreshFlashSaleData(), 1000);
+        setTimeout(() => refreshFlashSaleData(), 3000);
+        setTimeout(() => refreshFlashSaleData(), 5000);
+        
+        // Clean up URL params
+        if (orderSuccess || flashsaleOrder) {
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      }
+    };
+
+    checkOrderSuccess();
+  }, []);
+
+  // Function to check order status and trigger refresh if needed
+  const checkOrderStatus = async (orderId: string) => {
+    try {
+      const response = await fetch(getApiUrl(`orders/${orderId}`));
+      const orderData = await response.json();
+      
+      // If order is paid/delivered and contains flash sale items, refresh
+      if ((orderData.paymentStatus === 'paid' || orderData.orderStatus === 'delivered') && 
+          orderData.items && orderData.items.some((item: any) => item.isFlashSale)) {
+        console.log('Flash sale order detected, refreshing data...');
+        refreshFlashSaleData();
+      }
+    } catch (error) {
+      console.error('Error checking order status:', error);
+    }
+  };
+
+  // Periodic check for recent orders that might affect flash sale
+  useEffect(() => {
+    const checkRecentOrders = async () => {
+      try {
+        // Get recent orders from last 5 minutes
+        const now = new Date();
+        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        
+        const response = await fetch(getApiUrl(`orders/recent?since=${fiveMinutesAgo.toISOString()}`));
+        const recentOrders = await response.json();
+        
+        // Check if any recent orders contain flash sale items
+        const hasFlashSaleOrders = recentOrders.some((order: any) => 
+          (order.paymentStatus === 'paid' || order.orderStatus === 'delivered') &&
+          order.items && order.items.some((item: any) => item.isFlashSale)
+        );
+        
+        if (hasFlashSaleOrders) {
+          console.log('Recent flash sale orders found, refreshing...');
+          refreshFlashSaleData();
+        }
+      } catch (error) {
+        // Silently fail - this is just a backup check
+        console.log('Background order check failed (normal if not logged in)');
+      }
+    };
+
+    // Check every 2 minutes for recent orders
+    const interval = setInterval(checkRecentOrders, 120000);
     return () => clearInterval(interval);
   }, []);
 
@@ -571,7 +884,23 @@ const HomePage = () => {
       {showFlashSale && data.flashSaleProducts.length > 0 && (
         <section className="py-0 pt-10 bg-white">
           <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-40">
-            <div className="bg-gradient-to-r from-red-600 to-pink-500 rounded-2xl p-8 shadow-xl overflow-hidden relative group">
+            <div 
+              className="rounded-2xl p-8 shadow-xl overflow-hidden relative group"
+              style={{
+                backgroundColor: '#e53e3e', // Fallback color
+                backgroundImage: `url('/images/bgfs.png')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              {/* Gradient overlay - Temporarily removed to test background */}
+              {/* <div 
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  background: `linear-gradient(to right, rgba(220, 38, 38, 0.7), rgba(236, 72, 153, 0.7))`
+                }}
+              ></div> */}
               {/* Background pattern - Thêm họa tiết nền */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32 animate-pulse"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32 animate-pulse"></div>
@@ -587,6 +916,24 @@ const HomePage = () => {
                     style={{ animation: "flashscale 2.2s ease-in-out infinite" }}
                   />
                 </div>
+                {/* Refresh button - Hidden by default, visible on hover */}
+                <button
+                  onClick={refreshFlashSaleData}
+                  disabled={isRefreshingFlashSale}
+                  className={`absolute top-2 left-2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-300 z-10 ${
+                    isRefreshingFlashSale 
+                      ? 'opacity-100 animate-spin' 
+                      : 'opacity-0 hover:opacity-100'
+                  }`}
+                  title={isRefreshingFlashSale ? "Refreshing..." : "Refresh flash sale data"}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 2v6h-6"/>
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                    <path d="M3 22v-6h6"/>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+                  </svg>
+                </button>
                 <div className="bg-opacity-20 rounded-lg px-4 py-2 flex flex-col items-center">
                   <div className="flex items-center gap-4">
                     <span className="text-white font-bold text-[20px] mr-1">Kết thúc sau</span>
@@ -662,9 +1009,14 @@ const HomePage = () => {
 
                     return (
                       <SwiperSlide key={variant.id_variant}>
-                        <Link
-                          href={`/product/${variant?.product_id || ''}`}
-                          className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                        <div
+                          onClick={() => remaining > 0 ? handleFlashSaleClick(variant) : null}
+                          className={`bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 transform block ${
+                            remaining > 0 
+                              ? 'hover:shadow-2xl hover:-translate-y-1 cursor-pointer' 
+                              : 'cursor-not-allowed opacity-60'
+                          }`}
+                          data-flash-variant={variant.id_variant}
                         >
                           {/* Ảnh sản phẩm */}
                           <div className="relative pt-[100%] overflow-hidden">
@@ -697,10 +1049,25 @@ const HomePage = () => {
                                   style={{ width: `${(remaining / total) * 100}%` }}
                                 ></div>
                                 <div className="w-full h-full flex items-center justify-center z-10 relative">
-                                  <span className="flex items-center gap-1 text-white font-semibold text-sm">
+                                  <span className="flex items-center gap-1 text-white font-semibold text-sm quantity-display">
+                                    {remaining > 0 ? (
+                                      <>
                                     <span role="img" aria-label="fire">🔥</span>
                                     Còn {remaining}/{total} suất
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span role="img" aria-label="sold-out">😔</span>
+                                        Đã hết hàng
+                                      </>
+                                    )}
                                   </span>
+                                  {/* Debug info - remove in production */}
+                                  {process.env.NODE_ENV === 'development' && (
+                                    <div className="absolute -bottom-8 left-0 text-xs text-white bg-black/50 px-2 py-1 rounded opacity-50">
+                                      ID: {variant.id_variant?.slice(-4)} | Sold: {sold} | Total: {total}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -728,7 +1095,7 @@ const HomePage = () => {
                               </div>
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       </SwiperSlide>
                     );
                   })}
@@ -779,18 +1146,34 @@ const HomePage = () => {
               >
                 {recommendedProducts.map((product) => (
                   <SwiperSlide key={product._id}>
-                    <Link
-                      href={`/product/${product._id}`}
-                      className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                    >
-                      {/* Discount Badge */}
+                    <div className="relative">
+                      {/* Discount Badge - Positioned to hug the left edge */}
                       {(product.khuyen_mai ?? 0) > 0 && (
-                        <div className="absolute top-3 left-3 z-10">
-                          <span className="bg-red-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        
+                      <img
+                          src="/images/spanfl.png" 
+                          alt="Giảm giá"
+                          className="w-full h-full object-contain"
+                        />
+                        <span
+                          className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
+                          style={{
+                            transform: 'translate(-50%, -50%)',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            lineHeight:24,
+                            whiteSpace: 'nowrap',
+                            paddingBottom:5 ,
+                          }}
+                        >
                             Giảm {product.khuyen_mai}%
                           </span>
                         </div>
                       )}
+                      <Link
+                        href={`/product/${product._id}`}
+                        className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                      >
                       {/* Installment Badge */}
                       <div className="absolute top-3 right-3 z-10 w-[81px] h-[30px]">
                         <img
@@ -820,6 +1203,7 @@ const HomePage = () => {
                         
                       </div>
                     </Link>
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -896,9 +1280,13 @@ const HomePage = () => {
               <div className="flex items-center mb-6">
                 <h2 className="text-3xl font-bold text-black">Điện thoại nổi bật nhất</h2>
               </div>
+              <div className="relative group">
               <Swiper
                 modules={[Navigation]}
-                navigation
+                  navigation={{
+                    nextEl: '.hot-iphone-next',
+                    prevEl: '.hot-iphone-prev',
+                  }}
                 spaceBetween={24}
                 slidesPerView={3}
                 loop={true}
@@ -983,7 +1371,18 @@ const HomePage = () => {
                   </SwiperSlide>
                 ))}
               </Swiper>
-             
+              {/* Custom Navigation Buttons for Hot iPhone */}
+              <div className="hot-iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="hot-iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              </div>
             </div>
           </div>
           {/* Right: Banner slide */}
@@ -1052,13 +1451,10 @@ const HomePage = () => {
             >
               {data.iPhoneProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
+                  <div className="relative">
+                    {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                            <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
+                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        
                             <img
                               src="/images/spanfl.png" 
                               alt="Giảm giá"
@@ -1073,13 +1469,16 @@ const HomePage = () => {
                                 lineHeight:24,
                                 whiteSpace: 'nowrap',
                                 paddingBottom:5 ,
-                               
                               }}
                             >
                               Giảm {product.khuyen_mai}%
                             </span>
                           </div>
                           )}
+                    <Link
+                      href={`/product/${product._id}`}
+                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
+                    >
                     {/* Installment Badge */}
                     <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
                       <img
@@ -1140,6 +1539,7 @@ const HomePage = () => {
                       </div>
                     </div>
                   </Link>
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -1216,9 +1616,13 @@ const HomePage = () => {
               <div className="flex items-center mb-6">
                 <h2 className="text-3xl font-bold text-black">iPad bán chạy nhất</h2>
               </div>
+              <div className="relative group">
               <Swiper
                 modules={[Navigation]}
-                navigation
+                  navigation={{
+                    nextEl: '.hot-ipad-next',
+                    prevEl: '.hot-ipad-prev',
+                  }}
                 spaceBetween={24}
                 slidesPerView={3}
                 loop={true}
@@ -1303,7 +1707,18 @@ const HomePage = () => {
                   </SwiperSlide>
                 ))}
               </Swiper>
-             
+              {/* Custom Navigation Buttons for Hot iPad */}
+              <div className="hot-ipad-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="hot-ipad-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              </div>
             </div>
           </div>
           {/* Right: Banner slide */}
@@ -1371,13 +1786,10 @@ const HomePage = () => {
             >
               {data.iPadProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
+                  <div className="relative">
+                    {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
+                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">
                       <img
                         src="/images/spanfl.png" 
                         alt="Giảm giá"
@@ -1392,13 +1804,16 @@ const HomePage = () => {
                           lineHeight:24,
                           whiteSpace: 'nowrap',
                           paddingBottom:5 ,
-                         
                         }}
                       >
                         Giảm {product.khuyen_mai}%
                       </span>
                     </div>
                     )}
+                    <Link
+                      href={`/product/${product._id}`}
+                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
+                    >
                     {/* Installment Badge */}
                     <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
                       <img
@@ -1428,21 +1843,26 @@ const HomePage = () => {
                       <div className="flex gap-2 mb-1">
                         <span className="text-[16px] font-bold text-[#0066D6]">
                           {(() => {
-                            const priceRange = getPriceRange(product.variants);
-                            if (priceRange) {
-                              return formatCurrency(priceRange.minPrice);
+                            // Tính giá sau khuyến mãi cho variants
+                            if (product.variants && product.variants.length > 0) {
+                              const minPrice = Math.min(...product.variants.map(v => v.gia));
+                              const hasDiscount = !!product.khuyen_mai;
+                              const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
+                              return formatCurrency(salePrice);
                             }
+                            // Fallback cho sản phẩm không có variants
                             const price = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
                             const discount = (typeof product.khuyen_mai === 'number' && !isNaN(product.khuyen_mai)) ? product.khuyen_mai : 0;
                             return formatCurrency(price * (1 - discount / 100));
                           })()}
                         </span>
                         {(() => {
-                          const priceRange = getPriceRange(product.variants);
-                          if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
+                          // Hiển thị giá gốc bị gạch ngang nếu có khuyến mãi
+                          if (product.variants && product.variants.length > 0 && product.khuyen_mai) {
+                            const minPrice = Math.min(...product.variants.map(v => v.gia));
                             return (
                               <span className="text-gray-400 line-through text-[14px]">
-                                {formatCurrency(priceRange.maxPrice)}
+                                {formatCurrency(minPrice)}
                               </span>
                             );
                           }
@@ -1459,6 +1879,7 @@ const HomePage = () => {
                       </div>
                     </div>
                   </Link>
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -1534,9 +1955,13 @@ const HomePage = () => {
               <div className="flex items-center mb-6">
                 <h2 className="text-3xl font-bold text-black">Macbook bán chạy nhất</h2>
               </div>
+              <div className="relative group">
               <Swiper
                 modules={[Navigation]}
-                navigation
+                  navigation={{
+                    nextEl: '.hot-mac-next',
+                    prevEl: '.hot-mac-prev',
+                  }}
                 spaceBetween={24}
                 slidesPerView={3}
                 loop={true}
@@ -1621,7 +2046,18 @@ const HomePage = () => {
                   </SwiperSlide>
                 ))}
               </Swiper>
-             
+              {/* Custom Navigation Buttons for Hot Mac */}
+              <div className="hot-mac-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="hot-mac-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
+                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              </div>
             </div>
           </div>
           {/* Right: Banner slide */}
@@ -1689,14 +2125,10 @@ const HomePage = () => {
             >
               {data.MacProducts.map((product: Product) => (
                 <SwiperSlide key={product._id}>
-                  <Link
-                    href={`/product/${product._id}`}
-                    className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
-                  >
-                    {/* Discount Badge */}
+                  <div className="relative">
+                    {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                     <div className="absolute top-31 left-31 z-10 w-[81px] h-[32px]">
-                     <img
+                <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        <img
                        src="/images/spanfl.png" 
                        alt="Giảm giá"
                        className="w-full h-full object-contain"
@@ -1710,13 +2142,16 @@ const HomePage = () => {
                          lineHeight:24,
                          whiteSpace: 'nowrap',
                          paddingBottom:5 ,
-                        
                        }}
                      >
                        Giảm {product.khuyen_mai}%
                      </span>
                    </div>
                     )}
+                    <Link
+                      href={`/product/${product._id}`}
+                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
+                    >
                     {/* Installment Badge */}
                     <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
                       <img
@@ -1777,6 +2212,7 @@ const HomePage = () => {
                       </div>
                     </div>
                   </Link>
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -1829,6 +2265,12 @@ const HomePage = () => {
         </div>
       </section>
       
+      {/* Demo So Sánh Thông Báo - Development Only */}
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <CartNotificationDemo />
+        </div>
+      </section>
       
     </div>
   );

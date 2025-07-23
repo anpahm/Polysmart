@@ -10,6 +10,7 @@ import { getApiUrl } from "@/config/api"; // Import getApiUrl
 import ProductReviews from "@/components/ProductReviews"; //component của  ThanhHoai 
 import { trackUserEvent } from '@/services/productService';
 import ChatbotAI from '@/components/ChatbotAI';
+import { showAddToCartSuccess } from '@/utils/sweetAlert';
 
 // Interface for FlashSale data
 interface FlashSaleVariantInHomepage {
@@ -48,7 +49,7 @@ const ProductDetailPage = () => {
   const [registerForm, setRegisterForm] = useState({ name: '', phone: '', email: '' });
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState('');
-  const [showCartSuccess, setShowCartSuccess] = useState(false);
+
   const dispatch = useDispatch();
   const cart = useSelector((state: RootState) => state.cart.items);
   const [isClient, setIsClient] = useState(false);
@@ -394,7 +395,17 @@ const ProductDetailPage = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Khung ảnh/video chính và thumbnails */}
         <div className="w-[590px]">
-          <div className="sticky top-24">
+          <div className="sticky top-24 relative">
+            {/* Flash Sale Badge - nằm ngoài container hình ảnh */}
+            {flashSalePrice && (
+              <div className="absolute -top-6 -left-4 z-20">
+                <img
+                  src="/images/badgefls.png"
+                  alt="Flash Sale"
+                  className="w-32 h-32 object-contain drop-shadow-lg transform -rotate-19 transition-transform duration-300"
+                />
+              </div>
+            )}
 
             {/* Khung hiển thị chính */}
             <div className="bg-gray-100 rounded-xl relative w-full aspect-square mb-4 overflow-hidden">
@@ -511,10 +522,10 @@ const ProductDetailPage = () => {
               const flashSaleVariant = flashSaleVariants.find((v: any) => v.id_variant === selectedVariant._id);
               if (flashSaleVariant && flashSaleVariant.phan_tram_giam_gia) {
                 return (
-                  <span className="ml-3 bg-yellow-400 text-red-700 text-base font-bold px-3 py-1 rounded-full">
-                    -{flashSaleVariant.phan_tram_giam_gia}%
-                  </span>
-                );
+                                      <span className="ml-3 bg-red-500 text-white text-base font-bold px-3 py-1 rounded-full">
+                      -{flashSaleVariant.phan_tram_giam_gia}%
+                    </span>
+                );  
               }
               return null;
             })()}
@@ -547,7 +558,11 @@ const ProductDetailPage = () => {
                 {colors.map((c, idx) => (
                   <button
                     key={idx}
-                    className={`w-7 h-7 rounded-full border-2 inline-block ${selectedVariant?.mau === c ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-300"}`}
+                    className={`w-9 h-9 rounded-full border-4 inline-block transition-all duration-200 hover:scale-110 ${
+                      selectedVariant?.mau === c 
+                        ? "border-blue-600 ring-4 transform scale-110" 
+                        : "hover:shadow-md"
+                    }`}
                     style={{ background: c }}
                     onClick={() => {
                       const v = product.variants?.find(v =>
@@ -568,21 +583,20 @@ const ProductDetailPage = () => {
               <span className="font-bold text-[13px]">Ưu đãi</span>
             </div>
             <div className="font-bold text-red-600 mb-1 text-[13px]">I. Ưu đãi thanh toán</div>
-            <div className="text-[12px] text-black-500 mb-3">( Khuyến mãi dự kiến áp dụng <b>đến 23h59 | 31/05/2025</b> )</div>
             <ul className="space-y-1 mb-2">
               <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Giảm <b>200.000đ</b> khi thanh toán qua Kredivo</li>
-              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Hỗ trợ trả góp 0% lãi suất <a href="#" className="text-blue-500 underline">(xem chi tiết)</a></li>
+              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Hỗ trợ trả góp 0% lãi suất <a href="#" className="text-blue-500 underline"></a></li>
             </ul>
             <div className="font-bold text-red-600 mb-1 text-[13px]">II. Ưu đãi mua kèm</div>
             <ul className="space-y-1 mb-2">
               <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> <b>Ốp chính hãng Apple iPhone 16 series</b> giảm <b>100.000đ</b></li>
-              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Mua combo phụ kiện <b>Non Apple</b> giảm đến <b>200.000đ</b> <a href="#" className="text-blue-500 underline">(xem chi tiết)</a></li>
-              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> <b>Tai nghe Sony</b> giảm đến <b>1.500.000đ</b> <a href="#" className="text-blue-500 underline">(xem chi tiết)</a></li>
-              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Giảm đến <b>20%</b> khi mua các gói bảo hành <a href="#" className="text-blue-500 underline">(xem chi tiết)</a></li>
+              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Mua combo phụ kiện <b>Non Apple</b> giảm đến <b>200.000đ</b> <a href="#" className="text-blue-500 underline"></a></li>
+              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> <b>Tai nghe Sony</b> giảm đến <b>1.500.000đ</b> <a href="#" className="text-blue-500 underline"></a></li>
+              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Giảm đến <b>20%</b> khi mua các gói bảo hành <a href="#" className="text-blue-500 underline"></a></li>
             </ul>
             <div className="font-bold text-red-500 mb-1 text-[13px]">III. Ưu đãi khác</div>
             <ul className="space-y-1 mb-2">
-              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Thu cũ lên đời iPhone tặng <b>Voucher 4 triệu</b> <a href="#" className="text-blue-500 underline">(xem chi tiết)</a></li>
+              <li className="flex items-start gap-2 text-[13px]"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Thu cũ lên đời iPhone tặng <b>Voucher 4 triệu</b> <a href="#" className="text-blue-500 underline"></a></li>
             </ul>
           </div>
           {/* Nút mua hàng */}
@@ -660,19 +674,18 @@ const ProductDetailPage = () => {
                       }
                     });
 
-                    // Hiển thị thông báo thành công
-                    setShowCartSuccess(true);
-                    setTimeout(() => setShowCartSuccess(false), 3000);
+                    // Hiển thị thông báo thành công với SweetAlert2
+                    showAddToCartSuccess(product.TenSP);
                   }}
                 >
-                  Mua {selectedAccessories.length + 1} sản phẩm
+                 Thêm vào giỏ
                 </button>
-                <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
+                {/* <button className="w-[570px] h-[64px] border-[2px] border-blue-600 text-blue-700 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-50 transition">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 3l-2.25-2.25M12 21l2.25-2.25" />
                   </svg>
                   Thu cũ đổi mới
-                </button>
+                </button> */}
               </>
             )}
           </div>
@@ -819,9 +832,8 @@ const ProductDetailPage = () => {
                     }
                   });
 
-                  // Hiển thị thông báo thành công
-                  setShowCartSuccess(true);
-                  setTimeout(() => setShowCartSuccess(false), 3000);
+                  // Hiển thị thông báo thành công với SweetAlert2
+                  showAddToCartSuccess(product.TenSP);
                 }}
               >
                 Mua {selectedAccessories.length + 1} sản phẩm
@@ -1023,16 +1035,7 @@ const ProductDetailPage = () => {
         </div>
       )}
       {/* Thông báo thêm vào giỏ hàng thành công */}
-      {showCartSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Đã thêm vào giỏ hàng thành công!</span>
-          </div>
-        </div>
-      )}
+
       {/* Thêm ChatbotAI ở đây */}
       <ChatbotAI />
     </div>

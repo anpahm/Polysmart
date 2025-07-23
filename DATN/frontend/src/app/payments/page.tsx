@@ -5,6 +5,7 @@ import type { RootState } from "../../store";
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { getApiUrl } from "@/config/api";
+import { showSuccessModal, showErrorAlert } from '@/utils/sweetAlert';
 
 // Create a client-only component for the cart items
 const CartItems = dynamic(() => Promise.resolve(({ items, formatVND }: { items: any[], formatVND: (num: number) => string }) => (
@@ -153,12 +154,13 @@ export default function PaymentsPage() {
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
   const flashSaleMap = useMemo(() => {
-    const map = new Map<string, { price: number; available: number }>();
+    const map = new Map<string, { price: number; available: number; flashSaleVariantId: string }>();
     if (activeFlashSales.length > 0) {
       activeFlashSales.forEach(variant => {
         map.set(variant.id_variant, {
           price: variant.gia_flash_sale,
           available: variant.so_luong - variant.da_ban,
+          flashSaleVariantId: variant._id
         });
       });
     }
@@ -260,13 +262,28 @@ export default function PaymentsPage() {
       //   return;
       // }
 
-      // Create order data
+      // Create order data with proper flash sale mapping
       const orderData = {
         customerInfo: {
           ...customerInfo,
           userId: user?._id || undefined
         },
-        items: cartDetails.items,
+        items: cartDetails.items.map(item => {
+          const flashSaleInfo = flashSaleMap.get(item.variantId);
+          return {
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            price: item.price,
+            oldPrice: item.originPrice,
+            name: item.name,
+            image: item.image,
+            colorName: item.colorName,
+            // Map flash sale fields correctly
+            isFlashSale: item.hasFlashSale || false,
+            flashSaleVariantId: flashSaleInfo?.flashSaleVariantId || item.flashSaleVariantId || undefined
+          };
+        }),
         totalAmount: cartDetails.total - voucherDiscount,
         paymentMethod,
         voucher: voucherApplied ? {
@@ -288,8 +305,11 @@ export default function PaymentsPage() {
           const data = await res.json();
 
           if (res.ok) {
-            router.push('/payment-result?status=success');
+            showSuccessModal('Thành công!', 'Đặt hàng thành công! Đang chuyển hướng...', () => {
+              router.push('/payment-result?status=success');
+            });
           } else {
+            showErrorAlert('Thất bại!', 'Đặt hàng thất bại! Vui lòng thử lại.');
             router.push('/payment-result?status=fail');
           }
           break;
@@ -300,12 +320,12 @@ export default function PaymentsPage() {
           return;
 
         default:
-          alert("Vui lòng chọn phương thức thanh toán!");
+          showErrorAlert('Lỗi!', 'Vui lòng chọn phương thức thanh toán!');
           setOrderLoading(false);
           return;
       }
     } catch (err) {
-      alert("Có lỗi khi đặt hàng!");
+      showErrorAlert('Lỗi!', 'Có lỗi khi đặt hàng! Vui lòng thử lại.');
     } finally {
       setOrderLoading(false);
     }

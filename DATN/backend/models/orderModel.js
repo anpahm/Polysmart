@@ -19,7 +19,10 @@ const orderSchema = new mongoose.Schema({
     oldPrice: { type: Number },
     name: String,
     image: String,
-    colorName: String
+    colorName: String,
+    // Flash sale fields
+    isFlashSale: { type: Boolean, default: false },
+    flashSaleVariantId: { type: mongoose.Schema.Types.ObjectId, ref: 'FlashSaleVariant' }
   }],
   totalAmount: { type: Number, required: true },
   paymentMethod: { type: String, enum: ['cod', 'atm'], required: true },

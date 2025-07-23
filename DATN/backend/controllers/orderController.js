@@ -4,6 +4,40 @@ const Variant = require('../models/variantModel');
 const BankTransaction = require('../models/bankTransactionModel');
 const FlashSaleVariant = require('../models/FlashSaleVariant');
 
+// Helper function to update flash sale quantities
+const updateFlashSaleQuantities = async (orderId) => {
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      console.log(`Order ${orderId} not found for flash sale update`);
+      return false;
+    }
+
+    let flashSaleUpdated = false;
+
+    for (const item of order.items) {
+      if (item.isFlashSale && item.flashSaleVariantId) {
+        const result = await FlashSaleVariant.updateOne(
+          { _id: item.flashSaleVariantId },
+          { $inc: { da_ban: item.quantity } }
+        );
+        
+        if (result.modifiedCount > 0) {
+          console.log(`Updated flash sale variant ${item.flashSaleVariantId}: +${item.quantity} sold`);
+          flashSaleUpdated = true;
+        } else {
+          console.log(`Flash sale variant ${item.flashSaleVariantId} not found or not updated`);
+        }
+      }
+    }
+
+    return flashSaleUpdated;
+  } catch (error) {
+    console.error('Error updating flash sale quantities:', error);
+    return false;
+  }
+};
+
 exports.createOrder = async (req, res) => {
   try {
     const { customerInfo, items, totalAmount, paymentMethod } = req.body;
@@ -69,15 +103,8 @@ exports.createOrder = async (req, res) => {
     try {
       await order.save();
 
-      // Giảm số lượng đã bán của FlashSaleVariant nếu có
-      for (const item of itemsWithOldPrice) {
-        if (item.flashSaleVariantId) {
-          await FlashSaleVariant.updateOne(
-            { _id: item.flashSaleVariantId },
-            { $inc: { da_ban: item.quantity } }
-          );
-        }
-      }
+      // Note: Flash sale quantity will be updated when payment is confirmed (paid status)
+      // This ensures we don't reserve stock for unpaid orders
 
       return res.status(201).json({
         message: 'Đặt hàng thành công',
@@ -117,9 +144,19 @@ exports.updatePaymentStatus = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
     }
 
+    const wasUnpaid = order.paymentStatus !== 'paid';
     order.paymentStatus = paymentStatus;
+    
     if (paymentStatus === 'paid') {
       order.orderStatus = 'packing';
+      
+      // Update flash sale quantities when payment is confirmed
+      if (wasUnpaid) {
+        const flashSaleUpdated = await updateFlashSaleQuantities(orderId);
+        if (flashSaleUpdated) {
+          console.log(`Flash sale quantities updated for order ${orderId}`);
+        }
+      }
     }
 
     await order.save();
@@ -160,8 +197,18 @@ exports.verifyBankTransfer = async (req, res) => {
 
     // In a real app, you would verify the transfer with the bank's API
     // For now, we'll just simulate a successful verification
+    const wasUnpaid = order.paymentStatus !== 'paid';
     order.paymentStatus = 'paid';
     order.orderStatus = 'packing';
+    
+    // Update flash sale quantities when payment is confirmed
+    if (wasUnpaid) {
+      const flashSaleUpdated = await updateFlashSaleQuantities(order._id);
+      if (flashSaleUpdated) {
+        console.log(`Flash sale quantities updated for order ${order._id}`);
+      }
+    }
+    
     await order.save();
 
     res.json({ message: 'Xác nhận thanh toán thành công', order });
@@ -185,8 +232,18 @@ exports.autoConfirmOrders = async (req, res) => {
           status: { $in: ['pending', 'completed'] }
         });
         if (matchedTx) {
+          const wasUnpaid = order.paymentStatus !== 'paid';
           order.paymentStatus = 'paid';
           order.orderStatus = 'packing';
+          
+          // Update flash sale quantities when payment is confirmed
+          if (wasUnpaid) {
+            const flashSaleUpdated = await updateFlashSaleQuantities(order._id);
+            if (flashSaleUpdated) {
+              console.log(`Flash sale quantities updated for order ${order._id}`);
+            }
+          }
+          
           await order.save();
           matchedTx.status = 'matched';
           matchedTx.orderId = order._id;
@@ -205,6 +262,44 @@ exports.autoConfirmOrders = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi đối soát đơn hàng tự động' });
   }
 };
+
+// API endpoint để manual update flash sale quantities
+exports.updateFlashSaleQuantitiesForOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    }
+    
+    if (order.paymentStatus !== 'paid') {
+      return res.status(400).json({ message: 'Đơn hàng chưa được thanh toán' });
+    }
+    
+    const flashSaleUpdated = await updateFlashSaleQuantities(orderId);
+    
+    if (flashSaleUpdated) {
+      res.json({ 
+        message: 'Cập nhật số lượng flash sale thành công',
+        orderId: orderId,
+        updated: true 
+      });
+    } else {
+      res.json({ 
+        message: 'Không có sản phẩm flash sale trong đơn hàng này',
+        orderId: orderId,
+        updated: false 
+      });
+    }
+  } catch (error) {
+    console.error('Error updating flash sale quantities for order:', error);
+    res.status(500).json({ message: 'Lỗi khi cập nhật số lượng flash sale' });
+  }
+};
+
+// Export helper function for external use
+exports.updateFlashSaleQuantities = updateFlashSaleQuantities;
 
 exports.getOrders = async (req, res) => {
   try {
@@ -257,7 +352,16 @@ exports.updateOrderStatus = async (req, res) => {
       order.orderStatus = orderStatus;
       // Nếu là đơn COD và chuyển sang delivered thì cập nhật luôn paymentStatus = 'paid'
       if (order.paymentMethod === 'cod' && orderStatus === 'delivered') {
+        const wasUnpaid = order.paymentStatus !== 'paid';
         order.paymentStatus = 'paid';
+        
+        // Update flash sale quantities when COD order is delivered
+        if (wasUnpaid) {
+          const flashSaleUpdated = await updateFlashSaleQuantities(order._id);
+          if (flashSaleUpdated) {
+            console.log(`Flash sale quantities updated for COD order ${order._id}`);
+          }
+        }
       }
       await order.save();
       return res.json({ success: true, order });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { showWarningAlert, showSuccessAlert, showErrorAlert } from '@/utils/sweetAlert';
 
 
 //bình luận đánh giá sp
@@ -85,7 +86,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
   // Gửi đánh giá
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return alert('Bạn cần đăng nhập để đánh giá!');
+    if (!user) {
+      showWarningAlert('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để đánh giá sản phẩm!');
+      return;
+    }
     // 1. Gửi đánh giá trước, không gửi ảnh
     const res = await axios.post('/api/reviews', {
       ma_nguoi_dung: user._id,
@@ -115,7 +119,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ ma_san_pham, ma_nguoi_d
   };
 
   const handleReply = async (parentId: string) => {
-    if (!user) return alert('Bạn cần đăng nhập để phản hồi!');
+    if (!user) {
+      showWarningAlert('Yêu cầu đăng nhập', 'Bạn cần đăng nhập để phản hồi!');
+      return;
+    }
     const reply = replyInputs[parentId];
     if (!reply) return;
     await axios.post('/api/reviews', {

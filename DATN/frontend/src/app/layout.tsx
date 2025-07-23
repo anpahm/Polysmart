@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import './globals.css'; 
 import ReduxProvider from '../providers/ReduxProvider';
 import ChatbotAI from '@/components/ChatbotAI';
+import SweetAlertDemo from '@/components/SweetAlertDemo';
 
 const inter = Inter({ 
   subsets: ['latin', 'vietnamese'] 
@@ -40,6 +41,7 @@ export default function RootLayout({
           <Footer />
         </ReduxProvider>
         <ChatbotAI />
+        {process.env.NODE_ENV === 'development' && <SweetAlertDemo />}
       </body>
     </html>
   );

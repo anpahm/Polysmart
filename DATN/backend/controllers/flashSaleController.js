@@ -20,6 +20,7 @@ exports.getAllFlashSales = async (req, res) => {
 
     const formattedData = flashSales.map(fs => {
       const variantsData = fs.flashSaleVariants.map(fsv => ({
+        _id: fsv._id, // FlashSaleVariant ID for order tracking
         id_variant: fsv.id_variant ? fsv.id_variant._id : null,
         gia_flash_sale: fsv.gia_flash_sale,
         phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,
@@ -72,6 +73,7 @@ exports.getActiveFlashSales = async (req, res) => {
 
     const formattedData = flashSales.map(fs => {
       const variantsData = fs.flashSaleVariants.map(fsv => ({
+        _id: fsv._id, // FlashSaleVariant ID for order tracking
         id_variant: fsv.id_variant ? fsv.id_variant._id : null,
         gia_flash_sale: fsv.gia_flash_sale,
         phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,

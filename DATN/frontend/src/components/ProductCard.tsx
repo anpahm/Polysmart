@@ -2,6 +2,11 @@ import React from 'react';
 import { Product, Variant } from '../types/product';
 import { ShoppingBag } from 'lucide-react';
 import { colorMap, getVnColorName } from '../../../src/constants/colorMapShared';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCart } from '@/store/cartSlice';
+import { RootState } from '@/store';
+import { showAddToCartSuccess } from '@/utils/sweetAlert';
+import { trackUserEvent } from '@/services/productService';
 
 // Hàm lấy URL hình ảnh sản phẩm (copy từ Homepage)
 const getImageUrl = (url: string | string[] | undefined | null) => {
@@ -153,11 +158,49 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) => {
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
+  
   console.log('ProductCard image debug:', { variantHinh: variant?.hinh, productHinh: product.hinh });
   // Lấy danh sách màu sắc duy nhất từ tất cả variants nếu có
   const colors = product.variants
     ? Array.from(new Set(product.variants.map(v => v.mau).filter(Boolean)))
     : (variant?.mau ? [variant.mau] : []);
+
+  // Handle add to cart click
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Ngăn chặn navigation nếu ProductCard nằm trong Link
+    e.stopPropagation();
+
+    if (!product) return;
+
+    // Lấy variant đầu tiên nếu không có variant được chỉ định
+    const selectedVariant = variant || product.variants?.[0];
+    if (!selectedVariant) return;
+
+    // Track user event nếu user đã đăng nhập
+    if (user && user._id) {
+      trackUserEvent('add_to_cart', product._id, user._id);
+    }
+
+    // Thêm vào giỏ hàng
+    dispatch(addToCart({
+      productId: product._id,
+      variantId: selectedVariant._id,
+      name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+      price: selectedVariant.gia || 0,
+      originPrice: selectedVariant.gia_goc || selectedVariant.gia || 0,
+      image: getImageUrl(selectedVariant.hinh || product.hinh),
+      colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+      selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+      colorName: selectedVariant.mau || '',
+      quantity: 1,
+    }));
+
+    // Hiển thị thông báo thành công với SweetAlert2
+    showAddToCartSuccess(product.TenSP);
+  };
+
   return (
     <div style={{
       background: '#fff',
@@ -183,6 +226,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
           <span style={{ color: '#888', fontSize: 11, textDecoration: 'line-through' }}>{variant.gia_goc.toLocaleString('vi-VN')}₫</span>
         )}
       </div>
+      
       {colors.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '6px 0 18px 0', width: '100%' }}>
           <span style={{ fontSize: 13, color: '#555', marginRight: 4 }}>Màu:</span>
@@ -199,23 +243,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
           ))}
         </div>
       )}
-      <button style={{
-        background: '#fff',
-        color: '#374151',
-        border: '1px solid #e5e7eb',
-        padding: '10px 0',
-        fontWeight: 500,
-        cursor: 'pointer',
-        fontSize: 14,
-        width: '100%',
-        marginTop: 'auto',
-        alignSelf: 'stretch',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        transition: 'border 0.2s',
-      }}
+      <button 
+        onClick={handleAddToCart}
+        style={{
+          background: '#fff',
+          color: '#374151',
+          border: '1px solid #e5e7eb',
+          padding: '10px 0',
+          fontWeight: 500,
+          cursor: 'pointer',
+          fontSize: 14,
+          width: '100%',
+          marginTop: 'auto',
+          alignSelf: 'stretch',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          transition: 'border 0.2s',
+        }}
         onMouseOver={e => (e.currentTarget.style.border = '1.5px solid #2563eb')}
         onMouseOut={e => (e.currentTarget.style.border = '1px solid #e5e7eb')}
       >

@@ -70,6 +70,8 @@ const Header = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const pathname = usePathname();
+  // Thêm state cho mobile menu
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Thêm state kiểm tra đã vào client
   const [isClient, setIsClient] = useState(false);
@@ -352,8 +354,15 @@ const Header = () => {
             </Link>
           </nav>
 
-          {/* Icons bên phải */}
+          {/* Icons bên phải + Hamburger menu */}
           <div className="flex items-center space-x-4">
+            {/* Hamburger menu chỉ hiện trên mobile */}
+            <button className="text-gray-300 hover:text-white md:hidden" aria-label="Open menu" onClick={() => setShowMobileMenu(!showMobileMenu)}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            {/* Search, Cart, User (dropdown) giữ nguyên */}
             <button
               className="text-gray-300 hover:text-white"
               onClick={() => setShowSearch(true)}
@@ -452,15 +461,34 @@ const Header = () => {
           </div>
         </div>
       </div>
-
-      {/* Mobile menu button */}
-      <div className="md:hidden flex items-center px-4 py-2">
-        <button className="text-gray-300 hover:text-white">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
+      {/* Mobile menu overlay & drawer */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden" onClick={() => setShowMobileMenu(false)}>
+          <div
+            className="absolute top-0 left-0 w-3/4 max-w-xs h-full bg-white shadow-lg z-50 p-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <nav className="flex flex-col space-y-4">
+              {categories.map((category) => (
+                <Link
+                  key={category._id}
+                  href={`/categories/${category._id}`}
+                  className="text-gray-800 py-2 px-2 rounded hover:bg-gray-100"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  {category.ten_danh_muc}
+                </Link>
+              ))}
+              <Link href="/news" className="text-gray-800 py-2 px-2 rounded hover:bg-gray-100" onClick={() => setShowMobileMenu(false)}>
+                Tin tức
+              </Link>
+              <Link href="/hero" className="text-gray-800 py-2 px-2 rounded hover:bg-gray-100" onClick={() => setShowMobileMenu(false)}>
+                Giới thiệu
+              </Link>
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

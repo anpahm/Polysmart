@@ -40,7 +40,7 @@ export default function UserAdminPage() {
 
   useEffect(() => {
     setIsClient(true);
-    fetch("http://localhost:3000/api/users")
+    fetch("https://polysmart.me/api/users")
       .then((res) => {
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu user");
         return res.json();
@@ -77,7 +77,7 @@ export default function UserAdminPage() {
     }
     if (editUser) {
       // Sửa user
-      fetch(`http://localhost:3000/api/users/${editUser._id}`, {
+      fetch(`https://polysmart.me/api/users/${editUser._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser)
@@ -96,7 +96,7 @@ export default function UserAdminPage() {
         .catch(err => toast.error(err.message));
     } else {
       // Thêm user
-      fetch("http://localhost:3000/api/users", {
+      fetch("https://polysmart.me/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser)
@@ -119,7 +119,7 @@ export default function UserAdminPage() {
 
   const handleDeleteUser = () => {
     if (!deleteId) return;
-    fetch(`http://localhost:3000/api/users/${deleteId}`, {
+    fetch(`https://polysmart.me/api/users/${deleteId}`, {
       method: 'DELETE',
     })
       .then(res => {

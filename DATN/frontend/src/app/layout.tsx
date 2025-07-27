@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import './globals.css'; 
 import ReduxProvider from '../providers/ReduxProvider';
 import ChatbotAI from '@/components/ChatbotAI';
-import SweetAlertDemo from '@/components/SweetAlertDemo';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const inter = Inter({ 
   subsets: ['latin', 'vietnamese'] 
@@ -31,17 +31,18 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ReduxProvider>
-          <Header />
-          <SmoothScrollProvider>
-          <main className="pt-16">
-            {children}
-          </main>
-          </SmoothScrollProvider>
-          <Footer />
-        </ReduxProvider>
-        <ChatbotAI />
-        {process.env.NODE_ENV === 'development' && <SweetAlertDemo />}
+        <GoogleOAuthProvider clientId="476889203302-b661q44fvhrvo4kv174o6rp95hs5vmp1.apps.googleusercontent.com">
+          <ReduxProvider>
+            <Header />
+            <SmoothScrollProvider>
+            <main className="pt-16">
+              {children}
+            </main>
+            </SmoothScrollProvider>
+            <Footer />
+          </ReduxProvider>
+          <ChatbotAI />
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

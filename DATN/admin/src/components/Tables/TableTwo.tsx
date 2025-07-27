@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useEffect, useState, useMemo } from "react";
 
 const getImageUrl = (imageUrl: string | undefined): string => {
-  if (!imageUrl) return '/no-image.png';
+  if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
   if (imageUrl.startsWith('/')) return imageUrl;
   return `/images/${imageUrl}`;

@@ -15,7 +15,7 @@ interface Category {
 const getVideoUrl = (videoUrl: string | undefined): string => {
   if (!videoUrl) return '';
   if (videoUrl.startsWith('http')) return videoUrl;
-  return `http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`;
+  return `https://polysmart.me/video/${videoUrl.replace(/^\/video\//, '')}`;
 };
 
 export default function CategoryAdminPage() {
@@ -36,7 +36,7 @@ export default function CategoryAdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/categories")
+    fetch("https://polysmart.me/api/categories")
       .then((res) => {
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu danh mục");
         return res.json();
@@ -72,7 +72,7 @@ export default function CategoryAdminPage() {
     if (!file) return;
     const formData = new FormData();
     formData.append('video', file);
-    const res = await fetch('http://localhost:3000/api/categories/upload-video', {
+    const res = await fetch('https://polysmart.me/api/categories/upload-video', {
       method: 'POST',
       body: formData,
     });
@@ -92,7 +92,7 @@ export default function CategoryAdminPage() {
     }
     if (editCategory) {
       // Sửa danh mục
-      fetch(`http://localhost:3000/api/categories/${editCategory._id}`, {
+      fetch(`https://polysmart.me/api/categories/${editCategory._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory)
@@ -111,7 +111,7 @@ export default function CategoryAdminPage() {
         .catch(err => toast.error(err.message));
     } else {
       // Thêm danh mục
-      fetch("http://localhost:3000/api/categories", {
+      fetch("https://polysmart.me/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory)
@@ -134,7 +134,7 @@ export default function CategoryAdminPage() {
 
   const handleDeleteCategory = () => {
     if (!deleteId) return;
-    fetch(`http://localhost:3000/api/categories/${deleteId}`, {
+    fetch(`https://polysmart.me/api/categories/${deleteId}`, {
       method: 'DELETE',
     })
       .then(res => {

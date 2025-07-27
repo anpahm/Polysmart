@@ -55,6 +55,7 @@ const bankTransactionsRouter = require('./routes/bankTransactions');
 const autoPaymentRouter = require('./routes/autoPayment');
 const recommendationsRouter = require('./routes/recommendations');
 const aiAdviceRouter = require('./routes/aiAdvice');
+const adminStatisticsRouter = require('./routes/admin-statistics');
 
 var app = express();
 
@@ -92,6 +93,7 @@ app.use(cors(corsOptions));
 
 app.use("/api", indexRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/users/google-login", usersRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/variants", variantRoutes);
@@ -111,6 +113,7 @@ app.use('/api/bank-transactions', bankTransactionsRouter);
 app.use('/api/auto-payment', autoPaymentRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/ai-advice', aiAdviceRouter);
+app.use('/api/admin', adminStatisticsRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   res.status(404).json({

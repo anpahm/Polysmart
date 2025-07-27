@@ -7,7 +7,7 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
   useEffect(() => {
     const lenis = new Lenis({
       smooth: true,
-      lerp: 0.08,
+      lerp: 1,
       direction: "vertical",
       gestureDirection: "vertical",
       smoothTouch: true,

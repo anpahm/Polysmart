@@ -33,7 +33,7 @@ const VouchersPage = () => {
     const fetchVouchers = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/vouchers');
+            const response = await fetch('https://polysmart.me/api/vouchers');
             const data = await response.json();
             if (data.success) {
                 setVouchers(data.data);
@@ -50,7 +50,7 @@ const VouchersPage = () => {
     const handleDelete = async (id: string) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
             try {
-                const response = await fetch(`http://localhost:3000/api/vouchers/${id}`, {
+                const response = await fetch(`https://polysmart.me/api/vouchers/${id}`, {
                     method: 'DELETE',
                 });
                 const data = await response.json();

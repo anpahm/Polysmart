@@ -66,7 +66,7 @@ const Orders = () => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/orders");
+        const res = await fetch("http://localhost:3000/api/orders");
         const data = await res.json();
         setOrders(data.orders || []);
       } catch (err) {
@@ -80,7 +80,7 @@ const Orders = () => {
   const handleRowClick = async (orderId: string) => {
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/orders/${orderId}`);
+      const res = await fetch(`http://localhost:3000/api/orders/${orderId}`);
       const data = await res.json();
       setSelectedOrder(data);
     } catch (err) {
@@ -94,7 +94,7 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`/api/orders/${selectedOrder._id}/payment`, {
+      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}/payment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentStatus: 'paid' })
@@ -102,7 +102,7 @@ const Orders = () => {
       // reload chi tiết đơn
       await handleRowClick(selectedOrder._id);
       // reload danh sách
-      const res = await fetch('/api/orders');
+      const res = await fetch('http://localhost:3000/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {
@@ -115,13 +115,13 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`/api/orders/${selectedOrder._id}`, {
+      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus: 'shipping' })
       });
       await handleRowClick(selectedOrder._id);
-      const res = await fetch('/api/orders');
+      const res = await fetch('https://polysmart.me/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {
@@ -134,13 +134,13 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`/api/orders/${selectedOrder._id}`, {
+      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus: 'delivered' })
       });
       await handleRowClick(selectedOrder._id);
-      const res = await fetch('/api/orders');
+      const res = await fetch('http://localhost:3000/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {
@@ -153,11 +153,11 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`/api/orders/${selectedOrder._id}/cancel`, {
+      await fetch(`https://polysmart.me/api/orders/${selectedOrder._id}/cancel`, {
         method: 'PUT'
       });
       setSelectedOrder(null);
-      const res = await fetch('/api/orders');
+      const res = await fetch('https://polysmart.me/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {

@@ -49,7 +49,7 @@ const AddVoucherPage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/vouchers', {
+            const response = await fetch('https://polysmart.me/api/vouchers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

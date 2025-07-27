@@ -1,0 +1,192 @@
+/* Mobile Responsive Styles for Forgot Password Page */
+/* These styles only apply to mobile devices and won't affect desktop */
+
+/* Mobile breakpoint: screens smaller than 768px */
+@media (max-width: 767px) {
+  /* Container adjustments for mobile */
+  .forgot-password-container {
+    min-height: 100vh;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Card adjustments for mobile */
+  .forgot-password-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Title adjustments for mobile */
+  .forgot-password-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+
+  /* Description text adjustments for mobile */
+  .forgot-password-description {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* Form adjustments for mobile */
+  .forgot-password-form {
+    gap: 1rem;
+  }
+
+  /* Input field adjustments for mobile */
+  .forgot-password-input {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  /* Button adjustments for mobile */
+  .forgot-password-button {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+
+  /* Message adjustments for mobile */
+  .forgot-password-message {
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Error message adjustments for mobile */
+  .forgot-password-error {
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Link button adjustments for mobile */
+  .forgot-password-link {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+}
+
+/* Extra small mobile devices (phones, 480px and down) */
+@media (max-width: 480px) {
+  .forgot-password-container {
+    padding: 0.75rem;
+  }
+
+  .forgot-password-card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+
+  .forgot-password-title {
+    font-size: 1.25rem;
+  }
+
+  .forgot-password-description {
+    font-size: 0.8rem;
+  }
+
+  .forgot-password-input,
+  .forgot-password-button,
+  .forgot-password-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .forgot-password-container {
+    padding: 0.5rem;
+  }
+
+  .forgot-password-card {
+    padding: 1rem;
+  }
+
+  .forgot-password-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .forgot-password-description {
+    margin-bottom: 1rem;
+  }
+
+  .forgot-password-form {
+    gap: 0.75rem;
+  }
+}
+
+/* High DPI displays (retina) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .forgot-password-card {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Dark mode support for mobile */
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  .forgot-password-card {
+    background-color: rgba(31, 41, 55, 0.8);
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+
+  .forgot-password-input {
+    background-color: rgba(55, 65, 81, 0.8);
+    border-color: rgba(75, 85, 99, 0.5);
+    color: white;
+  }
+
+  .forgot-password-input::placeholder {
+    color: rgba(156, 163, 175, 0.7);
+  }
+
+  .forgot-password-title {
+    color: #60a5fa;
+  }
+
+  .forgot-password-description {
+    color: rgba(156, 163, 175, 0.8);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .forgot-password-button,
+  .forgot-password-link {
+    min-height: 44px; /* Minimum touch target size */
+  }
+
+  .forgot-password-input {
+    min-height: 44px; /* Minimum touch target size */
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .forgot-password-card,
+  .forgot-password-button,
+  .forgot-password-link,
+  .forgot-password-input {
+    transition: none;
+  }
+} 

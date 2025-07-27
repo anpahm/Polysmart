@@ -37,7 +37,7 @@ export default function NewsCategoryPage() {
   const pageSize = 8;
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/newscategory")
+    fetch("https://polysmart.me/api/newscategory")
       .then(res => res.json())
       .then((data: Category[]) => {
         setCategories(data);
@@ -47,7 +47,7 @@ export default function NewsCategoryPage() {
   }, [categoryId]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/news")
+    fetch("https://polysmart.me/api/news")
       .then(res => res.json())
       .then((data: NewsItem[]) => {
         const filtered = data.filter(n => n.id_danh_muc && n.id_danh_muc.ten_danh_muc === (category?.ten_danh_muc || ""));
@@ -103,7 +103,7 @@ export default function NewsCategoryPage() {
                     {item.hinh && (
                       <div className="relative w-full h-48">
                         <Image
-                          src={`http://localhost:3000/${item.hinh}`}
+                          src={`https://polysmart.me/${item.hinh}`}
                           alt={item.tieu_de}
                           fill
                           className="object-cover"

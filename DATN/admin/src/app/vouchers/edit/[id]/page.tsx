@@ -34,7 +34,7 @@ const EditVoucherPage = () => {
     const fetchVoucherDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/vouchers/${id}`);
+            const response = await fetch(`https://polysmart.me/api/vouchers/${id}`);
             const data = await response.json();
             if (data.success && data.data) {
                 const voucher = data.data;
@@ -76,7 +76,7 @@ const EditVoucherPage = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/vouchers/${id}`, {
+            const response = await fetch(`https://polysmart.me/api/vouchers/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

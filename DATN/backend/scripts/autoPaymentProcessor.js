@@ -26,7 +26,7 @@ class AutoPaymentProcessor {
         // Có thể thêm nhiều tài khoản khác
       ],
       // Cấu hình thời gian chạy
-      fetchInterval: 20 * 1000, // 20 giây (thay đổi từ 2 phút xuống 20 giây)
+      fetchInterval: 10 * 1000, // 20 giây (thay đổi từ 2 phút xuống 20 giây)
       matchInterval: 10 * 1000, // 10 giây (thay đổi từ 1 phút xuống 10 giây)
       retryAttempts: 3,
       retryDelay: 30 * 1000 // 30 giây

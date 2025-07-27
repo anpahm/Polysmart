@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchApi, API_ENDPOINTS } from "@/config/api";
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../store/userSlice';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -168,15 +169,58 @@ export default function LoginPage() {
           >
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Chưa có tài khoản?{' '}
-              <Link href="/register" className="font-medium text-blue-600 hover:underline">
-                Đăng ký ngay
-              </Link>
-            </p>
-          </div>
         </form>
+        {/* Google Login Button */}
+        <div className="my-4 flex items-center justify-center">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                const res = await fetch('http://localhost:3000/api/users/google-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token: credentialResponse.credential }),
+                });
+                const data = await res.json();
+                if (data.token) {
+                  localStorage.setItem('token', data.token);
+                  // Lấy user info và lưu redux/localStorage nếu cần
+                  const userResponse = await fetchApi(API_ENDPOINTS.GET_USER);
+                  if (userResponse) {
+                    localStorage.setItem('user', JSON.stringify(userResponse));
+                    dispatch(setUser({
+                      _id: userResponse._id,
+                      TenKH: userResponse.TenKH,
+                      email: userResponse.email,
+                      Sdt: userResponse.Sdt,
+                      gioi_tinh: userResponse.gioi_tinh,
+                      sinh_nhat: userResponse.sinh_nhat,
+                      dia_chi: userResponse.dia_chi,
+                      avatar: userResponse.avatar,
+                      role: userResponse.role,
+                    }));
+                  }
+                  router.push("/");
+                } else {
+                  alert(data.message || 'Đăng nhập Google thất bại');
+                }
+              } catch (err) {
+                alert('Đăng nhập Google thất bại');
+              }
+            }}
+            onError={() => {
+              alert('Đăng nhập Google thất bại');
+            }}
+            width="100%"
+          />
+        </div>
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Chưa có tài khoản?{' '}
+            <Link href="/register" className="font-medium text-blue-600 hover:underline">
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

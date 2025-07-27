@@ -343,25 +343,9 @@ const Header = () => {
 
             <div className="relative group">
               <button className="text-gray-300 hover:text-white px-2 py-1 rounded-md text-sm font-medium flex items-center">
-                <a href="/hero">   Dịch vụ</a>
-             
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
+                <a href="/hero">   Giới thiệu</a>
               </button>
-              <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden group-hover:block">
-                <div className="py-1">
-                  <Link href="/bao-hanh" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Bảo hành
-                  </Link>
-                  <Link href="/sua-chua" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Sửa chữa
-                  </Link>
-                  <Link href="/trade-in" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Trade-in
-                  </Link>
-                </div>
-              </div>
+             
             </div>
             <Link href="/news" className="text-gray-300 hover:text-white px-2 py-1 rounded-md text-sm font-medium">
               Tin tức

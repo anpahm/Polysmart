@@ -18,8 +18,26 @@ interface Variant {
   an_hien?: boolean; 
 }
 
+interface Product {
+  _id: string;
+  TenSP: string;
+  id_danhmuc: string;
+  categories?: { ten_danh_muc: string }[];
+}
+
+// Danh mục sản phẩm cần bắt buộc dung lượng và màu sắc
+// Các sản phẩm khác như Mac, Apple Watch, Phụ kiện, Âm thanh, Camera không bắt buộc
+const CATEGORIES_REQUIRE_STORAGE_COLOR = [
+  '681d97db2a400db1737e6de3', // iPhone
+  '681d97db2a400db1737e6de4', // iPad
+  // Có thể thêm các danh mục khác nếu cần:
+  // '681d97db2a400db1737e6de5', // Mac (nếu cần bắt buộc dung lượng và màu sắc)
+  // '681d97db2a400db1737e6de6', // Apple Watch (nếu cần màu sắc cho dây đeo)
+];
+
 export default function VariantProductPage({ productId }: { productId: string }) {
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentImgs, setCurrentImgs] = useState<number[]>([]);
@@ -37,20 +55,31 @@ export default function VariantProductPage({ productId }: { productId: string })
   const [formError, setFormError] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Kiểm tra xem danh mục có cần bắt buộc dung lượng và màu sắc không
+  const requiresStorageAndColor = product ? CATEGORIES_REQUIRE_STORAGE_COLOR.includes(product.id_danhmuc) : true;
+
   useEffect(() => {
     if (!productId) return;
-    const fetchVariants = async () => {
+    
+    const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`);
-        if (!res.ok) {
-          // Nếu không tìm thấy variant, không coi đó là lỗi, chỉ set danh sách rỗng
+        // Fetch thông tin sản phẩm
+        const productRes = await fetch(`http://localhost:3000/api/products/${productId}`);
+        if (productRes.ok) {
+          const productData = await productRes.json();
+          setProduct(productData);
+        }
+
+        // Fetch variants
+        const variantRes = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`);
+        if (!variantRes.ok) {
           setVariants([]);
           setCurrentImgs([]);
           setError("");
         } else {
-          const data = await res.json();
-          setVariants(data);
-          setCurrentImgs(Array(data.length).fill(0));
+          const variantData = await variantRes.json();
+          setVariants(variantData);
+          setCurrentImgs(Array(variantData.length).fill(0));
           setError("");
         }
       } catch (error: any) {
@@ -61,7 +90,8 @@ export default function VariantProductPage({ productId }: { productId: string })
         setLoading(false);
       }
     };
-    fetchVariants();
+
+    fetchData();
   }, [productId]);
 
   // Mở modal Thêm
@@ -90,10 +120,20 @@ export default function VariantProductPage({ productId }: { productId: string })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
-    if (!form.gia || !form.dung_luong || !form.mau) {
-      setFormError("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+    
+    // Validation có điều kiện
+    if (!form.gia) {
+      setFormError("Vui lòng nhập giá bán!");
       return;
     }
+    
+    if (requiresStorageAndColor) {
+      if (!form.dung_luong || !form.mau) {
+        setFormError("Vui lòng nhập đầy đủ dung lượng và màu sắc cho sản phẩm này!");
+        return;
+      }
+    }
+
     try {
       let res;
       if (editVariant) {
@@ -122,7 +162,7 @@ export default function VariantProductPage({ productId }: { productId: string })
         an_hien: true,
       });
       // Refresh lại danh sách
-      const data = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`).then(r => r.json());
+      const data = await fetch(`https://polysmart.me/api/variants/by-product/${productId}`).then(r => r.json());
       setVariants(data);
       setCurrentImgs(Array(data.length).fill(0));
     } catch (err: any) {
@@ -176,20 +216,28 @@ export default function VariantProductPage({ productId }: { productId: string })
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm pt-20 pl-60">
           <div className="bg-white rounded-xl shadow-lg p-8 w-[900px] relative max-h-[90vh] flex flex-col">
             <button className="absolute top-2 right-2 text-gray-500 hover:text-black" onClick={() => setShowModal(false)}>&times;</button>
-            <h2 className="text-xl font-bold mb-4 text-blue-700">
+            <h2 className="text-xl font-bold mb-2 text-blue-700">
               {editVariant ? "Sửa biến thể" : "Thêm biến thể mới"}
             </h2>
+            {product && !requiresStorageAndColor && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Lưu ý:</strong> Sản phẩm "{product.TenSP}" thuộc danh mục không yêu cầu dung lượng và màu sắc cố định. 
+                  Các trường này là tùy chọn.
+                </p>
+              </div>
+            )}
             {/* Nội dung form cuộn được */}
             <form className="flex flex-row gap-6 flex-1 overflow-y-auto max-h-[70vh]" onSubmit={handleSubmit}>
               {/* Cột trái: hình ảnh */}
               <div className="w-1/3 min-w-[220px] flex flex-col">
                 <label className="block font-semibold mb-1">Hình ảnh biến thể</label>
                 {/* Input file để upload nhiều hình */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="mb-2"
+                                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="mb-2"
                   onChange={handleFileChange}
                 />
                 {/* Danh sách preview hình và input link */}
@@ -201,7 +249,7 @@ export default function VariantProductPage({ productId }: { productId: string })
                           src={getImageUrl(img)}
                           alt={`preview-${idx}`}
                           className="w-16 h-16 object-cover border rounded bg-white flex-shrink-0"
-                          onError={e => (e.currentTarget.src = "/no-image.png")}
+                          onError={e => (e.currentTarget.src = "/images/no-image.svg")}
                         />
                         <input
                           type="text"
@@ -308,21 +356,27 @@ export default function VariantProductPage({ productId }: { productId: string })
                     }
                   }}
                 />
-                <label className="font-semibold mb-1">Dung lượng <span className="text-red-500">*</span></label>
+                <label className="font-semibold mb-1">
+                  Dung lượng {requiresStorageAndColor && <span className="text-red-500">*</span>}
+                </label>
                 <input
-                  className="border rounded px-3 py-2"
-                  placeholder="Nhập dung lượng"
+                  className={`border rounded px-3 py-2 ${!requiresStorageAndColor ? 'bg-gray-100 text-gray-500' : ''}`}
+                  placeholder={requiresStorageAndColor ? "Nhập dung lượng" : "Không bắt buộc"}
                   value={form.dung_luong ?? ""}
                   onChange={e => setForm(f => ({ ...f, dung_luong: e.target.value }))}
-                  required
+                  required={requiresStorageAndColor}
+                  disabled={!requiresStorageAndColor}
                 />
-                <label className="font-semibold mb-1">Màu sắc <span className="text-red-500">*</span></label>
+                <label className="font-semibold mb-1">
+                  Màu sắc {requiresStorageAndColor && <span className="text-red-500">*</span>}
+                </label>
                 <input
-                  className="border rounded px-3 py-2"
-                  placeholder="Nhập màu sắc (Mã màu sắc)"
+                  className={`border rounded px-3 py-2 ${!requiresStorageAndColor ? 'bg-gray-100 text-gray-500' : ''}`}
+                  placeholder={requiresStorageAndColor ? "Nhập màu sắc (Mã màu sắc)" : "Không bắt buộc"}
                   value={form.mau ?? ""}
                   onChange={e => setForm(f => ({ ...f, mau: e.target.value }))}
-                  required
+                  required={requiresStorageAndColor}
+                  disabled={!requiresStorageAndColor}
                 />
                 <label className="font-semibold mb-1">Số lượng hàng</label>
                 <input
@@ -350,7 +404,11 @@ export default function VariantProductPage({ productId }: { productId: string })
                   />
                   <span>Hiện biến thể</span>
                 </div>
-                {formError && <div className="text-red-600 text-sm mt-1">{formError}</div>}
+                {formError && (
+                  <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                    {formError}
+                  </div>
+                )}
                 {/* Thanh action luôn cố định dưới */}
                 <div className="flex justify-end gap-2 mt-6 sticky bottom-0 bg-white pt-2 pb-1 z-10">
                   <button
@@ -425,7 +483,7 @@ export default function VariantProductPage({ productId }: { productId: string })
                         >
                           &#8592;
                         </button>
-                        <Image
+                        <img
                           src={getImageUrl(variant.hinh[currentImg])}
                           alt={`variant-img-${currentImg}`}
                           width={64}
@@ -497,7 +555,8 @@ export default function VariantProductPage({ productId }: { productId: string })
 }
 
 function getImageUrl(image: string | undefined): string {
-  if (!image) return "/no-image.png";
+  if (!image) return "/images/no-image.svg";
   if (image.startsWith("http")) return image;
   return `http://localhost:3000/images/${image.replace(/^\/images\//, "")}`;
 }
+

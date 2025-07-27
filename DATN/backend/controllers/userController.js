@@ -21,6 +21,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 //quên mk
 const { sendEmail, sendResetPasswordEmail } = require('../services/emailService');
+const { OAuth2Client } = require('google-auth-library');
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const register = [upload.single('img'), async (req, res) => {
     try {
@@ -257,4 +260,41 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword, forgotPassword };
+// Google Login
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ message: 'Thiếu token Google' });
+
+    // Xác thực token với Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: 'Token Google không hợp lệ' });
+    }
+
+    // Tìm hoặc tạo user
+    let user = await userModel.findOne({ email: payload.email });
+    if (!user) {
+      user = await userModel.create({
+        TenKH: payload.name || payload.email.split('@')[0],
+        email: payload.email,
+        password: '', // Không dùng password
+        avatar: payload.picture,
+        role: 'user',
+      });
+    }
+
+    // Tạo JWT token
+    const jwtToken = jwt.sign({ id: user._id, email: user.email, role: user.role }, 'conguoiyeuchua', { expiresIn: '1h' });
+    res.json({ token: jwtToken });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ message: 'Đăng nhập Google thất bại', error: error.message });
+  }
+};
+
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin };

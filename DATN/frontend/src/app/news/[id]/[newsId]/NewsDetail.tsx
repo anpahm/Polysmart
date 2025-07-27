@@ -30,7 +30,7 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
   useEffect(() => {
     const fetchNewsDetail = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/news/${newsId}`);
+        const response = await fetch(`https://polysmart.me/api/news/${newsId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch news detail');
         }
@@ -106,7 +106,7 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
           {newsDetail.hinh && (
             <figure className="relative w-full h-[400px] mb-8">
               <Image
-                src={`http://localhost:3000/${newsDetail.hinh}`}
+                src={`https://polysmart.me/${newsDetail.hinh}`}
                 alt={newsDetail.tieu_de}
                 fill
                 className="object-cover rounded-lg"
@@ -158,7 +158,7 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
             "@type": "NewsArticle",
             "headline": newsDetail.tieu_de,
             "description": newsDetail.mo_ta,
-            "image": [`http://localhost:3000/${newsDetail.hinh}`],
+            "image": [`https://polysmart.me/${newsDetail.hinh}`],
             "datePublished": newsDetail.ngay,
             "dateModified": newsDetail.ngay,
             "author": [{
@@ -170,12 +170,12 @@ export default function NewsDetailComponent({ newsId }: { newsId: string }) {
               "name": "Polysmart",
               "logo": {
                 "@type": "ImageObject",
-                "url": "http://localhost:3000/logo.png"
+                "url": "https://polysmart.me/logo.png"
               }
             },
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `http://localhost:3000/news/${newsDetail.id_danh_muc._id}/${newsDetail._id}`
+              "@id": `https://polysmart.me/news/${newsDetail.id_danh_muc._id}/${newsDetail._id}`
             }
           })
         }}

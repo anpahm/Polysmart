@@ -12,7 +12,6 @@ import 'swiper/css/autoplay';
 import { Navigation, Autoplay } from 'swiper/modules';
 import { Fullscreen } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
-import LuckyWheel from './LuckyWheel';
 import GiftVoucher from './GiftVoucher';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -22,8 +21,6 @@ import { showWarningAlert } from '@/utils/sweetAlert';
 import GridiPhone from './GridiPhone';
 import GridiPad from './GridiPad';
 import GridMac from './GridMac';
-import AddToCartDemo from './AddToCartDemo';
-import CartNotificationDemo from './CartNotificationDemo';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -1057,7 +1054,7 @@ const HomePage = () => {
                                       </>
                                     ) : (
                                       <>
-                                        <span role="img" aria-label="sold-out">😔</span>
+                                        {/* <span role="img" aria-label="sold-out">😔</span> */}
                                         Đã hết hàng
                                       </>
                                     )}
@@ -2265,12 +2262,7 @@ const HomePage = () => {
         </div>
       </section>
       
-      {/* Demo So Sánh Thông Báo - Development Only */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <CartNotificationDemo />
-        </div>
-      </section>
+   
       
     </div>
   );

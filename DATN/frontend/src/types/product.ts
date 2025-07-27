@@ -12,6 +12,7 @@ export interface Product {
   hot?: boolean;
   categories?: any[];
   variants?: Variant[];
+  isFlashSale?: boolean;
 }
 
 export interface Variant {
@@ -24,4 +25,10 @@ export interface Variant {
   mau: string;
   so_luong_hang: number;
   an_hien: boolean;
+  isFlashSale?: boolean;
+  flashSaleInfo?: {
+    ten_su_kien: string;
+    so_luong_con_lai: number;
+    phan_tram_giam: number;
+  };
 } 

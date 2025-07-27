@@ -4,7 +4,7 @@ import NewsDetailComponent from './NewsDetail';
 // Hàm lấy dữ liệu tin tức từ API
 async function getNewsDetail(newsId: string) {
   try {
-    const res = await fetch(`http://localhost:3000/api/news/${newsId}`, {
+    const res = await fetch(`https://polysmart.me/api/news/${newsId}`, {
       next: { revalidate: 60 } // Revalidate every 60 seconds
     });
     if (!res.ok) return null;
@@ -46,7 +46,7 @@ export async function generateMetadata(
       authors: news.nguoi_dang?.ho_ten || 'Admin',
       images: [
         {
-          url: `http://localhost:3000/${news.hinh}`,
+          url: `https://polysmart.me/${news.hinh}`,
           width: 1200,
           height: 630,
           alt: news.tieu_de,
@@ -58,10 +58,10 @@ export async function generateMetadata(
       card: 'summary_large_image',
       title: news.tieu_de,
       description: news.mo_ta,
-      images: [`http://localhost:3000/${news.hinh}`],
+      images: [`https://polysmart.me/${news.hinh}`],
     },
     alternates: {
-      canonical: `http://localhost:3000/news/${params.id}/${params.newsId}`,
+      canonical: `https://polysmart.me/news/${params.id}/${params.newsId}`,
     },
   };
 }

@@ -1,112 +1,180 @@
 "use client";
 
 import { ApexOptions } from "apexcharts";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-const options: ApexOptions = {
-  colors: ["#3C50E0", "#80CAEE"],
-  chart: {
-    fontFamily: "Satoshi, sans-serif",
-    type: "bar",
-    height: 335,
-    stacked: true,
-    toolbar: {
-      show: false,
-    },
-    zoom: {
-      enabled: false,
-    },
-  },
-
-  responsive: [
-    {
-      breakpoint: 1536,
-      options: {
-        plotOptions: {
-          bar: {
-            borderRadius: 0,
-            columnWidth: "25%",
-          },
-        },
-      },
-    },
-  ],
-  plotOptions: {
-    bar: {
-      horizontal: false,
-      borderRadius: 0,
-      columnWidth: "25%",
-      borderRadiusApplication: "end",
-      borderRadiusWhenStacked: "last",
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-
-  xaxis: {
-    categories: ["M", "T", "W", "T", "F", "S", "S"],
-  },
-  legend: {
-    position: "top",
-    horizontalAlign: "left",
-    fontFamily: "Satoshi",
-    fontWeight: 500,
-    fontSize: "14px",
-
-    markers: {
-      radius: 99,
-    },
-  },
-  fill: {
-    opacity: 1,
-  },
-};
-
-interface ChartTwoState {
-  series: {
-    name: string;
-    data: number[];
-  }[];
+interface StatisticsData {
+  sales: number[];
+  revenue: number[];
+  profit: number[];
+  labels: string[];
 }
 
 const ChartTwo: React.FC = () => {
+  const [timeFilter, setTimeFilter] = useState<'week' | 'lastWeek'>('week');
+  const [statisticsData, setStatisticsData] = useState<StatisticsData>({
+    sales: [44, 55, 41, 67, 22, 43, 65],
+    revenue: [13, 23, 20, 8, 13, 27, 15],
+    profit: [31, 32, 21, 59, 9, 16, 50],
+    labels: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+  });
+  const [loading, setLoading] = useState(false);
+  const { token } = useAuth();
+
+  const options: ApexOptions = {
+    colors: ["#3C50E0", "#80CAEE"],
+    chart: {
+      fontFamily: "Satoshi, sans-serif",
+      type: "bar",
+      height: 335,
+      stacked: true,
+      toolbar: {
+        show: false,
+      },
+      zoom: {
+        enabled: false,
+      },
+    },
+
+    responsive: [
+      {
+        breakpoint: 1536,
+        options: {
+          plotOptions: {
+            bar: {
+              borderRadius: 0,
+              columnWidth: "25%",
+            },
+          },
+        },
+      },
+    ],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        borderRadius: 0,
+        columnWidth: "25%",
+        borderRadiusApplication: "end",
+        borderRadiusWhenStacked: "last",
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+
+    xaxis: {
+      categories: statisticsData.labels,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      fontFamily: "Satoshi",
+      fontWeight: 500,
+      fontSize: "14px",
+    },
+    fill: {
+      opacity: 1,
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: function (val: number, opts: any) {
+          const seriesName = opts.seriesIndex === 0 ? "sản phẩm" : "triệu VNĐ";
+          return val + " " + seriesName;
+        },
+      },
+    },
+  };
+
+  // Fetch statistics data
+  const fetchStatistics = async (period: 'week' | 'lastWeek') => {
+    if (!token) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`https://polysmart.me/api/admin/statistics?period=${period}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStatisticsData(data);
+      } else {
+        console.error('Failed to fetch statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatistics(timeFilter);
+  }, [timeFilter, token]);
+
+  const handleTimeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as 'week' | 'lastWeek';
+    setTimeFilter(value);
+  };
+
   const series = [
     {
-      name: "Sales",
-      data: [44, 55, 41, 67, 22, 43, 65],
+      name: "Số lượng bán",
+      data: statisticsData.sales,
     },
     {
-      name: "Revenue",
-      data: [13, 23, 20, 8, 13, 27, 15],
+      name: "Doanh thu (triệu VNĐ)",
+      data: statisticsData.revenue,
     },
   ];
 
   return (
     <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
       <div className="mb-4 justify-between gap-4 sm:flex">
-        <div>
+        <div className="flex items-center gap-2">
           <h4 className="text-xl font-semibold text-black dark:text-white">
-            Profit this week
+            Thống kê bán hàng
           </h4>
+          <div className="group relative">
+            <svg 
+              className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-help" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              Doanh thu từ đơn hàng đã thanh toán thành công
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
         </div>
         <div>
           <div className="relative z-20 inline-block">
             <select
-              name="#"
-              id="#"
-              className="relative z-20 inline-flex appearance-none bg-transparent py-1 pl-3 pr-8 text-sm font-medium outline-none"
+              name="timeFilter"
+              id="timeFilter"
+              value={timeFilter}
+              onChange={handleTimeFilterChange}
+              className="relative z-20 inline-flex appearance-none bg-transparent py-1 pl-3 pr-8 text-sm font-medium outline-none dark:text-white"
             >
-              <option value="" className="dark:bg-boxdark">
-                This Week
+              <option value="week" className="dark:bg-boxdark">
+                Tuần này
               </option>
-              <option value="" className="dark:bg-boxdark">
-                Last Week
+              <option value="lastWeek" className="dark:bg-boxdark">
+                Tuần trước
               </option>
             </select>
             <span className="absolute right-3 top-1/2 z-10 -translate-y-1/2">
@@ -133,7 +201,17 @@ const ChartTwo: React.FC = () => {
         </div>
       </div>
 
-      <div>
+      {/* Ghi chú nhỏ */}
+      <div className="mb-4 text-xs text-gray-600 dark:text-gray-400">
+        💡 Doanh thu chưa bao gồm chi phí vận hành, phí giao hàng và các khoản khấu trừ
+      </div>
+
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-75 dark:bg-boxdark dark:bg-opacity-75 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
         <div id="chartTwo" className="-mb-9 -ml-5">
           <ReactApexChart
             options={options}

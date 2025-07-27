@@ -1,0 +1,70 @@
+/* Mobile Viewport Configuration */
+/* Đảm bảo trang hiển thị đúng trên mobile devices */
+
+/* Force viewport settings for mobile */
+@media (max-width: 767px) {
+  /* Đảm bảo content không bị zoom */
+  .forgot-password-container {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Prevent horizontal scrolling */
+  .forgot-password-container,
+  .forgot-password-card {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Ensure proper touch scrolling */
+  .forgot-password-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media (max-width: 767px) {
+  .forgot-password-input {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
+/* Ensure proper display on all mobile browsers */
+@media (max-width: 767px) {
+  .forgot-password-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+  }
+
+  .forgot-password-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Fix for older mobile browsers */
+@media (max-width: 767px) {
+  .forgot-password-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .forgot-password-card {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* Ensure proper rendering on high DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .forgot-password-container {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+} 

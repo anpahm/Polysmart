@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
   LOGIN: '/users/login',
   REGISTER: '/users/register',
   LOGOUT: '/users/logout',
+  GOOGLE_LOGIN: '/users/google-login',
   GET_USER: '/users/userinfo',
   UPDATE_USER: '/users/update',
   CHANGE_PASSWORD: '/users/change-password',

@@ -101,14 +101,14 @@ export default function ProductTable() {
       accessorKey: "hinh",
       header: () => <span className="text-black font-semibold">Hình ảnh</span>,
       cell: ({ row }: { row: import('@tanstack/react-table').Row<Product> }) => (
-        <Image
+        <img
           src={getImageUrl(row.getValue("hinh"))}
           alt={row.getValue("TenSP")}
           width={48}
           height={48}
           className="h-12 w-12 object-cover rounded-md"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/no-image.png';
+            (e.target as HTMLImageElement).src = '/images/no-image.svg';
           }}
         />
       ),
@@ -272,7 +272,7 @@ export default function ProductTable() {
     fetchProducts();
 
     // Fetch categories
-    fetch("http://localhost:3000/api/categories")
+          fetch("http://localhost:3000/api/categories")
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(error => console.error("Error fetching categories:", error));
@@ -391,8 +391,8 @@ export default function ProductTable() {
 
       const res = await fetch(
         editProduct 
-          ? `http://localhost:3000/api/products/${editProduct._id}`
-          : "http://localhost:3000/api/products",
+                  ? `http://localhost:3000/api/products/${editProduct._id}`
+        : "http://localhost:3000/api/products",
         {
           method: editProduct ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -1089,11 +1089,11 @@ export default function ProductTable() {
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-700">Ảnh chính sản phẩm</h3>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="image-upload"
+                                      <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="image-upload"
                     onChange={handleImageChange}
                   />
                   <label htmlFor="image-upload" className="cursor-pointer">
@@ -1109,15 +1109,13 @@ export default function ProductTable() {
 
                 {newProduct.hinh && (
                   <div className="relative w-20 h-20 border rounded-lg overflow-hidden">
-                    <Image
+                    <img
                       src={getImageUrl(newProduct.hinh)}
                       alt="Ảnh sản phẩm"
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/no-image.png';
+                        (e.target as HTMLImageElement).src = '/images/no-image.svg';
                       }}
-                      sizes="80px"
                     />
                   </div>
                 )}
@@ -1274,7 +1272,7 @@ export default function ProductTable() {
 }
 
 const getImageUrl = (imageUrl: string | undefined): string => {
-  if (!imageUrl) return '/no-image.png';
+  if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
   return `http://localhost:3000/images/${imageUrl.replace(/^\/images\//, '')}`;
 };

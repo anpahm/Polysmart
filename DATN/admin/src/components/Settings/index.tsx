@@ -12,7 +12,7 @@ interface Setting {
 }
 
 const getImageUrl = (imageUrl: string | undefined): string => {
-  if (!imageUrl) return '/no-image.png';
+  if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
   return `http://localhost:3000${imageUrl.startsWith('/images/') ? imageUrl : '/images/' + imageUrl}`;
 };

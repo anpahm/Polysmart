@@ -1,13 +1,16 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword, forgotPassword } = require('../controllers/userController');
+const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
 
 //Đăng nhập
 router.post('/login', login);
+
+//Đăng nhập Google
+router.post('/google-login', googleLogin);
 
 //Đăng xuất
 router.post('/logout', (req, res) => {

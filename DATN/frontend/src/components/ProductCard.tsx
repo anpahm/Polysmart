@@ -1,12 +1,37 @@
 import React from 'react';
 import { Product, Variant } from '../types/product';
 import { ShoppingBag } from 'lucide-react';
-import { colorMap, getVnColorName } from '../../../src/constants/colorMapShared';
-import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '@/store/cartSlice';
-import { RootState } from '@/store';
-import { showAddToCartSuccess } from '@/utils/sweetAlert';
-import { trackUserEvent } from '@/services/productService';
+
+// Helper to check if Redux is available
+const isReduxAvailable = () => {
+  try {
+    require('react-redux');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Safe Redux hooks that work without provider
+const useSafeDispatch = () => {
+  if (!isReduxAvailable()) return () => {};
+  try {
+    const { useDispatch } = require('react-redux');
+    return useDispatch();
+  } catch {
+    return () => {};
+  }
+};
+
+const useSafeSelector = (selector: any) => {
+  if (!isReduxAvailable()) return null;
+  try {
+    const { useSelector } = require('react-redux');
+    return useSelector(selector);
+  } catch {
+    return null;
+  }
+};
 
 // Hàm lấy URL hình ảnh sản phẩm (copy từ Homepage)
 const getImageUrl = (url: string | string[] | undefined | null) => {
@@ -158,8 +183,8 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) => {
-  const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.user.user);
+  const dispatch = useSafeDispatch();
+  const user = useSafeSelector((state: any) => state?.user?.user);
   
   console.log('ProductCard image debug:', { variantHinh: variant?.hinh, productHinh: product.hinh });
   // Lấy danh sách màu sắc duy nhất từ tất cả variants nếu có
@@ -172,6 +197,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
     e.preventDefault(); // Ngăn chặn navigation nếu ProductCard nằm trong Link
     e.stopPropagation();
 
+    if (!isReduxAvailable()) {
+      console.log('Add to cart not available - Redux not configured');
+      return;
+    }
+
     if (!product) return;
 
     // Lấy variant đầu tiên nếu không có variant được chỉ định
@@ -180,25 +210,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
 
     // Track user event nếu user đã đăng nhập
     if (user && user._id) {
-      trackUserEvent('add_to_cart', product._id, user._id);
+      try {
+        const { trackUserEvent } = require('@/services/productService');
+        trackUserEvent('add_to_cart', product._id, user._id);
+      } catch (error) {
+        console.log('Tracking not available');
+      }
     }
 
     // Thêm vào giỏ hàng
-    dispatch(addToCart({
-      productId: product._id,
-      variantId: selectedVariant._id,
-      name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
-      price: selectedVariant.gia || 0,
-      originPrice: selectedVariant.gia_goc || selectedVariant.gia || 0,
-      image: getImageUrl(selectedVariant.hinh || product.hinh),
-      colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
-      selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
-      colorName: selectedVariant.mau || '',
-      quantity: 1,
-    }));
+    try {
+      const { addToCart } = require('@/store/cartSlice');
+      dispatch(addToCart({
+        productId: product._id,
+        variantId: selectedVariant._id,
+        name: product.TenSP + (selectedVariant.dung_luong ? ` ${selectedVariant.dung_luong}` : ""),
+        price: selectedVariant.gia || 0,
+        originPrice: selectedVariant.gia_goc || selectedVariant.gia || 0,
+        image: getImageUrl(selectedVariant.hinh || product.hinh),
+        colors: product.variants?.map(v => v.mau).filter(Boolean) || [],
+        selectedColor: product.variants?.findIndex(v => v._id === selectedVariant._id) || 0,
+        colorName: selectedVariant.mau || '',
+        quantity: 1,
+      }));
 
-    // Hiển thị thông báo thành công với SweetAlert2
-    showAddToCartSuccess(product.TenSP);
+      // Hiển thị thông báo thành công với SweetAlert2
+      const { showAddToCartSuccess } = require('@/utils/sweetAlert');
+      showAddToCartSuccess(product.TenSP);
+    } catch (error) {
+      console.log('Cart functionality not available');
+    }
   };
 
   return (
@@ -212,8 +253,46 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
       alignItems: 'flex-start',
       minWidth: 0,
       boxSizing: 'border-box',
+      position: 'relative',
       ...style
     }}>
+      {/* Flash Sale Badge */}
+      {variant?.isFlashSale && (
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          background: 'linear-gradient(45deg, #ff4757, #ff3838)',
+          color: 'white',
+          fontSize: 10,
+          fontWeight: 'bold',
+          padding: '4px 8px',
+          borderRadius: 12,
+          boxShadow: '0 2px 4px rgba(255, 71, 87, 0.3)',
+          zIndex: 1
+        }}>
+          🔥 FLASH SALE
+        </div>
+      )}
+      
+      {/* Discount Percentage */}
+      {variant?.isFlashSale && variant?.flashSaleInfo?.phan_tram_giam && (
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          background: '#ff4757',
+          color: 'white',
+          fontSize: 11,
+          fontWeight: 'bold',
+          padding: '4px 6px',
+          borderRadius: 8,
+          zIndex: 1
+        }}>
+          -{variant.flashSaleInfo.phan_tram_giam}%
+        </div>
+      )}
+      
       <img
         src={getImageUrl(variant?.hinh?.[0] || product.hinh)}
         alt={product.TenSP}
@@ -221,11 +300,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant, style }) =>
       />
       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, textAlign: 'left', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.TenSP} {variant?.dung_luong ? `${variant.dung_luong}` : ''}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, width: '100%', marginBottom: 2 }}>
-        <span style={{ color: '#e11d48', fontWeight: 600, fontSize: 13 }}>{variant?.gia?.toLocaleString('vi-VN')}₫</span>
+        <span style={{ color: variant?.isFlashSale ? '#ff4757' : '#e11d48', fontWeight: 600, fontSize: 13 }}>{variant?.gia?.toLocaleString('vi-VN')}₫</span>
         {variant?.gia_goc && (
           <span style={{ color: '#888', fontSize: 11, textDecoration: 'line-through' }}>{variant.gia_goc.toLocaleString('vi-VN')}₫</span>
         )}
       </div>
+      
+      {/* Flash Sale Info */}
+      {variant?.isFlashSale && variant?.flashSaleInfo && (
+        <div style={{ fontSize: 11, color: '#ff4757', marginBottom: 4, fontWeight: 500 }}>
+          ⚡ Còn lại: {variant.flashSaleInfo.so_luong_con_lai} sản phẩm
+        </div>
+      )}
       
       {colors.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '6px 0 18px 0', width: '100%' }}>

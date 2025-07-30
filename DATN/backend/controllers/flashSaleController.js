@@ -3,7 +3,7 @@ const FlashSaleVariant = require('../models/FlashSaleVariant');
 const Variant = require('../models/variantModel'); // Đổi tên biến import
 const Product = require('../models/productModel'); // Đảm bảo đúng tên model
 
-// Lấy tất cả các biến thể flash sale (không điều kiện)
+// Lấy tất cả các biến thể flash sale 
 exports.getAllFlashSales = async (req, res) => {
   try {
     const flashSales = await FlashSale.find({})
@@ -20,7 +20,7 @@ exports.getAllFlashSales = async (req, res) => {
 
     const formattedData = flashSales.map(fs => {
       const variantsData = fs.flashSaleVariants.map(fsv => ({
-        _id: fsv._id, // FlashSaleVariant ID for order tracking
+        _id: fsv._id, 
         id_variant: fsv.id_variant ? fsv.id_variant._id : null,
         gia_flash_sale: fsv.gia_flash_sale,
         phan_tram_giam_gia: fsv.phan_tram_giam_gia ?? null,

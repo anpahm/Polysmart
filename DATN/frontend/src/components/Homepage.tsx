@@ -1020,7 +1020,7 @@ const HomePage = () => {
                 <SwiperSlide key={variant.id_variant}>
                   <div
                     onClick={() => remaining > 0 ? handleFlashSaleClick(variant) : null}
-                    className={`bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 transform block ${
+                    className={`bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 transform block relative ${
                       remaining > 0 
                         ? 'hover:shadow-2xl hover:-translate-y-1 cursor-pointer' 
                         : 'cursor-not-allowed opacity-60'
@@ -1029,6 +1029,13 @@ const HomePage = () => {
                   >
                     {/* Ảnh sản phẩm */}
                     <div className="relative pt-[100%] overflow-hidden">
+                      {/* Khung Flash Sale */}
+                      <img
+                        src="/images/khungfl.png"
+                        alt="Khung Flash Sale"
+                        className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[200px] h-[170px] object-contain"
+                        style={{ zIndex: 10 }}
+                      />
                       {/* Badge % giảm giá bên phải */}
                       {variant.phan_tram_giam_gia && (
                         <div className="absolute top-2 right-2 z-10">
@@ -1041,7 +1048,7 @@ const HomePage = () => {
                         src={getImageUrl(variant?.product_image || '')}
                         alt={variant?.product_name || 'Sản phẩm Flash Sale'}
                         fill
-                        className="object-contain p-2 sm:p-4"
+                        className="object-contain p-6 sm:p-8"
                       />
                       {/* Số lượng còn lại với progress bar */}
                       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[85%] flex flex-col items-center">
@@ -1296,24 +1303,24 @@ const HomePage = () => {
                 {hotIphones.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
-                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
                       <div className="relative flex items-center justify-center pt-10 bg-white">
                         <div className="relative w-[170px] h-[140px] flex items-center justify-center">
                           <Image
                             src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                             alt={product.TenSP}
-                            className="w-[180px] h-[160px] object-contain"
+                            className="w-[200px] h-[180px] object-contain"
                             width={170}
                             height={140}
                           />
-                          {product.khuyen_mai && (
+                          {/* {product.khuyen_mai && (
                             <img
                               src="/images/khungfl.png"
                               alt="Khung Flash Sale"
                               className="absolute left-0 pointer-events-none"
                               style={{ zIndex: 10, width:185, height: 176 }}
                             />
-                          )}
+                          )} */}
                         </div>
                         {/* % giảm giá nếu có */}
                         {product.khuyen_mai && (
@@ -1321,7 +1328,7 @@ const HomePage = () => {
                         )}
                       </div>
                       <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
                         {/* Lựa chọn dung lượng */}
                         {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
@@ -1632,24 +1639,24 @@ const HomePage = () => {
                 {hotIpads.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
-                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
                       <div className="relative flex items-center justify-center pt-10 bg-white">
                         <div className="relative w-[170px] h-[140px] flex items-center justify-center">
                           <Image
                             src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                             alt={product.TenSP}
-                            className="w-[180px] h-[160px] object-contain"
+                            className="w-[200px] h-[180px] object-contain"
                             width={170}
                             height={140}
                           />
-                          {product.khuyen_mai && (
+                          {/* {product.khuyen_mai && (
                             <img
                               src="/images/khungfl.png"
                               alt="Khung Flash Sale"
                               className="absolute left-0 pointer-events-none"
                               style={{ zIndex: 10, width:185, height: 176 }}
                             />
-                          )}
+                          )} */}
                         </div>
                         {/* % giảm giá nếu có */}
                         {product.khuyen_mai && (
@@ -1657,7 +1664,7 @@ const HomePage = () => {
                         )}
                       </div>
                       <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
                         {/* Lựa chọn dung lượng */}
                         {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
@@ -1971,24 +1978,24 @@ const HomePage = () => {
                 {hotMacs.map((product: Product) => (
                   <SwiperSlide key={product._id} className="h-full">
                   
-                    <Link href={`/product/${product._id}`} className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
+                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
                       <div className="relative flex items-center justify-center pt-10 bg-white">
                         <div className="relative w-[170px] h-[140px] flex items-center justify-center">
                           <Image
                             src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                             alt={product.TenSP}
-                            className="w-[180px] h-[160px] object-contain"
+                            className="w-[200px] h-[180px] object-contain"
                             width={170}
                             height={140}
                           />
-                          {product.khuyen_mai && (
+                          {/* {product.khuyen_mai && (
                             <img
                               src="/images/khungfl.png"
                               alt="Khung Flash Sale"
                               className="absolute left-0 pointer-events-none"
                               style={{ zIndex: 10, width:185, height: 176 }}
                             />
-                          )}
+                          )} */}
                         </div>
                         {/* % giảm giá nếu có */}
                         {product.khuyen_mai && (
@@ -1996,9 +2003,9 @@ const HomePage = () => {
                         )}
                       </div>
                       <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:20}}>{product.TenSP}</p>
+                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
                         {/* Lựa chọn dung lượng */}
-                        {product.variants && product.variants.length > 0 && (
+                        {/* {product.variants && product.variants.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
                             {product.variants
                               .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
@@ -2012,7 +2019,7 @@ const HomePage = () => {
                                 </span>
                               ))}
                           </div>
-                        )}
+                        )} */}
                         {/* Giá tiền nằm ngoài chip dung lượng */}
                         {(() => {
                           const variants = product.variants?.filter(
@@ -2265,9 +2272,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      
-   
-      
     </div>
   );
 };

@@ -521,11 +521,11 @@ code, pre {
 /* Ẩn thanh cuộn dọc cho khung chat */
 /* .hide-scrollbar::-webkit-scrollbar {
   display: none;
-}
-.hide-scrollbar {
+} */
+/* .hide-scrollbar {
   -ms-overflow-style: none; 
   scrollbar-width: none;    
-} */
+}  */
 
 /* Nếu dùng file CSS thường */
 .markdown-table table {
@@ -547,9 +547,9 @@ code, pre {
   background: #f9fafb; /* Tailwind gray-50 */
 }
 
-/* html, body {
+html, body {
   overflow-x: hidden !important;
-} */
+}
 
 @font-face {
   font-family: 'SF Pro';

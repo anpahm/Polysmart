@@ -64,6 +64,7 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
+  const [searchError, setSearchError] = useState(''); // Thêm state cho thông báo lỗi
   const user = useSelector((state: RootState) => state.user.user);
   const cart = useSelector((state: RootState) => state.cart.items);
   const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -172,10 +173,16 @@ const Header = () => {
   // Xử lý tìm kiếm sản phẩm
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      window.location.href = `/search?keyword=${encodeURIComponent(searchTerm)}`;
-      setShowSearch(false);
+    if (!searchTerm.trim()) {
+      // Hiển thị thông báo lỗi khi từ khóa rỗng
+      setSearchError("Vui lòng nhập từ khóa");
+      // Tự động ẩn thông báo sau 3 giây
+      setTimeout(() => setSearchError(''), 3000);
+      return;
     }
+    setSearchError(''); // Xóa thông báo lỗi nếu có
+    window.location.href = `/search?keyword=${encodeURIComponent(searchTerm)}`;
+    setShowSearch(false);
   };
 
   // Hàm lọc sản phẩm theo từ khóa
@@ -297,9 +304,19 @@ const Header = () => {
                     type="text"
                     placeholder="Tìm kiếm"
                     value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    onChange={e => {
+                      setSearchTerm(e.target.value);
+                      // Xóa thông báo lỗi khi người dùng bắt đầu nhập
+                      if (searchError) setSearchError('');
+                    }}
                     className="w-full px-4 py-2 rounded shadow-lg text-black text-base"
                   />
+                  {/* Hiển thị thông báo lỗi */}
+                  {searchError && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
+                      {searchError}
+                    </div>
+                  )}
                   {/* Gợi ý sản phẩm */}
                   {searchTerm && (
                     <div className="absolute left-0 right-0 mt-1 bg-white border rounded shadow-lg max-h-80 overflow-y-auto z-50">

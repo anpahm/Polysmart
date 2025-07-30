@@ -9,8 +9,9 @@ const nextConfig = {
         pathname: '/images/**',
       },
       {
-        protocol: 'https',
-        hostname: 'polysmart.me',
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
         pathname: '/images/**',
       },
     ],

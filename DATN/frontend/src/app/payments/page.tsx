@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { getApiUrl } from "@/config/api";
 import { showSuccessModal, showErrorAlert } from '@/utils/sweetAlert';
+import { getVnColorName } from '@/constants/colorMapShared';
 
 // Create a client-only component for the cart items
 const CartItems = dynamic(() => Promise.resolve(({ items, formatVND }: { items: any[], formatVND: (num: number) => string }) => (
@@ -27,8 +28,9 @@ const CartItems = dynamic(() => Promise.resolve(({ items, formatVND }: { items: 
                 <span
                   className="w-4 h-4 rounded-full border"
                   style={{ backgroundColor: item.colorName }}
-                  title={item.colorName}
+                  title={getVnColorName(item.colorName)}
                 />
+                <span>{getVnColorName(item.colorName)}</span>
               </div>
              )}
           </div>

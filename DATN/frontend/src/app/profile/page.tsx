@@ -8,6 +8,7 @@ import { fetchApi, API_ENDPOINTS, getImageUrl } from '@/config/api';
 import { setUser } from '../../store/userSlice';
 import { useRouter, useSearchParams } from "next/navigation";
 import { orderService } from '@/services/orderService';
+import { getVnColorName } from '@/constants/colorMapShared';
 
 // Thêm type cho review
 interface ReviewHistoryItem {
@@ -553,7 +554,7 @@ export default function ProfilePage() {
                     <img src={item.image} alt="product" className="w-20 h-20 object-contain border rounded bg-white" />
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="font-medium text-base truncate text-gray-900">{item.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">Phân loại hàng: {item.colorName}</div>
+                      <div className="text-xs text-gray-500 mt-1">Phân loại hàng: {getVnColorName(item.colorName)}</div>
                       <div className="text-xs text-gray-500">x{item.quantity}</div>
                     </div>
                     <div className="text-right min-w-[120px] flex flex-col items-end justify-center">

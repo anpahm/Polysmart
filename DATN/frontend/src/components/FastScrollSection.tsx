@@ -49,11 +49,10 @@ const FastScrollSection = () => {
           color: '#C8C1BD',
         }}
       >
-        Chọn Phong Cách Nhiếp Ảnh bạn thích. <br /> Đổi qua. Đổi lại.
+       
         {/* Hiệu ứng gallery chọn phong cách nhiếp ảnh */}
        
       </div>
-      <PhotoStyleAppleMaskGallery />
       {/* Section mới: Chỉnh sửa với chế độ xem chi tiết song song + video */}
       <section style={{ width: '100%', minHeight: '100vh', background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '0px 0 60px 0' }}>
         <h2

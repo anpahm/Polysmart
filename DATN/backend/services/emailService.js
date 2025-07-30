@@ -109,20 +109,83 @@ async function sendEmail(to, voucherCode) {
 
 //gửi email quên mk-- thanhhoai
 async function sendResetPasswordEmail(to, newPassword) {
-  let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
+  try {
+    console.log('Sending reset password email to:', to);
+    console.log('EMAIL_USER:', process.env.EMAIL_USER);
+    console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      throw new Error('Email configuration not set');
+    }
 
-  await transporter.sendMail({
-    from: 'Poly Smart <your-email@gmail.com>',
-    to,
-    subject: 'Mật khẩu mới của bạn',
-    text: `Mật khẩu mới của bạn là: ${newPassword}\nVui lòng đăng nhập và đổi mật khẩu ngay sau khi đăng nhập.`,
-  });
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: `Poly Smart <${process.env.EMAIL_USER}>`,
+      to: to,
+      subject: '🔐 Mật khẩu mới từ Poly Smart',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: #0066D6; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">🔐 Đặt lại mật khẩu</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">Poly Smart - Mật khẩu mới của bạn</p>
+          </div>
+          
+          <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
+              Xin chào,
+            </p>
+            
+            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
+              Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Poly Smart. 
+              Dưới đây là mật khẩu mới của bạn:
+            </p>
+            
+            <div style="background-color: #f8f9fa; border: 2px dashed #0066D6; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+              <h2 style="color: #0066D6; margin: 0 0 10px 0; font-size: 18px;">MẬT KHẨU MỚI</h2>
+              <div style="background-color: #0066D6; color: white; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 2px; font-family: 'Courier New', monospace;">
+                ${newPassword}
+              </div>
+            </div>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+              <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">⚠️ Lưu ý quan trọng:</h3>
+              <ul style="color: #856404; margin: 0; padding-left: 20px;">
+                <li>Vui lòng đăng nhập ngay với mật khẩu mới</li>
+                <li>Đổi mật khẩu thành mật khẩu mạnh hơn sau khi đăng nhập</li>
+                <li>Không chia sẻ mật khẩu này với bất kỳ ai</li>
+              </ul>
+            </div>
+            
+            <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+              <h3 style="color: #0c5460; margin: 0 0 10px 0; font-size: 16px;">📞 Hỗ trợ:</h3>
+              <p style="color: #0c5460; margin: 0;">
+                Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng liên hệ hỗ trợ ngay lập tức.
+              </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px; text-align: center;">
+              Trân trọng,<br>
+              <strong>Đội ngũ Poly Smart</strong>
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Reset password email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    console.error('Error sending reset password email:', error);
+    throw error;
+  }
 }
 
 module.exports = {

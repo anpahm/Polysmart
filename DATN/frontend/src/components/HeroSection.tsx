@@ -341,7 +341,7 @@ const HeroSection = () => {
         }}>
           {/* Đặt trước Button */}
           <button style={{
-            padding: '10px 10px',
+            padding: '0px 10px',
             fontSize: '17px',
             fontWeight: 600,
             color: '#fff',
@@ -373,7 +373,7 @@ const HeroSection = () => {
       </div>
 </section>
 {/* Section mới với khoảng trống màu đen và logic GSAP */}
-<section style={{ marginTop: 0 }}>
+<section style={{ marginTop: -125 }}>
       <div ref={containerRef} className="relative h-screen w-full overflow-hidden bg-black">
         {/* Khoảng trống màu đen */}
         <div

@@ -141,7 +141,7 @@ const editPro = async (req, res) => {
   }
 };
 
-// Tìm kiếm sản phẩm theo từ khóa (tên hoặc mô tả)
+// Tìm kiếm sản phẩm theo từ khóa
 const searchProducts = async (req, res) => {
   try {
     const { keyword } = req.query;
@@ -153,7 +153,7 @@ const searchProducts = async (req, res) => {
     const keywords = keyword.split(' ').filter(k => k);
     const regexes = keywords.map(k => new RegExp(k.replace(/([.*+?^${}()|[\\]\\\\])/g, '\\$1'), "i"));
 
-    // Tạo điều kiện tìm kiếm: Yêu cầu TẤT CẢ các từ khóa phải xuất hiện trong TenSP
+    // Tạo điều kiện tìm kiếm
     const searchConditions = {
       $and: regexes.map(regex => ({ TenSP: regex }))
     };

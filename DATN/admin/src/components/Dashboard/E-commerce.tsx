@@ -7,6 +7,7 @@ import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import StatisticsCards from "./StatisticsCards";
 import { useAuth } from "@/contexts/AuthContext";
+import { getApiUrl } from "../../config/api";
 
 const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
   ssr: false,
@@ -33,7 +34,7 @@ const ECommerce: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await fetch('https://polysmart.me/api/admin/statistics?period=week', {
+      const response = await fetch(getApiUrl('admin/statistics?period=week'), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

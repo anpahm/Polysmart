@@ -30,6 +30,8 @@ export interface Product {
   Mota?: string;
   hinh: string[];
   video?: string[]; 
+  hot?: boolean;
+  ban_chay?: number;
   thong_so_ky_thuat: {
     CPU: String,
     Camera: [String],

@@ -14,7 +14,7 @@ interface Setting {
 const getImageUrl = (imageUrl: string | undefined): string => {
   if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
-  return `http://localhost:3000${imageUrl.startsWith('/images/') ? imageUrl : '/images/' + imageUrl}`;
+  return `https://polysmart.me${imageUrl.startsWith('/images/') ? imageUrl : '/images/' + imageUrl}`;
 };
 
 export default function SettingsPage() {
@@ -31,7 +31,7 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/settings")
+    fetch("https://polysmart.me/api/settings")
       .then(res => res.json())
       .then(data => {
         setSetting(data);
@@ -75,7 +75,7 @@ export default function SettingsPage() {
     for (let i = 0; i < files.length; i++) {
       const formData = new FormData();
       formData.append('image', files[i]);
-      const res = await fetch('http://localhost:3000/api/settings/upload-image', {
+      const res = await fetch('https://polysmart.me/api/settings/upload-image', {
         method: 'POST',
         body: formData,
       });
@@ -94,7 +94,7 @@ export default function SettingsPage() {
     for (let i = 0; i < files.length; i++) {
     const formData = new FormData();
     formData.append('image', files[i]);
-    const res = await fetch('http://localhost:3000/api/settings/upload-image', {
+    const res = await fetch('https://polysmart.me/api/settings/upload-image', {
       method: 'POST',
       body: formData,
     });
@@ -113,7 +113,7 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!setting) return;
-    const res = await fetch(`http://localhost:3000/api/settings/${setting._id}`, {
+    const res = await fetch(`https://polysmart.me/api/settings/${setting._id}`, {
       method: 'PUT',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)

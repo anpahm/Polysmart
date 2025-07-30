@@ -81,7 +81,7 @@ export default function OrderDetailPage() {
 
   // Các hàm cập nhật trạng thái mới
   const handleConfirmOrder = async () => {
-    if (!order) return;
+    if (!order || !order._id) return;
     setActionLoading(true);
     await fetch(`https://polysmart.me/api/orders/${order._id}`, {
       method: 'PUT',
@@ -91,7 +91,7 @@ export default function OrderDetailPage() {
     location.reload();
   };
   const handleShippingOrder = async () => {
-    if (!order) return;
+    if (!order || !order._id) return;
     setActionLoading(true);
     await fetch(`https://polysmart.me/api/orders/${order._id}`, {
       method: 'PUT',
@@ -101,7 +101,7 @@ export default function OrderDetailPage() {
     location.reload();
   };
   const handleDeliveredOrder = async () => {
-    if (!order) return;
+    if (!order || !order._id) return;
     setActionLoading(true);
     await fetch(`https://polysmart.me/api/orders/${order._id}`, {
       method: 'PUT',
@@ -111,7 +111,7 @@ export default function OrderDetailPage() {
     location.reload();
   };
   const handleCancelOrder = async () => {
-    if (!order) return;
+    if (!order || !order._id) return;
     setActionLoading(true);
     await fetch(`https://polysmart.me/api/orders/${order._id}/cancel`, { method: 'PUT' });
     router.push('/order/orders');
@@ -140,10 +140,10 @@ export default function OrderDetailPage() {
         <div className="mb-6 border rounded-lg p-4 bg-gray-50">
           <div className="flex items-center gap-2 mb-2 text-lg font-semibold"><FaBoxOpen /> Thông tin đơn hàng</div>
           <div className="grid grid-cols-2 gap-2">
-            <div>Mã đơn hàng: <b>#{order._id.slice(-8).toUpperCase()}</b></div>
+            <div>Mã đơn hàng: <b>#{order._id ? order._id.slice(-8).toUpperCase() : 'N/A'}</b></div>
             <div>Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}</div>
             <div>Trạng thái: <span className={`font-semibold ${statusMap[order.orderStatus]?.color || ''}`}>{statusMap[order.orderStatus]?.icon} {statusMap[order.orderStatus]?.label}</span></div>
-            <div>Phương thức thanh toán: {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : order.paymentMethod.toUpperCase()}</div>
+            <div>Phương thức thanh toán: {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : (order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A')}</div>
             <div>Phương thức vận chuyển: Giao nhanh (2-3 ngày)</div>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function OrderDetailPage() {
           <div className="flex items-center gap-2 mb-2 text-lg font-semibold"><FaHistory /> Trạng thái đơn hàng</div>
           <div className="space-y-1">
             <div>✅ Đã đặt hàng: {new Date(order.createdAt).toLocaleString()}</div>
-            {order.orderStatus === 'confirmed' && <div>✅ Đã xác nhận: {new Date(order.updatedAt).toLocaleString()}</div>}
+            {order.orderStatus === 'packing' && <div>✅ Đã xác nhận: {new Date(order.updatedAt).toLocaleString()}</div>}
             {order.orderStatus === 'shipping' && <div>🚚 Đang giao: {new Date(order.updatedAt).toLocaleString()}</div>}
             {order.orderStatus === 'delivered' && <div>✅ Đã giao: {new Date(order.updatedAt).toLocaleString()}</div>}
             {order.orderStatus === 'cancelled' && <div>❌ Đã hủy: {new Date(order.updatedAt).toLocaleString()}</div>}

@@ -15,6 +15,7 @@ export const colorMap: { [key: string]: string } = {
   '#B7B7B7': 'Xám nhạt',
   '#FFD966': 'Vàng',
   '#F9CB9C': 'Cam',
+  '#FFCC99': 'Cam nhạt',
   '#C9DAF8': 'Xanh dương',
   '#A2C4C9': 'Xanh ngọc',
   '#D9D2E9': 'Tím nhạt',

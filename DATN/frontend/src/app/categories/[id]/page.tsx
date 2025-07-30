@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Product, ProductVariant, Category as BaseCategory } from "@/components/cautrucdata";
+import { getVnColorName } from "@/constants/colorMapShared";
 
 interface Category extends BaseCategory {
   video?: string;
@@ -95,7 +96,7 @@ const CategoryDetailPage = () => {
   const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   const [allCategoriesData, setAllCategoriesData] = useState<BaseCategory[]>([]);
 
-  // New state variables for filter section visibility
+  // hiện thị filter
   const [showPriceFilter, setShowPriceFilter] = useState(true);
   const [showStorageFilter, setShowStorageFilter] = useState(true);
   const [showColorFilter, setShowColorFilter] = useState(true);
@@ -103,55 +104,14 @@ const CategoryDetailPage = () => {
   const [showTypeFilter, setShowTypeFilter] = useState(true);
   const [showMaterialFilter, setShowMaterialFilter] = useState(true);
 
-  // New state for price range selection
+  // khoảng giá
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
 
-  // New state for selected sizes and colors (checkboxes)
+  // kích thước, màu sắc, loại sản phẩm
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedCategoryType, setSelectedCategoryType] = useState<string>("");
   const [selectedProductStorage, setSelectedProductStorage] = useState<string>("");
-
-  // Mapping of color codes to Vietnamese names
-  const colorNameMap: { [key: string]: string } = {
-    "#000000": "Đen",
-    "#1F72F2": "Xanh dương",
-    "#505153": "Xám đậm",
-    "#505865": "Xám xanh đậm",
-    "#88ADC6": "Xanh da trời",
-    "#A3B5F7": "Xanh tím nhạt",
-    "#B5D999": "Xanh lá nhạt",
-    "#B9D9D6": "Xanh ngọc",
-    "#BFA48F": "Nâu đồng",
-    "#C1BDB2": "Be",
-    "#C2BCB2": "Nâu đất",
-    "#DA3C3A": "Đỏ gạch",
-    "#E9DFA7": "Vàng be",
-    "#EFCFD2": "Hồng pastel",
-    "#F3F2ED": "Kem",
-    "#F4B8DE": "Hồng sen",
-    "#FDEB66": "Vàng sáng",
-    "#174C6F": "Xanh đậm",
-    "#3BC6FF": "Xanh nhạt",
-    "#767479": "Xám",
-    "#9D9D9D": "Xám nhạt",
-    "#B1B3B6": "Bạc",
-    "#BAB4E7": "Tím nhạt",
-    "#C0C0C0": "Trắng xám",
-    "#D9E7E8": "Xanh lam nhạt",
-    "#E3E5E3": "Trắng ngà",
-    "#EBB9B0": "Nâu nhạt",
-    "#F4E9D4": "Vàng kem",
-    "#FBD96E": "Vàng",
-    "#FFC1CC": "Hồng nhạt",
-    "#FFFF99": "Vàng chanh",
-    "#FFFFFF": "Trắng",
-    "#2D2D2D": "Xám tối",
-    "#2E3641": "Xanh đen",
-    "#A7A7A7": "Xám trung bình",
-    "#C7D8E0": "Xanh nhạt",
-    "#F0E5D3": "Be nhạt",
-  };
 
   const priceRanges = [
     { label: "Tất cả", value: "all", min: 0, max: Infinity },
@@ -168,7 +128,7 @@ const CategoryDetailPage = () => {
     { label: "Giá cao đến thấp", value: "price-desc" },
   ];
 
-  // Extract unique storages and colors for filter options
+  // dung lượng
   const allStorages = React.useMemo(() => {
     const storages = new Set<string>();
     products.forEach(product => {
@@ -179,6 +139,7 @@ const CategoryDetailPage = () => {
     return Array.from(storages).sort();
   }, [products]);
 
+  // màu sắc
   const allColors = React.useMemo(() => {
     const colors = new Set<string>();
     products.forEach(product => {
@@ -186,11 +147,11 @@ const CategoryDetailPage = () => {
         if (v.mau) colors.add(v.mau.toUpperCase());
       });
     });
-    // Map hex codes to names for display
-    return Array.from(colors).map(hex => ({ hex, name: colorNameMap[hex] || hex })).sort((a, b) => a.name.localeCompare(b.name));
+    // hiện thị màu sắc
+    return Array.from(colors).map(hex => ({ hex, name: getVnColorName(hex) || hex })).sort((a, b) => a.name.localeCompare(b.name));
   }, [products]);
 
-  // New list of available sizes for filter options
+  // kích thước
   const allSizes = React.useMemo(() => {
     const sizes = new Set<string>();
     products.forEach(product => {
@@ -201,13 +162,13 @@ const CategoryDetailPage = () => {
     return Array.from(sizes).sort();
   }, [products]);
 
-  // List of all unique types (categories) for filter options
+  // loại sản phẩm
   const allTypes = React.useMemo(() => {
     // Use allCategoriesData to get distinct category names for filtering
     return allCategoriesData.map(cat => cat.ten_danh_muc).sort();
   }, [allCategoriesData]);
 
-  // List of all unique product storages for filter options
+  // dung lượng
   const allProductStorages = React.useMemo(() => {
     const productStorages = new Set<string>();
     products.forEach(product => {
@@ -216,7 +177,7 @@ const CategoryDetailPage = () => {
       });
     });
     
-    // Helper function to convert storage string to a comparable number (in bytes)
+    // chuyển đổi dung lượng thành số
     const parseStorage = (storage: string): number => {
       const lowerStorage = storage.toLowerCase();
       const value = parseFloat(lowerStorage);
@@ -224,7 +185,7 @@ const CategoryDetailPage = () => {
       if (lowerStorage.includes("mb")) return value * 1024 * 1024;
       if (lowerStorage.includes("gb")) return value * 1024 * 1024 * 1024;
       if (lowerStorage.includes("tb")) return value * 1024 * 1024 * 1024 * 1024;
-      return value; // Fallback for pure numbers, though not expected for storage
+      return value; // trường hợp số thuần
     };
 
     return Array.from(productStorages).sort((a, b) => parseStorage(a) - parseStorage(b));

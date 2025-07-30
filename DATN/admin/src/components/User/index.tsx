@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaHome, FaUser } from "react-icons/fa";
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { getApiUrl } from '../../config/api';
 
 interface User {
   _id: string;
@@ -40,7 +41,7 @@ export default function UserAdminPage() {
 
   useEffect(() => {
     setIsClient(true);
-    fetch("https://polysmart.me/api/users")
+    fetch(getApiUrl('users'))
       .then((res) => {
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu user");
         return res.json();
@@ -77,7 +78,7 @@ export default function UserAdminPage() {
     }
     if (editUser) {
       // Sửa user
-      fetch(`https://polysmart.me/api/users/${editUser._id}`, {
+      fetch(getApiUrl(`users/${editUser._id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser)
@@ -96,7 +97,7 @@ export default function UserAdminPage() {
         .catch(err => toast.error(err.message));
     } else {
       // Thêm user
-      fetch("https://polysmart.me/api/users", {
+      fetch(getApiUrl('users'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser)
@@ -119,7 +120,7 @@ export default function UserAdminPage() {
 
   const handleDeleteUser = () => {
     if (!deleteId) return;
-    fetch(`https://polysmart.me/api/users/${deleteId}`, {
+          fetch(getApiUrl(`users/${deleteId}`), {
       method: 'DELETE',
     })
       .then(res => {

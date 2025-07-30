@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { getApiUrl } from '../config/api';
 
 interface User {
   _id: string;
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserInfo = async (authToken: string) => {
     try {
-      const response = await fetch('https://polysmart.me/api/users/userinfo', {
+      const response = await fetch(getApiUrl('users/userinfo'), {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      const response = await fetch('https://polysmart.me/api/users/login', {
+      const response = await fetch(getApiUrl('users/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

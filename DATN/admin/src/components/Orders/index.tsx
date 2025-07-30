@@ -43,8 +43,8 @@ interface OrderDetail extends Order {
 
 const ORDER_STATUS_OPTIONS = [
   { value: '', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ xác nhận' },
-  { value: 'confirmed', label: 'Đã xác nhận' },
+  { value: 'confirming', label: 'Chờ xác nhận' },
+  { value: 'packing', label: 'Đã xác nhận' },
   { value: 'shipping', label: 'Đang giao' },
   { value: 'delivered', label: 'Hoàn thành' },
   { value: 'cancelled', label: 'Đã hủy' },
@@ -66,7 +66,7 @@ const Orders = () => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:3000/api/orders");
+        const res = await fetch("https://polysmart.me/api/orders");
         const data = await res.json();
         setOrders(data.orders || []);
       } catch (err) {
@@ -80,7 +80,7 @@ const Orders = () => {
   const handleRowClick = async (orderId: string) => {
     setDetailLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/orders/${orderId}`);
+      const res = await fetch(`https://polysmart.me/api/orders/${orderId}`);
       const data = await res.json();
       setSelectedOrder(data);
     } catch (err) {
@@ -94,7 +94,7 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}/payment`, {
+              await fetch(`https://polysmart.me/api/orders/${selectedOrder._id}/payment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentStatus: 'paid' })
@@ -102,7 +102,7 @@ const Orders = () => {
       // reload chi tiết đơn
       await handleRowClick(selectedOrder._id);
       // reload danh sách
-      const res = await fetch('http://localhost:3000/api/orders');
+      const res = await fetch('https://polysmart.me/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {
@@ -115,7 +115,7 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}`, {
+      await fetch(`https://polysmart.me/api/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus: 'shipping' })
@@ -134,13 +134,13 @@ const Orders = () => {
     if (!selectedOrder) return;
     setActionLoading(true);
     try {
-      await fetch(`http://localhost:3000/api/orders/${selectedOrder._id}`, {
+      await fetch(`https://polysmart.me/api/orders/${selectedOrder._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus: 'delivered' })
       });
       await handleRowClick(selectedOrder._id);
-      const res = await fetch('http://localhost:3000/api/orders');
+      const res = await fetch('https://polysmart.me/api/orders');
       const data = await res.json();
       setOrders(data.orders || []);
     } finally {
@@ -170,7 +170,7 @@ const Orders = () => {
     return orders.filter(order => {
       const matchSearch =
         order._id.toLowerCase().includes(search.toLowerCase()) ||
-        order.customerInfo.fullName.toLowerCase().includes(search.toLowerCase());
+        (order.customerInfo.fullName ? order.customerInfo.fullName.toLowerCase().includes(search.toLowerCase()) : false);
       const matchStatus = statusFilter ? order.orderStatus === statusFilter : true;
       const matchDateFrom = dateFrom ? new Date(order.createdAt) >= new Date(dateFrom) : true;
       const matchDateTo = dateTo ? new Date(order.createdAt) <= new Date(dateTo) : true;
@@ -185,11 +185,11 @@ const Orders = () => {
     ];
     const rows = filteredOrders.map(order => [
       order._id,
-      order.customerInfo.fullName,
-      order.customerInfo.phone,
-      `${order.customerInfo.address}, ${order.customerInfo.city}`,
+      order.customerInfo.fullName || 'N/A',
+      order.customerInfo.phone || 'N/A',
+      `${order.customerInfo.address || ''}, ${order.customerInfo.city || ''}`,
       order.totalAmount,
-      order.paymentMethod,
+      order.paymentMethod || 'N/A',
       order.orderStatus,
       new Date(order.createdAt).toLocaleString()
     ]);
@@ -265,11 +265,11 @@ const Orders = () => {
             filteredOrders.map((order) => (
               <TableRow key={order._id} onClick={() => router.push(`/order/orders/${order._id}`)} className="cursor-pointer hover:bg-gray-100">
                 <TableCell>{order._id}</TableCell>
-                <TableCell>{order.customerInfo.fullName}</TableCell>
-                <TableCell>{order.customerInfo.phone}</TableCell>
-                <TableCell>{order.customerInfo.address}, {order.customerInfo.city}</TableCell>
+                <TableCell>{order.customerInfo.fullName || 'N/A'}</TableCell>
+                <TableCell>{order.customerInfo.phone || 'N/A'}</TableCell>
+                <TableCell>{order.customerInfo.address || ''}, {order.customerInfo.city || ''}</TableCell>
                 <TableCell>{order.totalAmount.toLocaleString()}₫</TableCell>
-                <TableCell>{order.paymentMethod.toUpperCase()}</TableCell>
+                <TableCell>{order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'}</TableCell>
                 <TableCell>{order.orderStatus}</TableCell>
                 <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
               </TableRow>
@@ -288,9 +288,9 @@ const Orders = () => {
               <div>
                 <h2 className="text-xl font-bold mb-2">Chi tiết đơn hàng</h2>
                 <div className="mb-2"><b>Mã đơn:</b> {selectedOrder._id}</div>
-                <div className="mb-2"><b>Khách hàng:</b> {selectedOrder.customerInfo.fullName} ({selectedOrder.customerInfo.phone})</div>
-                <div className="mb-2"><b>Địa chỉ:</b> {selectedOrder.customerInfo.address}, {selectedOrder.customerInfo.city}</div>
-                <div className="mb-2"><b>Phương thức thanh toán:</b> {selectedOrder.paymentMethod.toUpperCase()}</div>
+                <div className="mb-2"><b>Khách hàng:</b> {selectedOrder.customerInfo.fullName || 'N/A'} ({selectedOrder.customerInfo.phone || 'N/A'})</div>
+                <div className="mb-2"><b>Địa chỉ:</b> {selectedOrder.customerInfo.address || ''}, {selectedOrder.customerInfo.city || ''}</div>
+                <div className="mb-2"><b>Phương thức thanh toán:</b> {selectedOrder.paymentMethod ? selectedOrder.paymentMethod.toUpperCase() : 'N/A'}</div>
                 <div className="mb-2"><b>Trạng thái thanh toán:</b> {selectedOrder.paymentStatus}</div>
                 <div className="mb-2"><b>Trạng thái đơn:</b> {selectedOrder.orderStatus}</div>
                 <div className="mb-2"><b>Ngày tạo:</b> {new Date(selectedOrder.createdAt).toLocaleString()}</div>
@@ -307,7 +307,7 @@ const Orders = () => {
                   <ul className="list-disc ml-6">
                     {selectedOrder.items.map((item, idx) => (
                       <li key={idx}>
-                        {item.name} x{item.quantity} - {item.price.toLocaleString()}₫
+                        {item.name || 'N/A'} x{item.quantity} - {item.price.toLocaleString()}₫
                         {item.colorName && ` (${item.colorName})`}
                       </li>
                     ))}
@@ -325,16 +325,16 @@ const Orders = () => {
                   </div>
                 )}
                 <div className="flex gap-2 mt-4">
-                  {selectedOrder.orderStatus === 'pending' && (
+                  {selectedOrder.orderStatus === 'confirming' && (
                     <Button onClick={handleConfirmOrder} disabled={actionLoading}>Xác nhận đơn</Button>
                   )}
-                  {selectedOrder.orderStatus === 'confirmed' && (
+                  {selectedOrder.orderStatus === 'packing' && (
                     <Button onClick={handleShippingOrder} disabled={actionLoading}>Chuyển sang Đang giao</Button>
                   )}
                   {selectedOrder.orderStatus === 'shipping' && (
                     <Button onClick={handleDeliveredOrder} disabled={actionLoading}>Chuyển sang Hoàn thành</Button>
                   )}
-                  {['pending','confirmed','shipping'].includes(selectedOrder.orderStatus) && (
+                  {['confirming','packing','shipping'].includes(selectedOrder.orderStatus) && (
                     <Button variant="destructive" onClick={handleCancelOrder} disabled={actionLoading}>Hủy đơn</Button>
                   )}
                 </div>

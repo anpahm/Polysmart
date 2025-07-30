@@ -59,7 +59,7 @@ const register = [upload.single('img'), async (req, res) => {
 }
 ]
 
-const login = [upload.single('img'), async (req, res) => {
+const login = async (req, res) => {
     try {
         // Kiểm tra email có tồn tại không
         console.log(req.body);
@@ -82,7 +82,7 @@ const login = [upload.single('img'), async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-]
+
 
 //Bảo mật token
 const verifyToken = (req, res, next) => {

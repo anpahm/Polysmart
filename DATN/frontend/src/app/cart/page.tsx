@@ -6,6 +6,7 @@ import { removeFromCart, changeQuantity } from '../../store/cartSlice';
 import { useRouter } from 'next/navigation';
 import { getApiUrl } from "@/config/api";
 import { showInfoAlert, showSuccessModal } from '@/utils/sweetAlert';
+import { getVnColorName } from '@/constants/colorMapShared';
 
 function formatVND(num: number) {
   return num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -162,7 +163,7 @@ export default function CartPage() {
                                 className="w-4 h-4 rounded-full border"
                                 style={{ backgroundColor: item.colorName }}
                               />
-                              <span className="text-sm text-gray-600">{item.colorName}</span>
+                              <span className="text-sm text-gray-600">{getVnColorName(item.colorName)}</span>
                              </div>
                           ) : null}
                         </div>

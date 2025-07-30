@@ -41,6 +41,7 @@ export default function SearchResult() {
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchError, setSearchError] = useState(''); // Thêm state cho thông báo lỗi
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -185,8 +186,16 @@ export default function SearchResult() {
   // Xử lý submit form tìm kiếm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!searchInput.trim()) {
+      // Hiển thị thông báo lỗi khi từ khóa rỗng
+      setSearchError("Vui lòng nhập từ khóa");
+      // Tự động ẩn thông báo sau 3 giây
+      setTimeout(() => setSearchError(''), 3000);
+      return;
+    }
+    setSearchError(''); // Xóa thông báo lỗi nếu có
     setShowSuggestions(false);
-    if (user && user._id && searchInput.trim()) {
+    if (user && user._id) {
       await trackUserEvent('search', '', user._id, searchInput);
     }
     router.push(`/search?keyword=${encodeURIComponent(searchInput)}`);
@@ -244,11 +253,22 @@ export default function SearchResult() {
                 ref={inputRef}
                 type="text"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  // Xóa thông báo lỗi khi người dùng bắt đầu nhập
+                  if (searchError) setSearchError('');
+                }}
                 onFocus={() => setShowSuggestions(true)}
                 className="w-full border rounded px-4 py-2"
                 placeholder="Nhập tên sản phẩm..."
               />
+              
+              {/* Hiển thị thông báo lỗi */}
+              {searchError && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
+                  {searchError}
+                </div>
+              )}
               
               {/* Danh sách gợi ý sản phẩm */}
               {showSuggestions && suggestions.length > 0 && (

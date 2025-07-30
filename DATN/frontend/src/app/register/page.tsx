@@ -19,6 +19,12 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState({
+    TenKH: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,12 +32,113 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
+  const validateForm = () => {
+    const newErrors = {
+      TenKH: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
+
+    if (!form.TenKH.trim()) {
+      newErrors.TenKH = "Vui lòng nhập họ và tên";
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = "Vui lòng nhập email";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Email không hợp lệ";
+    }
+
+    if (!form.password) {
+      newErrors.password = "Vui lòng nhập mật khẩu";
+    } else if (form.password.length < 6) {
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự!";
+    }
+
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+    }
+
+    setErrors(newErrors);
+    return !newErrors.TenKH && !newErrors.email && !newErrors.password && !newErrors.confirmPassword;
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email.trim()) {
+      return "Vui lòng nhập email";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return "Email không hợp lệ";
+    }
+    return "";
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      return "Vui lòng nhập mật khẩu";
+    }
+    if (password.length < 6) {
+      return "Mật khẩu phải có ít nhất 6 ký tự!";
+    }
+    return "";
+  };
+
+  const validateConfirmPassword = (confirmPassword: string, password: string) => {
+    if (!confirmPassword) {
+      return "Vui lòng xác nhận mật khẩu";
+    }
+    if (password !== confirmPassword) {
+      return "Mật khẩu xác nhận không khớp";
+    }
+    return "";
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
       [name]: value
     }));
+    
+    // Real-time validation
+    if (name === 'email') {
+      const emailError = validateEmail(value);
+      setErrors(prev => ({
+        ...prev,
+        email: emailError
+      }));
+    } else if (name === 'password') {
+      const passwordError = validatePassword(value);
+      setErrors(prev => ({
+        ...prev,
+        password: passwordError
+      }));
+      // Also validate confirm password when password changes
+      if (form.confirmPassword) {
+        const confirmPasswordError = validateConfirmPassword(form.confirmPassword, value);
+        setErrors(prev => ({
+          ...prev,
+          confirmPassword: confirmPasswordError
+        }));
+      }
+    } else if (name === 'confirmPassword') {
+      const confirmPasswordError = validateConfirmPassword(value, form.password);
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: confirmPasswordError
+      }));
+    } else {
+      // Clear error when user starts typing in other fields
+      if (errors[name as keyof typeof errors]) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: ""
+        }));
+      }
+    }
   };
 
   // Chèn script reCAPTCHA vào body khi component mount
@@ -50,25 +157,8 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
-    // Validation
-    if (!form.TenKH.trim()) {
-      setError("Vui lòng nhập họ và tên");
-      return;
-    }
-    if (!form.email.trim()) {
-      setError("Vui lòng nhập email");
-      return;
-    }
-    if (!form.password) {
-      setError("Vui lòng nhập mật khẩu");
-      return;
-    }
-    if (form.password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+    // Validate form before submission
+    if (!validateForm()) {
       return;
     }
 
@@ -118,97 +208,118 @@ export default function RegisterPage() {
           <h2 className="text-3xl font-extrabold mb-2 text-center text-blue-700 tracking-tight">Tạo tài khoản mới</h2>
           <p className="text-center text-gray-500 mb-6">Chào mừng bạn đến với PolySmart!<br/>Vui lòng điền thông tin để đăng ký.</p>
           {error && <div className="mb-4 text-red-600 text-center font-medium bg-red-50 border border-red-200 rounded py-2">{error}</div>}
-          {success && <div className="mb-4 text-green-600 text-center font-medium bg-green-50 border border-green-200 rounded py-2">{success}</div>}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {success && <div className="mb-4 text-green-600 text-center font-medium bg-green-50 border border-green-200 rounded py-2 flex items-center justify-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {success}
+          </div>}
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {/* Họ và tên */}
-            <div className="flex items-center border border-blue-200 rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm">
-              <span className="text-blue-400 mr-2 flex items-center">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </span>
-              <input
-                name="TenKH"
-                value={form.TenKH}
-                onChange={handleChange}
-                className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base"
-                placeholder="Họ và tên"
-                required
-              />
+            <div>
+              <div className={`flex items-center border rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm ${errors.TenKH ? 'border-red-300' : 'border-blue-200'}`}>
+                <span className="text-blue-400 mr-2 flex items-center">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <input
+                  name="TenKH"
+                  value={form.TenKH}
+                  onChange={handleChange}
+                  className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base"
+                  placeholder="Họ và tên"
+                />
+              </div>
+              {errors.TenKH && (
+                <p className="text-red-500 text-sm mt-1 ml-4">{errors.TenKH}</p>
+              )}
             </div>
             {/* Email */}
-            <div className="flex items-center border border-blue-200 rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm">
-              <span className="text-blue-400 mr-2 flex items-center">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
-              </span>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base"
-                placeholder="E-mail"
-                required
-              />
+            <div>
+              <div className={`flex items-center border rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm ${errors.email ? 'border-red-300' : 'border-blue-200'}`}>
+                <span className="text-blue-400 mr-2 flex items-center">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+                </span>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base"
+                  placeholder="E-mail"
+                />
+              </div>
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1 ml-4">{errors.email}</p>
+              )}
             </div>
             {/* Mật khẩu */}
-            <div className="flex items-center border border-blue-200 rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm relative">
-              <span className="text-blue-400 mr-2 flex items-center">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </span>
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={handleChange}
-                className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base pr-8"
-                placeholder="Mật khẩu"
-                required
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 focus:outline-none"
-                onClick={() => setShowPassword(v => !v)}
-                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-              >
-                {showPassword ? (
-                  // Eye-off icon
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.27-3.11-11-8 1.02-2.53 2.77-4.66 5-6.06M1 1l22 22"/><path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.5 3.5 0 0 0 2.47-5.97"/></svg>
-                ) : (
-                  // Eye icon
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6"/><circle cx="12" cy="12" r="3"/></svg>
-                )}
-              </button>
+            <div>
+              <div className={`flex items-center border rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm relative ${errors.password ? 'border-red-300' : 'border-blue-200'}`}>
+                <span className="text-blue-400 mr-2 flex items-center">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base pr-8"
+                  placeholder="Mật khẩu"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 focus:outline-none"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showPassword ? (
+                    // Eye-off icon
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.27-3.11-11-8 1.02-2.53 2.77-4.66 5-6.06M1 1l22 22"/><path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.5 3.5 0 0 0 2.47-5.97"/></svg>
+                  ) : (
+                    // Eye icon
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1 ml-4">{errors.password}</p>
+              )}
+              <div className="text-xs text-gray-400 ml-1">Mật khẩu tối thiểu 6 ký tự, gồm chữ, số và ký tự đặc biệt</div>
             </div>
-            <div className="text-xs text-gray-400 ml-1">Mật khẩu tối thiểu 8 ký tự, gồm chữ, số và ký tự đặc biệt</div>
             {/* Xác nhận mật khẩu */}
-            <div className="flex items-center border border-blue-200 rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm relative">
-              <span className="text-blue-400 mr-2 flex items-center">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </span>
-              <input
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={form.confirmPassword}
-                onChange={handleChange}
-                className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base pr-8"
-                placeholder="Xác nhận mật khẩu"
-                required
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 focus:outline-none"
-                onClick={() => setShowConfirmPassword(v => !v)}
-                aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-              >
-                {showConfirmPassword ? (
-                  // Eye-off icon
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.27-3.11-11-8 1.02-2.53 2.77-4.66 5-6.06M1 1l22 22"/><path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.5 3.5 0 0 0 2.47-5.97"/></svg>
-                ) : (
-                  // Eye icon
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6"/><circle cx="12" cy="12" r="3"/></svg>
-                )}
-              </button>
+            <div>
+              <div className={`flex items-center border rounded-full bg-white/80 px-4 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition shadow-sm relative ${errors.confirmPassword ? 'border-red-300' : 'border-blue-200'}`}>
+                <span className="text-blue-400 mr-2 flex items-center">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <input
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full outline-none bg-transparent text-gray-700 placeholder-gray-400 text-base pr-8"
+                  placeholder="Xác nhận mật khẩu"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 focus:outline-none"
+                  onClick={() => setShowConfirmPassword(v => !v)}
+                  aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showConfirmPassword ? (
+                    // Eye-off icon
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.27-3.11-11-8 1.02-2.53 2.77-4.66 5-6.06M1 1l22 22"/><path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.5 3.5 0 0 0 2.47-5.97"/></svg>
+                  ) : (
+                    // Eye icon
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1 ml-4">{errors.confirmPassword}</p>
+              )}
             </div>
             {/* reCAPTCHA */}
             <div className="mb-2">
@@ -220,9 +331,9 @@ export default function RegisterPage() {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-700 text-white py-2 rounded-full font-semibold shadow-lg hover:scale-105 hover:from-blue-600 hover:to-blue-800 transition-all text-lg mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={loading}
+              disabled={loading || !!success}
             >
-              {loading ? "Đang đăng ký..." : "Đăng ký"}
+              {loading ? "Đang đăng ký..." : success ? "Đăng ký thành công!" : "Đăng ký"}
             </button>
             <div className="mt-4 text-center text-sm">
               Đã có tài khoản? <a href="/login" className="text-blue-600 underline font-medium">Đăng nhập ngay</a>

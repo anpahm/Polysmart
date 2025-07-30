@@ -6,6 +6,7 @@ import { orderService } from '@/services/orderService';
 import type { OrderResponse } from '@/services/orderService';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
+import ProtectedPaymentRoute from '@/components/ProtectedPaymentRoute';
 
 export default function BankingPaymentPage() {
   const router = useRouter();
@@ -94,15 +95,18 @@ export default function BankingPaymentPage() {
 
   if (!orderData) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg">
-          <p className="text-gray-800">Đang tạo đơn hàng...</p>
+      <ProtectedPaymentRoute>
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <p className="text-gray-800">Đang tạo đơn hàng...</p>
+          </div>
         </div>
-      </div>
+      </ProtectedPaymentRoute>
     );
   }
 
   return (
+    <ProtectedPaymentRoute>
     <div className="min-h-screen bg-gray-100 py-12">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
@@ -197,6 +201,6 @@ export default function BankingPaymentPage() {
           </button>
         </div>
       </div>
-    </div>
+    </ProtectedPaymentRoute>
   );
 } 

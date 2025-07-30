@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '@/config/api';
+import { getVnColorName } from '@/constants/colorMapShared';
 
 interface ProductVariant {
   _id: string;
@@ -51,7 +52,7 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(getApiUrl(`products?search=${searchTerm}`));
+        const response = await fetch(getApiUrl(`products?search=${searchTerm}&an_hien=true`));
         const data = await response.json();
         setProducts(data);
       } catch (err) {
@@ -73,7 +74,7 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
         gia_flash_sale: variant.gia,
         so_luong: variant.so_luong_hang,
         product_name: product.TenSP,
-        variant_details: `${variant.dung_luong} - ${variant.mau} (Giá gốc: ${variant.gia})`,
+        variant_details: `${variant.dung_luong} - ${getVnColorName(variant.mau)} (Giá gốc: ${variant.gia})`,
       },
     ]);
   };
@@ -248,7 +249,7 @@ const AddFlashSaleForm: React.FC<AddFlashSaleFormProps> = ({ onClose, onSuccess 
                       {product.variants.map(variant => (
                         <div key={variant._id} className="flex items-center justify-between bg-gray-50 dark:bg-meta-4 p-2 rounded">
                           <span className="text-sm text-black dark:text-white">
-                            {variant.dung_luong} - {variant.mau} (Giá gốc: {variant.gia})
+                            {variant.dung_luong} - {getVnColorName(variant.mau)} (Giá gốc: {variant.gia})
                           </span>
                           <button
                             type="button"

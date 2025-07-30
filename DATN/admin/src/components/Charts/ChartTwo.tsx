@@ -99,7 +99,7 @@ const ChartTwo: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await fetch(`https://polysmart.me/api/admin/statistics?period=${period}`, {
+      const response = await fetch(`http://localhost:3000/api/admin/statistics?period=${period}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

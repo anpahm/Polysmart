@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { FaEdit, FaTrash, FaPlus, FaHome, FaImage } from "react-icons/fa";
+import { FaEdit, FaEye, FaEyeSlash, FaPlus, FaHome, FaImage } from "react-icons/fa";
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -10,12 +10,13 @@ interface Category {
   _id: string;
   ten_danh_muc: string;
   video?: string;
+  an_hien?: boolean;
 }
 
 const getVideoUrl = (videoUrl: string | undefined): string => {
   if (!videoUrl) return '';
   if (videoUrl.startsWith('http')) return videoUrl;
-  return `https://polysmart.me/video/${videoUrl.replace(/^\/video\//, '')}`;
+  return `http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`;
 };
 
 export default function CategoryAdminPage() {
@@ -36,7 +37,7 @@ export default function CategoryAdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("https://polysmart.me/api/categories")
+    fetch("http://localhost:3000/api/categories")
       .then((res) => {
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu danh mục");
         return res.json();
@@ -72,16 +73,20 @@ export default function CategoryAdminPage() {
     if (!file) return;
     const formData = new FormData();
     formData.append('video', file);
-    const res = await fetch('https://polysmart.me/api/categories/upload-video', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await res.json();
-    if (data.url) {
-      setNewCategory(prev => ({ ...prev, video: data.url }));
-      setImageError("");
-    } else {
-      setImageError(data.message || 'Lỗi upload video');
+    try {
+      const res = await fetch('http://localhost:3000/api/categories/upload-video', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setNewCategory(prev => ({ ...prev, video: data.url }));
+        setImageError("");
+      } else {
+        setImageError(data.message || 'Lỗi upload video');
+      }
+    } catch (error) {
+      setImageError('Lỗi upload video: ' + error.message);
     }
   };
 
@@ -92,7 +97,7 @@ export default function CategoryAdminPage() {
     }
     if (editCategory) {
       // Sửa danh mục
-      fetch(`https://polysmart.me/api/categories/${editCategory._id}`, {
+      fetch(`http://localhost:3000/api/categories/${editCategory._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory)
@@ -111,7 +116,7 @@ export default function CategoryAdminPage() {
         .catch(err => toast.error(err.message));
     } else {
       // Thêm danh mục
-      fetch("https://polysmart.me/api/categories", {
+      fetch("http://localhost:3000/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory)
@@ -132,9 +137,27 @@ export default function CategoryAdminPage() {
     }
   };
 
+  const handleToggleVisibility = (categoryId: string) => {
+    fetch(`http://localhost:3000/api/categories/${categoryId}/toggle-visibility`, {
+      method: 'PATCH',
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Lỗi khi thay đổi trạng thái danh mục');
+        return res.json();
+      })
+      .then(data => {
+        setCategories(prev => prev.map(c => c._id === data._id ? data : c));
+        const status = data.an_hien ? 'hiện' : 'ẩn';
+        toast.success(`Đã ${status} danh mục thành công!`);
+      })
+      .catch(err => {
+        toast.error(err.message);
+      });
+  };
+
   const handleDeleteCategory = () => {
     if (!deleteId) return;
-    fetch(`https://polysmart.me/api/categories/${deleteId}`, {
+    fetch(`http://localhost:3000/api/categories/${deleteId}`, {
       method: 'DELETE',
     })
       .then(res => {
@@ -178,13 +201,14 @@ export default function CategoryAdminPage() {
               <th className="border px-4 py-2 text-left">STT</th>
               <th className="border px-4 py-2 text-left">Tên danh mục</th>
               <th className="border px-4 py-2 text-left">Video</th>
+              <th className="border px-4 py-2 text-center">Trạng thái</th>
               <th className="border px-4 py-2 text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
             {paged.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center text-gray-400 py-8">Chưa có danh mục nào.</td>
+                <td colSpan={5} className="text-center text-gray-400 py-8">Chưa có danh mục nào.</td>
               </tr>
             ) : (
               paged.map((c, idx) => (
@@ -201,6 +225,15 @@ export default function CategoryAdminPage() {
                       <span className="text-gray-400 italic">Không có video</span>
                     )}
                   </td>
+                  <td className="border px-4 py-2 text-center">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      c.an_hien 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {c.an_hien ? 'Đang hiện' : 'Đang ẩn'}
+                    </span>
+                  </td>
                   <td className="border px-4 py-2">
                     <div className="flex items-center justify-center gap-2">
                       <button
@@ -211,11 +244,15 @@ export default function CategoryAdminPage() {
                         <FaEdit />
                       </button>
                       <button
-                        title="Xóa"
-                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow flex items-center justify-center"
-                        onClick={() => setDeleteId(c._id)}
+                        title={c.an_hien ? "Ẩn" : "Hiện"}
+                        className={`p-2 rounded-full shadow flex items-center justify-center ${
+                          c.an_hien 
+                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                            : 'bg-green-500 hover:bg-green-600 text-white'
+                        }`}
+                        onClick={() => handleToggleVisibility(c._id)}
                       >
-                        <FaTrash />
+                        {c.an_hien ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                   </td>

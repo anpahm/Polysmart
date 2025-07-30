@@ -22,13 +22,13 @@ router.get('/', async (req, res) => {
       return res.json({ message: 'Hãy xem một số sản phẩm để được tư vấn!' });
     }
     const viewedProductIds = [...new Set(viewedEvents.map(e => e.productId))].map(id => new mongoose.Types.ObjectId(id));
-    const viewedProducts = await Product.find({ _id: { $in: viewedProductIds } }).lean();
-    const allProducts = await Product.find({}).lean();
+    const viewedProducts = await Product.find({ _id: { $in: viewedProductIds }, an_hien: true }).lean();
+    const allProducts = await Product.find({ an_hien: true }).lean();
 
     const cartEvents = await UserEvent.find({ userId, eventType: 'add_to_cart' }).lean();
     const searchEvents = await UserEvent.find({ userId, eventType: 'search' }).lean();
     const cartProductIds = cartEvents.map(e => e.productId).filter(Boolean);
-    const cartProducts = await Product.find({ _id: { $in: cartProductIds } }).lean();
+    const cartProducts = await Product.find({ _id: { $in: cartProductIds }, an_hien: true }).lean();
     const cartProductNames = cartProducts.map(p => p.TenSP);
     const searchKeywords = searchEvents.map(e => e.searchKeyword).filter(Boolean);
 

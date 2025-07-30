@@ -159,7 +159,7 @@ const ProductDetailPage = () => {
 
   useEffect(() => {
     // Fetch tất cả sản phẩm để lọc mua kèm
-    fetch("http://localhost:3000/api/products")
+    fetch("http://localhost:3000/api/products?an_hien=true")
       .then(res => res.json())
       .then(data => setAllProducts(data));
   }, []);

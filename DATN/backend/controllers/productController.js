@@ -22,7 +22,28 @@ const upload = multer({ storage: storage, fileFilter: checkfile });
 
 const getAllProducts = async (req, res) => {
   try {
-    const productsList = await products.find();
+    // Xây dựng điều kiện tìm kiếm
+    const queryConditions = {};
+    
+    // Nếu có query parameter id_danhmuc hoặc category, thêm vào điều kiện
+    if (req.query.id_danhmuc) {
+      queryConditions.id_danhmuc = req.query.id_danhmuc;
+    } else if (req.query.category) {
+      queryConditions.id_danhmuc = req.query.category;
+    }
+    
+    // Nếu có query parameter an_hien, thêm vào điều kiện (cho frontend)
+    if (req.query.an_hien !== undefined) {
+      queryConditions.an_hien = req.query.an_hien === 'true';
+    }
+    
+    // Lấy sản phẩm theo điều kiện
+    let productsList;
+    if (req.query.limit) {
+      productsList = await products.find(queryConditions).limit(Number(req.query.limit));
+    } else {
+      productsList = await products.find(queryConditions);
+    }
 
     if (!productsList.length) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm nào" });
@@ -38,7 +59,7 @@ const getAllProducts = async (req, res) => {
     });
 
     const categoryAll = await categories.find(
-      { _id: { $in: categoryIds } },
+      { _id: { $in: categoryIds }, an_hien: true },
       "ten_danh_muc video"
     );
 
@@ -68,6 +89,7 @@ const getAllProducts = async (req, res) => {
 
 const getProductById = async (req, res) => {
   try {
+    // Lấy sản phẩm theo ID (không filter an_hien để admin có thể xem)
     const product = await products.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
@@ -79,7 +101,7 @@ const getProductById = async (req, res) => {
 
     const category = await categories.findById(
       product.id_danhmuc,
-      "ten_danh_muc video"
+      "ten_danh_muc video an_hien"
     );
     if (!category) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
@@ -155,7 +177,9 @@ const searchProducts = async (req, res) => {
 
     // Tạo điều kiện tìm kiếm
     const searchConditions = {
-      $and: regexes.map(regex => ({ TenSP: regex }))
+      $and: [
+        ...regexes.map(regex => ({ TenSP: regex }))
+      ]
     };
     
     const productsList = await products.find(searchConditions);
@@ -168,7 +192,7 @@ const searchProducts = async (req, res) => {
     const categoryIds = productsList.map((product) => product.id_danhmuc.toString());
     const variantAll = await variants.find({ id_san_pham: { $in: productIds } });
     const categoryAll = await categories.find(
-      { _id: { $in: categoryIds } },
+      { _id: { $in: categoryIds }, an_hien: true },
       "ten_danh_muc video"
     );
     const productsWithCategories = productsList.map((product) => {

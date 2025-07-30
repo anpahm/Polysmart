@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { FaEdit, FaEye, FaEyeSlash, FaPlus, FaTrash } from "react-icons/fa";
 import React from "react";
-import { colorMap, getVnColorName } from '../../../../src/constants/colorMapShared';
+import { colorMap, getVnColorName } from '../../constants/colorMapShared';
 
 interface Variant {
   _id: string;
@@ -64,14 +64,14 @@ export default function VariantProductPage({ productId }: { productId: string })
     const fetchData = async () => {
       try {
         // Fetch thông tin sản phẩm
-        const productRes = await fetch(`https://polysmart.me/api/products/${productId}`);
+        const productRes = await fetch(`http://localhost:3000/api/products/${productId}`);
         if (productRes.ok) {
           const productData = await productRes.json();
           setProduct(productData);
         }
 
         // Fetch variants
-        const variantRes = await fetch(`https://polysmart.me/api/variants/by-product/${productId}`);
+        const variantRes = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`);
         if (!variantRes.ok) {
           setVariants([]);
           setCurrentImgs([]);
@@ -137,13 +137,13 @@ export default function VariantProductPage({ productId }: { productId: string })
     try {
       let res;
       if (editVariant) {
-        res = await fetch(`https://polysmart.me/api/variants/${editVariant._id}`, {
+        res = await fetch(`http://localhost:3000/api/variants/${editVariant._id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         });
       } else {
-        res = await fetch(`https://polysmart.me/api/variants`, {
+        res = await fetch(`http://localhost:3000/api/variants`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...form, id_san_pham: productId }),
@@ -162,7 +162,7 @@ export default function VariantProductPage({ productId }: { productId: string })
         an_hien: true,
       });
       // Refresh lại danh sách
-      const data = await fetch(`https://polysmart.me/api/variants/by-product/${productId}`).then(r => r.json());
+      const data = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`).then(r => r.json());
       setVariants(data);
       setCurrentImgs(Array(data.length).fill(0));
     } catch (err: any) {
@@ -180,7 +180,7 @@ export default function VariantProductPage({ productId }: { productId: string })
       const formData = new FormData();
       formData.append("file", files[i]);
       try {
-        const res = await fetch("https://polysmart.me/api/variants/upload-image", {
+        const res = await fetch("http://localhost:3000/api/variants/upload-image", {
           method: "POST",
           body: formData,
         });
@@ -530,10 +530,10 @@ export default function VariantProductPage({ productId }: { productId: string })
                       title={variant.an_hien ? "Ẩn" : "Hiện"}
                       onClick={async () => {
                         try {
-                          const res = await fetch(`https://polysmart.me/api/variants/toggle-visibility/${variant._id}`, { method: "PATCH" });
+                          const res = await fetch(`http://localhost:3000/api/variants/toggle-visibility/${variant._id}`, { method: "PATCH" });
                           if (!res.ok) throw new Error("Lỗi đổi trạng thái");
                           // Refresh lại danh sách
-                          const data = await fetch(`https://polysmart.me/api/variants/by-product/${productId}`).then(r => r.json());
+                          const data = await fetch(`http://localhost:3000/api/variants/by-product/${productId}`).then(r => r.json());
                           setVariants(data);
                           setCurrentImgs(Array(data.length).fill(0));
                         } catch (err) {
@@ -557,6 +557,6 @@ export default function VariantProductPage({ productId }: { productId: string })
 function getImageUrl(image: string | undefined): string {
   if (!image) return "/images/no-image.svg";
   if (image.startsWith("http")) return image;
-  return `https://polysmart.me/images/${image.replace(/^\/images\//, "")}`;
+  return `http://localhost:3000/images/${image.replace(/^\/images\//, "")}`;
 }
 

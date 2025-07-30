@@ -10,7 +10,7 @@ import { FaEdit, FaTrash, FaEyeSlash, FaEye, FaInfoCircle } from "react-icons/fa
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {flexRender, getCoreRowModel, getPaginationRowModel, useReactTable, getFilteredRowModel } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import { colorMap, getVnColorName } from '../../../../src/constants/colorMapShared';
+import { colorMap, getVnColorName } from '../../constants/colorMapShared';
 
 interface Product {
   _id: string;
@@ -259,7 +259,7 @@ export default function ProductTable() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("https://polysmart.me/api/products");
+        const res = await fetch("http://localhost:3000/api/products");
         const data = await res.json();
         setProducts(data);
       } catch (error) {
@@ -272,7 +272,7 @@ export default function ProductTable() {
     fetchProducts();
 
     // Fetch categories
-          fetch("https://polysmart.me/api/categories")
+    fetch("http://localhost:3000/api/categories?an_hien=true")
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(error => console.error("Error fetching categories:", error));
@@ -336,7 +336,7 @@ export default function ProductTable() {
     const formData = new FormData();
     formData.append('image', file);
     try {
-      const res = await fetch('https://polysmart.me/api/products/upload-image', {
+      const res = await fetch('http://localhost:3000/api/products/upload-image', {
         method: 'POST',
         body: formData,
       });
@@ -356,7 +356,7 @@ export default function ProductTable() {
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append('video', file);
-      const res = await fetch('https://polysmart.me/api/products/upload-video', {
+      const res = await fetch('http://localhost:3000/api/products/upload-video', {
         method: 'POST',
         body: formData,
       });
@@ -391,8 +391,8 @@ export default function ProductTable() {
 
       const res = await fetch(
         editProduct 
-                  ? `https://polysmart.me/api/products/${editProduct._id}`
-        : "https://polysmart.me/api/products",
+                  ? `http://localhost:3000/api/products/${editProduct._id}`
+: "http://localhost:3000/api/products",
         {
           method: editProduct ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -440,7 +440,7 @@ export default function ProductTable() {
 
   const handleToggleVisibility = async (product: Product) => {
     try {
-      const res = await fetch(`https://polysmart.me/api/products/${product._id}`, {
+      const res = await fetch(`http://localhost:3000/api/products/${product._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ an_hien: !product.an_hien })
@@ -520,7 +520,7 @@ export default function ProductTable() {
     setAiSpecLoading(true);
     try {
       console.log('Gửi request đến AI với tên:', productName);
-      const res = await fetch('https://polysmart.me/api/generate-product-specs', {
+      const res = await fetch('http://localhost:3000/api/generate-product-specs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: productName })
@@ -1156,7 +1156,7 @@ export default function ProductTable() {
                         height="120" 
                         controls 
                         className="w-full"
-                        src={`https://polysmart.me/video/${videoUrl.replace(/^\/video\//, '')}`} 
+                        src={`http://localhost:3000/video/${videoUrl.replace(/^\/video\//, '')}`} 
                       />
                       <button
                         className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition-colors"
@@ -1250,7 +1250,7 @@ export default function ProductTable() {
                 autoPlay
                 style={{ borderRadius: 8 }}
               >
-                <source src={`https://polysmart.me/video/${videoProduct.video[0]}`} type="video/mp4" />
+                <source src={`http://localhost:3000/video/${videoProduct.video[0]}`} type="video/mp4" />
                 Trình duyệt không hỗ trợ video.
               </video>
             ) : (
@@ -1274,5 +1274,5 @@ export default function ProductTable() {
 const getImageUrl = (imageUrl: string | undefined): string => {
   if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
-  return `https://polysmart.me/images/${imageUrl.replace(/^\/images\//, '')}`;
+  return `http://localhost:3000/images/${imageUrl.replace(/^\/images\//, '')}`;
 };

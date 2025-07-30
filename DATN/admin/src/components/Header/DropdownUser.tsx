@@ -25,11 +25,11 @@ const DropdownUser = () => {
     
     // Nếu avatar bắt đầu bằng /images
     if (avatar.startsWith('/images')) {
-      return `https://polysmart.me${avatar}`;
+      return `http://localhost:3000${avatar}`;
     }
     
     // Nếu chỉ là tên file
-    return `https://polysmart.me/images/${avatar}`;
+    return `http://localhost:3000/images/${avatar}`;
   };
 
   const avatarUrl = getAvatarUrl(user?.avatar);

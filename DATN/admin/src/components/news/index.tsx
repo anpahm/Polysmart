@@ -245,7 +245,7 @@ export default function NewsTable() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch("https://polysmart.me/api/news");
+        const res = await fetch("http://localhost:3000/api/news");
         const data = await res.json();
         setNews(data);
       } catch (error) {
@@ -258,7 +258,7 @@ export default function NewsTable() {
     fetchNews();
 
     // Fetch news categories
-    fetch("https://polysmart.me/api/newscategory")
+    fetch("http://localhost:3000/api/newscategory")
       .then(res => res.json())
       .then(data => setNewsCategories(data))
       .catch(error => console.error("Error fetching news categories:", error));
@@ -266,7 +266,7 @@ export default function NewsTable() {
 
   useEffect(() => {
     if (showModal) {
-      fetch("https://polysmart.me/api/users")
+      fetch("http://localhost:3000/api/users")
         .then(res => res.json())
         .then(data => {
           setAdmins(data.filter((u: any) => u.role === "admin"));
@@ -306,7 +306,7 @@ export default function NewsTable() {
     const formData = new FormData();
     formData.append('hinh', file);
     try {
-      const res = await fetch('https://polysmart.me/api/news/upload', {
+      const res = await fetch('http://localhost:3000/api/news/upload', {
         method: 'POST',
         body: formData,
       });
@@ -349,8 +349,8 @@ export default function NewsTable() {
     try {
       const res = await fetch(
         editNews 
-          ? `https://polysmart.me/api/news/${editNews._id}`
-          : "https://polysmart.me/api/news",
+          ? `http://localhost:3000/api/news/${editNews._id}`
+: "http://localhost:3000/api/news",
         {
           method: editNews ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -388,14 +388,14 @@ export default function NewsTable() {
 
   const handleToggleVisibility = async (newsItem: News) => {
     try {
-      const res = await fetch(`https://polysmart.me/api/news/${newsItem._id}`, {
+      const res = await fetch(`http://localhost:3000/api/news/${newsItem._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ an_hien: !newsItem.an_hien })
       });
       const data = await res.json();
       // Gọi lại API để lấy danh sách mới nhất (đảm bảo đồng bộ)
-      const resAll = await fetch("https://polysmart.me/api/news");
+      const resAll = await fetch("http://localhost:3000/api/news");
       const allNews = await resAll.json();
       setNews(allNews);
       toast.success(`Đã ${data.an_hien ? 'hiện' : 'ẩn'} tin tức!`);
@@ -408,7 +408,7 @@ export default function NewsTable() {
     if (!confirm('Bạn có chắc chắn muốn xóa tin tức này?')) return;
     
     try {
-      const res = await fetch(`https://polysmart.me/api/news/${newsItem._id}`, {
+      const res = await fetch(`http://localhost:3000/api/news/${newsItem._id}`, {
         method: "DELETE"
       });
       
@@ -430,8 +430,8 @@ export default function NewsTable() {
     try {
       const res = await fetch(
         editCategory 
-          ? `https://polysmart.me/api/newscategory/${editCategory._id}`
-          : "https://polysmart.me/api/newscategory",
+          ? `http://localhost:3000/api/newscategory/${editCategory._id}`
+          : "http://localhost:3000/api/newscategory",
         {
           method: editCategory ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -464,7 +464,7 @@ export default function NewsTable() {
     if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
     
     try {
-      const res = await fetch(`https://polysmart.me/api/newscategory/${categoryId}`, {
+      const res = await fetch(`http://localhost:3000/api/newscategory/${categoryId}`, {
         method: "DELETE"
       });
       
@@ -866,5 +866,5 @@ export default function NewsTable() {
 const getImageUrl = (imageUrl: string | undefined): string => {
   if (!imageUrl) return '/images/no-image.svg';
   if (imageUrl.startsWith('http')) return imageUrl;
-  return `https://polysmart.me${imageUrl}`;
+  return `http://localhost:3000${imageUrl}`;
 };

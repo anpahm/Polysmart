@@ -100,7 +100,7 @@ const Header = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(getApiUrl('/categories'));
+        const response = await fetch(getApiUrl('/categories?an_hien=true'));
         const data = await response.json();
         setCategories(data);
       } catch (error) {
@@ -225,7 +225,7 @@ const Header = () => {
     setLoadingSuggest(true);
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(getApiUrl('products'));
+        const res = await fetch(getApiUrl('products?an_hien=true'));
         const data = await res.json();
         if (Array.isArray(data)) {
           const filteredProducts = filterProducts(data, searchTerm)

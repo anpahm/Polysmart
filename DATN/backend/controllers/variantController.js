@@ -5,6 +5,7 @@ const fs = require('fs');
 
 const getAllVariants = async (req, res) => {
   try {
+    // Lấy tất cả variants (không filter an_hien để admin có thể xem)
     const variantList = await variants.find();
     if (!variantList.length) {
       return res.status(404).json({ message: "Không tìm thấy biến thể nào" });
@@ -19,6 +20,7 @@ const getAllVariants = async (req, res) => {
 const getVariantsByProductId = async (req, res) => {
   try {
     const productId = req.params.id;
+    // Lấy tất cả variants của sản phẩm (không filter an_hien để admin có thể xem)
     const variantList = await variants.find({ id_san_pham: productId });
     if (!variantList.length) {
       return res.status(404).json({ message: "Không tìm thấy biến thể nào cho sản phẩm này" });

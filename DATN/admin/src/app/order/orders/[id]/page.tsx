@@ -68,7 +68,7 @@ export default function OrderDetailPage() {
     const fetchOrder = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`https://polysmart.me/api/orders/${id}`);
+        const res = await fetch(`http://localhost:3000/api/orders/${id}`);
         const data = await res.json();
         setOrder(data);
       } catch {
@@ -83,7 +83,7 @@ export default function OrderDetailPage() {
   const handleConfirmOrder = async () => {
     if (!order || !order._id) return;
     setActionLoading(true);
-    await fetch(`https://polysmart.me/api/orders/${order._id}`, {
+    await fetch(`http://localhost:3000/api/orders/${order._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderStatus: 'packing' })
@@ -93,7 +93,7 @@ export default function OrderDetailPage() {
   const handleShippingOrder = async () => {
     if (!order || !order._id) return;
     setActionLoading(true);
-    await fetch(`https://polysmart.me/api/orders/${order._id}`, {
+    await fetch(`http://localhost:3000/api/orders/${order._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderStatus: 'shipping' })
@@ -103,7 +103,7 @@ export default function OrderDetailPage() {
   const handleDeliveredOrder = async () => {
     if (!order || !order._id) return;
     setActionLoading(true);
-    await fetch(`https://polysmart.me/api/orders/${order._id}`, {
+    await fetch(`http://localhost:3000/api/orders/${order._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderStatus: 'delivered' })
@@ -113,7 +113,7 @@ export default function OrderDetailPage() {
   const handleCancelOrder = async () => {
     if (!order || !order._id) return;
     setActionLoading(true);
-    await fetch(`https://polysmart.me/api/orders/${order._id}/cancel`, { method: 'PUT' });
+    await fetch(`http://localhost:3000/api/orders/${order._id}/cancel`, { method: 'PUT' });
     router.push('/order/orders');
   };
 

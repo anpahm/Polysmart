@@ -186,7 +186,7 @@ const Footer = () => {
           </div>
           
           {/* Nút xóa cookie */}
-          <button
+          {/* <button
             onClick={async () => {
               try {
                 await clearAllCookies();
@@ -211,7 +211,7 @@ const Footer = () => {
               />
             </svg>
             <span>Đăng xuất & Xóa dữ liệu</span>
-          </button>
+          </button> */}
         </div>
       </div>
     </footer>

@@ -304,7 +304,7 @@ const CategoryDetailPage = () => {
       })
       .then((data) => setCategory(data))
       .catch((err) => setError(err.message));
-    fetch("http://localhost:3000/api/products")
+    fetch("http://localhost:3000/api/products?an_hien=true")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.filter((p: Product) => p.id_danhmuc === id));
@@ -315,7 +315,7 @@ const CategoryDetailPage = () => {
 
   // New useEffect to fetch all categories
   useEffect(() => {
-    fetch("http://localhost:3000/api/categories")
+    fetch("http://localhost:3000/api/categories?an_hien=true")
       .then(res => res.json())
       .then(data => setAllCategoriesData(data))
       .catch(err => console.error("Error fetching all categories:", err));

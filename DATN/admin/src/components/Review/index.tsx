@@ -28,7 +28,7 @@ const ReviewAdminPage: React.FC = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await fetch("https://polysmart.me/api/reviews/all");
+      const res = await fetch("http://localhost:3000/api/reviews/all");
       const data = await res.json();
       // Đảm bảo luôn là mảng
       const arr = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
@@ -48,7 +48,7 @@ const ReviewAdminPage: React.FC = () => {
 
   const handleToggleHide = async (id: string) => {
     try {
-      await fetch(`https://polysmart.me/api/reviews/${id}/toggle-hide`, { method: 'PATCH' });
+      await fetch(`http://localhost:3000/api/reviews/${id}/toggle-hide`, { method: 'PATCH' });
       fetchReviews();
     } catch (err) {
       alert('Lỗi khi cập nhật trạng thái ẩn/hiện!');
@@ -57,7 +57,7 @@ const ReviewAdminPage: React.FC = () => {
 
   const handleReply = async (id: string, reply: string) => {
     try {
-      await fetch(`https://polysmart.me/api/reviews/${id}/reply`, {
+      await fetch(`http://localhost:3000/api/reviews/${id}/reply`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phan_hoi: reply })
@@ -115,7 +115,7 @@ const ReviewAdminPage: React.FC = () => {
                     {r.images && r.images.length > 0 ? (
                       <div className="flex gap-2">
                         {r.images.map((img, imgIdx) => (
-                          <img key={imgIdx} src={`https://polysmart.me${img.duong_dan_anh}`} alt="Ảnh review" className="w-12 h-12 object-cover rounded" />
+                          <img key={imgIdx} src={`http://localhost:3000${img.duong_dan_anh}`} alt="Ảnh review" className="w-12 h-12 object-cover rounded" />
                         ))}
                       </div>
                     ) : (

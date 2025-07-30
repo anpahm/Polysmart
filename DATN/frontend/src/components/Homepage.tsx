@@ -21,6 +21,7 @@ import { showWarningAlert } from '@/utils/sweetAlert';
 import GridiPhone from './GridiPhone';
 import GridiPad from './GridiPad';
 import GridMac from './GridMac';
+import SEO from './SEO';
 
 interface FlashSaleVariantInHomepage {
   id_variant: string;
@@ -810,9 +811,9 @@ const HomePage = () => {
   }, [user]);
 
   // Các biến lọc sản phẩm hot cho từng loại (đặt ngay trước return)
-  const hotIphones: Product[] = data.iPhoneProducts.filter((product: Product) => product.hot === true);
-  const hotIpads: Product[] = data.iPadProducts.filter((product: Product) => product.hot === true);
-  const hotMacs: Product[] = data.MacProducts.filter((product: Product) => product.hot === true);
+  const hotIphones: Product[] = data.iPhoneProducts.filter((product: Product) => product.ban_chay > 10000);
+  const hotIpads: Product[] = data.iPadProducts.filter((product: Product) => product.ban_chay > 10000);
+  const hotMacs: Product[] = data.MacProducts.filter((product: Product) => product.ban_chay > 10000);
 
   if (loading) {
     return <div className="mt-16 flex justify-center items-center min-h-screen">
@@ -820,8 +821,63 @@ const HomePage = () => {
     </div>;
   }
 
+  // Generate structured data for homepage
+  const generateStructuredData = () => {
+    const allProducts = [
+      ...data.iPhoneProducts,
+      ...data.iPadProducts,
+      ...data.MacProducts,
+      ...(recommendedProducts || [])
+    ];
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Poly Smart",
+      "url": "https://polysmart.com.vn",
+      "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://polysmart.com.vn/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "offers": allProducts.slice(0, 10).map(product => ({
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": product.TenSP,
+          "description": product.Mota,
+          "image": getImageUrl(product.HinhAnh || ''),
+          "brand": {
+            "@type": "Brand",
+            "name": "Apple"
+          }
+        },
+        "price": product.Gia,
+        "priceCurrency": "VND",
+        "availability": "https://schema.org/InStock"
+      }))
+    };
+  };
+
   return (
-    <div className="mt-0" style={{ fontFamily: "SF Pro, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" }}>
+    <>
+      <SEO
+        title="Trang chủ"
+        description="Poly Smart - Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất. Giao hàng toàn quốc, bảo hành chính hãng."
+        keywords={[
+          "iPhone chính hãng",
+          "iPad chính hãng",
+          "MacBook chính hãng", 
+          "Apple Watch",
+          "AirPods",
+          "đại lý Apple",
+          "Poly Smart",
+          "Apple Việt Nam"
+        ]}
+        structuredData={generateStructuredData()}
+      />
+      <div className="mt-0" style={{ fontFamily: "SF Pro, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       {/* Banner Slider */}
       <div className="container mx-auto overflow-hidden">
         <div className="relative w-full h-[180px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
@@ -1286,7 +1342,7 @@ const HomePage = () => {
             {/* Card lớn bao 3 card nhỏ */}
             <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
               <div className="flex items-center mb-6">
-                <h2 className="text-3xl font-bold text-black">Điện thoại nổi bật nhất</h2>
+                <h2 className="text-3xl font-bold text-black">iPhone bán chạy nhất</h2>
               </div>
               <div className="relative group">
               <Swiper
@@ -1423,7 +1479,7 @@ const HomePage = () => {
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
             <Link 
-              href="/iphone" 
+              href="/categories/681d97db2a400db1737e6de3" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
             >
               <span>Xem tất cả</span>
@@ -1758,7 +1814,7 @@ const HomePage = () => {
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
             <Link 
-              href="/ipad" 
+              href="/categories/681d97db2a400db1737e6de4" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
             >
               <span>Xem tất cả</span>
@@ -2097,7 +2153,7 @@ const HomePage = () => {
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
             <Link 
-              href="/mac" 
+              href="/categories/681d97db2a400db1737e6de5" 
               className="section-link text-blue-600 font-semibold hover:text-blue-700 transition-colors flex items-center space-x-1 group"
             >
               <span>Xem tất cả</span>
@@ -2272,7 +2328,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
 

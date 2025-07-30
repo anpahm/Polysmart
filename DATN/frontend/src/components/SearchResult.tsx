@@ -101,7 +101,7 @@ export default function SearchResult() {
     }
     const fetchSuggestions = async () => {
       try {
-        const response = await fetch(getApiUrl('products'));
+        const response = await fetch(getApiUrl('products?an_hien=true'));
         const data = await response.json();
         if (Array.isArray(data)) {
           const filteredProducts = filterProducts(data, searchInput)
@@ -133,7 +133,7 @@ export default function SearchResult() {
   // Lấy sản phẩm cùng danh mục (không lấy sản phẩm hiện tại)
   const fetchRelatedProducts = async (categoryId: string, currentProductId: string) => {
     try {
-      const response = await fetch(getApiUrl(`products?category=${categoryId}`));
+      const response = await fetch(getApiUrl(`products?category=${categoryId}&an_hien=true`));
       const data = await response.json();
       if (Array.isArray(data)) {
         return data
@@ -156,7 +156,7 @@ export default function SearchResult() {
     }
 
     setLoading(true);
-    fetch(getApiUrl(`products`))
+    fetch(getApiUrl(`products?an_hien=true`))
       .then((res) => res.json())
       .then(async (data) => {
         if (!Array.isArray(data)) {

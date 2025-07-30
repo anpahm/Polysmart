@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { getApiUrl } from "@/config/api";
 import { showInfoAlert, showSuccessModal } from '@/utils/sweetAlert';
 import { getVnColorName } from '@/constants/colorMapShared';
+import LoginRequiredModal from '@/components/LoginRequiredModal';
 
 function formatVND(num: number) {
   return num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -14,6 +15,8 @@ function formatVND(num: number) {
 
 export default function CartPage() {
   const cart = useSelector((state: RootState) => state.cart.items);
+  const user = useSelector((state: RootState) => state.user.user);
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const dispatch = useDispatch();
   const [customer, setCustomer] = useState({ name: "", phone: "", gender: "Anh" });
   const [delivery, setDelivery] = useState({ method: "home", city: "", address: "", note: "", invoice: false });
@@ -22,6 +25,7 @@ export default function CartPage() {
 
   const [activeFlashSales, setActiveFlashSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -119,6 +123,12 @@ export default function CartPage() {
   }
 
   const handleSubmitOrder = () => {
+    // Kiểm tra đăng nhập trước khi cho phép thanh toán
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     if (paymentMethod === "cod") {
       // Hiển thị modal thành công và chuyển hướng
       showSuccessModal(
@@ -132,6 +142,15 @@ export default function CartPage() {
       // Handle other payment methods here (ATM, MoMo)
       showInfoAlert('Thông báo', `Chức năng thanh toán ${paymentMethod} đang được phát triển.`);
     }
+  };
+
+  const handleCheckout = () => {
+    // Kiểm tra đăng nhập trước khi chuyển đến trang thanh toán
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    router.push('/payments');
   };
 
   return (
@@ -194,7 +213,7 @@ export default function CartPage() {
                   <div className="flex justify-end gap-3">
                     <button onClick={() => router.push('/')} className="px-6 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700">Tiếp tục mua hàng</button>
                     <button 
-                      onClick={() => router.push('/payments')} 
+                      onClick={handleCheckout} 
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
                     >
                       Thanh toán
@@ -208,6 +227,12 @@ export default function CartPage() {
 
 
       </div>
+      
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        message="Vui lòng đăng nhập để tiếp tục thanh toán"
+      />
     </div>
   );
 } 

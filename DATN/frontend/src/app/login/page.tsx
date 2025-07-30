@@ -20,10 +20,20 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [redirectMessage, setRedirectMessage] = useState("");
   const router = useRouter();
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // Kiểm tra URL parameters cho redirect và message
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    const message = urlParams.get('message');
+    
+    if (message) {
+      setRedirectMessage(decodeURIComponent(message));
+    }
+
     const checkSession = async () => {
       try {
         const response = await fetchApi(API_ENDPOINTS.GET_USER);
@@ -39,7 +49,13 @@ export default function LoginPage() {
             avatar: response.user.avatar,
             role: response.user.role,
           }));
-          router.push('/');
+          
+          // Nếu có redirect, chuyển hướng đến trang đó
+          if (redirect === 'payment') {
+            router.push('/payments');
+          } else {
+            router.push('/');
+          }
         }
       } catch (error: any) {
         // Bỏ qua lỗi khi chưa đăng nhập
@@ -125,7 +141,15 @@ export default function LoginPage() {
       
       // Chuyển hướng sau 1.5 giây để người dùng thấy thông báo
       setTimeout(() => {
-        router.push("/");
+        // Kiểm tra URL parameters cho redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        
+        if (redirect === 'payment') {
+          router.push('/payments');
+        } else {
+          router.push("/");
+        }
       }, 1500);
       
     } catch (err: any) {
@@ -141,6 +165,11 @@ export default function LoginPage() {
         <div className="absolute inset-0 pointer-events-none z-0" style={{background: 'linear-gradient(135deg,rgba(59,130,246,0.08) 0%,rgba(59,130,246,0.18) 100%)'}}></div>
         <h2 className="text-3xl font-extrabold mb-2 text-center text-blue-700 tracking-tight relative z-10">Đăng nhập</h2>
         <p className="text-center text-gray-500 mb-6 relative z-10">Chào mừng bạn quay lại PolySmart!</p>
+        {redirectMessage && (
+          <div className="rounded-md bg-blue-50 p-3 border border-blue-200 text-center text-blue-700 font-medium text-sm mb-4">
+            {redirectMessage}
+          </div>
+        )}
         <form className="space-y-5 relative z-10" onSubmit={handleSubmit} noValidate>
           {error && (
             <div className="rounded-md bg-red-50 p-3 border border-red-200 text-center text-red-700 font-medium text-sm mb-2">{error}</div>

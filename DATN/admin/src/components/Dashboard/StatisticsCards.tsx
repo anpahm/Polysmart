@@ -54,7 +54,7 @@ const StatisticsCards: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await fetch('https://polysmart.me/api/admin/statistics?period=week', {
+      const response = await fetch('http://localhost:3000/api/admin/statistics?period=week', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

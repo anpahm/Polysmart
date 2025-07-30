@@ -31,7 +31,7 @@ const GiftVouchersPage = () => {
 
   const fetchVouchers = async () => {
     try {
-      const response = await fetch('https://polysmart.me/api/gift-vouchers');
+      const response = await fetch('http://localhost:3000/api/gift-vouchers');
       const data = await response.json();
       
       if (data.success) {
@@ -48,7 +48,7 @@ const GiftVouchersPage = () => {
 
   const resendEmail = async (email: string) => {
     try {
-      const response = await fetch(`https://polysmart.me/api/gift-vouchers/resend-email/${email}`, {
+      const response = await fetch(`http://localhost:3000/api/gift-vouchers/resend-email/${email}`, {
         method: 'POST',
       });
       const data = await response.json();
@@ -67,7 +67,7 @@ const GiftVouchersPage = () => {
   const handleDisableVoucher = async (id: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn vô hiệu hóa voucher này?')) return;
     try {
-      await fetch(`https://polysmart.me/api/gift-vouchers/${id}/disable`, { method: 'PATCH' });
+      await fetch(`http://localhost:3000/api/gift-vouchers/${id}/disable`, { method: 'PATCH' });
       fetchVouchers();
     } catch (err) {
       alert('Vô hiệu hóa voucher thất bại!');

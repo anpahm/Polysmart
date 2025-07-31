@@ -3,9 +3,9 @@ import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 import ChartOne from "../Charts/ChartOne";
 import ChartTwo from "../Charts/ChartTwo";
-import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import StatisticsCards from "./StatisticsCards";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { getApiUrl } from "../../config/api";
 
@@ -17,13 +17,27 @@ interface OverallStats {
   totalUsers: number;
   totalAllOrders: number;
   totalProductsInDb: number;
+  viewCount: string;
+  growthRates: {
+    users: string;
+    orders: string;
+    products: string;
+    views: string;
+  };
 }
 
 const ECommerce: React.FC = () => {
   const [overallStats, setOverallStats] = useState<OverallStats>({
     totalUsers: 0,
     totalAllOrders: 0,
-    totalProductsInDb: 0
+    totalProductsInDb: 0,
+    viewCount: "0",
+    growthRates: {
+      users: "0",
+      orders: "0",
+      products: "0",
+      views: "0"
+    }
   });
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
@@ -56,21 +70,45 @@ const ECommerce: React.FC = () => {
     fetchOverallStats();
   }, [token]);
 
+  const getGrowthIcon = (rate: string) => {
+    const numRate = parseFloat(rate);
+    if (numRate > 0) return true; // levelUp
+    if (numRate < 0) return false; // levelDown
+    return true; // default to levelUp
+  };
+
+  const getGrowthRate = (rate: string) => {
+    const numRate = parseFloat(rate);
+    return `${numRate > 0 ? '+' : ''}${rate}%`;
+  };
+
   return (
-    <>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Dashboard
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Tổng quan về hiệu suất kinh doanh và thống kê cửa hàng
+        </p>
+      </div>
+
+
+
       {/* Statistics Cards - Thống kê thật từ đơn hàng */}
       <StatisticsCards />
 
       {/* Overall Statistics Cards - Thống kê tổng quan */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <CardDataStats 
           title="Tổng lượt xem" 
-          total="$3.456K" 
-          rate="0.43%" 
-          levelUp
+          total={loading ? "..." : overallStats.viewCount} 
+          rate={getGrowthRate(overallStats.growthRates.views)} 
+          levelUp={getGrowthIcon(overallStats.growthRates.views)}
         >
           <svg
-            className="fill-primary dark:fill-white"
+            className="fill-white"
             width="22"
             height="16"
             viewBox="0 0 22 16"
@@ -91,11 +129,11 @@ const ECommerce: React.FC = () => {
         <CardDataStats 
           title="Tổng sản phẩm" 
           total={loading ? "..." : overallStats.totalProductsInDb.toString()} 
-          rate="4.35%" 
-          levelUp
+          rate={getGrowthRate(overallStats.growthRates.products)} 
+          levelUp={getGrowthIcon(overallStats.growthRates.products)}
         >
           <svg
-            className="fill-primary dark:fill-white"
+            className="fill-white"
             width="20"
             height="22"
             viewBox="0 0 20 22"
@@ -120,11 +158,11 @@ const ECommerce: React.FC = () => {
         <CardDataStats 
           title="Tổng người dùng" 
           total={loading ? "..." : overallStats.totalUsers.toLocaleString('vi-VN')} 
-          rate="2.59%" 
-          levelUp
+          rate={getGrowthRate(overallStats.growthRates.users)} 
+          levelUp={getGrowthIcon(overallStats.growthRates.users)}
         >
           <svg
-            className="fill-primary dark:fill-white"
+            className="fill-white"
             width="22"
             height="18"
             viewBox="0 0 22 18"
@@ -153,11 +191,11 @@ const ECommerce: React.FC = () => {
         <CardDataStats 
           title="Tổng đơn hàng" 
           total={loading ? "..." : overallStats.totalAllOrders.toLocaleString('vi-VN')} 
-          rate="0.95%" 
-          levelDown
+          rate={getGrowthRate(overallStats.growthRates.orders)} 
+          levelUp={getGrowthIcon(overallStats.growthRates.orders)}
         >
           <svg
-            className="fill-primary dark:fill-white"
+            className="fill-white"
             width="22"
             height="22"
             viewBox="0 0 22 22"
@@ -176,16 +214,30 @@ const ECommerce: React.FC = () => {
         </CardDataStats>
       </div>
 
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <ChartOne />
-        <ChartTwo />
-        <ChartThree />
-        <div className="col-span-12 xl:col-span-8">
-          <TableOne />
+      {/* Charts Section */}
+      <div className="grid grid-cols-12 gap-6 2xl:gap-7.5">
+        {/* Revenue Chart */}
+        <div className="col-span-12">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-boxdark">
+            <ChartOne />
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Additional Charts */}
+      <div className="grid grid-cols-12 gap-6 2xl:gap-7.5">
+        <div className="col-span-12 xl:col-span-6 h-[500px]">
+          <ChartTwo />
+        </div>
+        
+        <div className="col-span-12 xl:col-span-6 h-[500px]">
+          <ChartThree />
+        </div>
+      </div>
+
+    </div>
   );
 };
 
 export default ECommerce;
+

@@ -41,6 +41,7 @@ exports.getReviewsByProduct = async (req, res) => {
     // Chỉ lấy review gốc (không có parent_id)
     const reviews = await Review.find({ ma_san_pham, an_hien: true })
       .populate('ma_nguoi_dung', 'TenKH email avatar')
+      .sort({ ngay_danh_gia: -1 }) // Sắp xếp theo ngày gần nhất đến xa nhất
       .lean();
 
     const reviewIds = reviews.map(r => r._id);
@@ -69,6 +70,7 @@ exports.getReviewsByUser = async (req, res) => {
     const reviews = await Review.find({ ma_nguoi_dung })
       .populate('ma_san_pham', 'TenSP hinh')
       .populate('ma_nguoi_dung', 'TenKH email avatar')
+      .sort({ ngay_danh_gia: -1 }) // Sắp xếp theo ngày gần nhất đến xa nhất
       .lean();
 
     const reviewIds = reviews.map(r => r._id);
@@ -94,7 +96,16 @@ exports.getAllReviews = async (req, res) => {
     const reviews = await Review.find({})
       .populate('ma_nguoi_dung', 'TenKH email avatar')
       .populate('ma_san_pham', 'TenSP')
+      .sort({ ngay_danh_gia: -1 }) // Sắp xếp theo ngày gần nhất đến xa nhất
       .lean();
+    
+    console.log('Reviews with populated data:', reviews.map(r => ({
+      id: r._id,
+      user: r.ma_nguoi_dung,
+      product: r.ma_san_pham,
+      date: r.ngay_danh_gia
+    })));
+    
     const reviewIds = reviews.map(r => r._id);
     const images = await ImageReview.find({ ma_danh_gia: { $in: reviewIds } }).lean();
     const reviewMap = {};
@@ -134,6 +145,25 @@ exports.replyToReview = async (req, res) => {
     review.phan_hoi = phan_hoi;
     await review.save();
     res.json({ success: true, phan_hoi: review.phan_hoi });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Xóa review (chỉ admin)
+exports.deleteReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const review = await Review.findById(id);
+    if (!review) return res.status(404).json({ error: 'Không tìm thấy review' });
+    
+    // Xóa ảnh liên quan
+    await ImageReview.deleteMany({ ma_danh_gia: id });
+    
+    // Xóa review
+    await Review.findByIdAndDelete(id);
+    
+    res.json({ success: true, message: 'Đã xóa review thành công' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

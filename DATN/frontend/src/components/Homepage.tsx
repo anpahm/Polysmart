@@ -880,7 +880,7 @@ const HomePage = () => {
       <div className="mt-0" style={{ fontFamily: "SF Pro, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" }}>
       {/* Banner Slider */}
       <div className="container mx-auto overflow-hidden">
-        <div className="relative w-full h-[180px] sm:h-[300px] md:h-[400px] lg:h-[475px] group">
+<div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[16/5] lg:aspect-auto lg:h-[475px] group overflow-hidden">
           <div className="flex transition-transform duration-700 ease-in-out h-full"
             style={{
               width: `${banners.length * 100}%`,
@@ -1034,16 +1034,16 @@ const HomePage = () => {
             pauseOnMouseEnter: true,
           }}
           breakpoints={{
-            320: {
-              slidesPerView: 1,
-              slidesPerGroup: 1,
-              spaceBetween: 10,
-            },
-            480: {
-              slidesPerView: 2,
-              slidesPerGroup: 2,
-              spaceBetween: 15,
-            },
+                0: {
+                  slidesPerView: 2,
+                  slidesPerGroup: 2,
+                  spaceBetween: 10,
+                },
+                640: {
+                  slidesPerView: 3,
+                  slidesPerGroup: 3,
+                  spaceBetween: 20,
+                },
             768: {
               slidesPerView: 3,
               slidesPerGroup: 3,
@@ -1089,9 +1089,11 @@ const HomePage = () => {
                       <img
                         src="/images/khungfl.png"
                         alt="Khung Flash Sale"
-                        className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[200px] h-[170px] object-contain"
+                        className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none 
+                                  w-[150px] h-[130px] sm:w-[180px] sm:h-[150px] md:w-[200px] md:h-[170px] object-contain"
                         style={{ zIndex: 10 }}
                       />
+
                       {/* Badge % giảm giá bên phải */}
                       {variant.phan_tram_giam_gia && (
                         <div className="absolute top-2 right-2 z-10">
@@ -1128,7 +1130,7 @@ const HomePage = () => {
                             </span>
                             {/* Debug info - remove in production */}
                             {process.env.NODE_ENV === 'development' && (
-                              <div className="absolute -bottom-8 left-0 text-xs text-white bg-black/50 px-2 py-1 rounded opacity-50">
+                              <div className="absolute -bottom-8 left-0 text-xs text-white px-2 py-1 rounded opacity-50">
                                 ID: {variant.id_variant?.slice(-4)} | Sold: {sold} | Total: {total}
                               </div>
                             )}
@@ -1184,7 +1186,7 @@ const HomePage = () => {
       {/* Gợi ý cho bạn Section */}
       {user && user._id && recommendedProducts.length > 0 && (
         <section className="section bg-white">
-          <div className="container mx-auto px-40 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-40 bg-white">
             <div className="section-header flex justify-between items-center mb-6 bg-white">
               <PetMascot message={aiAdvice || "Xin chào, đây là gợi ý cho bạn!"} />
             </div>
@@ -1201,7 +1203,7 @@ const HomePage = () => {
                 loop={true}
                 speed={800}
                 breakpoints={{
-                  320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                  320: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                   480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                   768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                   1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
@@ -1213,33 +1215,39 @@ const HomePage = () => {
                     <div className="relative">
                       {/* Discount Badge - Positioned to hug the left edge */}
                       {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        
-                      <img
-                          src="/images/spanfl.png" 
-                          alt="Giảm giá"
-                          className="w-full h-full object-contain"
-                        />
-                        <span
-                          className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
-                          style={{
-                            transform: 'translate(-50%, -50%)',
-                            fontSize: 12,
-                            fontWeight: 700,
-                            lineHeight:24,
-                            whiteSpace: 'nowrap',
-                            paddingBottom:5 ,
-                          }}
-                        >
+                        <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">                        
+                          <img
+                            src="/images/spanfl.png" 
+                            alt="Giảm giá"
+                            className="w-full h-full object-contain"
+                          />
+                          <span
+                            className="absolute top-1/2 text-white left-1/2 text-[10px] sm:text-xs font-bold"
+                            style={{
+                              transform: 'translate(-50%, -50%)',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              lineHeight: '20px',
+                              whiteSpace: 'nowrap',
+                              paddingBottom: '3px',
+                            }}
+                          >
                             Giảm {product.khuyen_mai}%
                           </span>
                         </div>
                       )}
                       <Link
                         href={`/product/${product._id}`}
-                        className="bg-white rounded-2xl overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block"
+                        className="
+                          bg-white overflow-hidden border transition-all duration-300 group relative
+                          w-full h-[320px]             
+                          sm:w-[47vw] sm:h-[400px]          
+                          lg:w-[285px] lg:h-[410px]       
+                          block rounded-2xl
+                        "
                       >
                       {/* Installment Badge */}
-                      <div className="absolute top-3 right-3 z-10 w-[81px] h-[30px]">
+                      <div className="absolute top-1 right-2 z-10 w-[70px] h-[26px] sm:w-[81px] sm:h-[30px]">
                         <img
                           src="/images/tragop.png" // Đặt đúng tên file ảnh bạn vừa gửi vào public/images/
                           alt="Trả góp 0%"
@@ -1251,14 +1259,14 @@ const HomePage = () => {
                         <Image
                           src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                           alt={product.TenSP}
-                          width="0"
-                          height="0"
-                          className="w-[280px] h-[280px]"
+                          width="0" 
+                          height="0" 
+                          className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px]"
                         />
                       </div>
                       {/* Product Info */}
                       <div className="flex flex-col pl-4">
-                        <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                        <h3 className="text-[14px] sm:text-[16px] lg:text-[18px] font-bold mb-2 sm:mb-3 text-black min-h-[2rem] sm:min-h-[2.5rem]">
                           {product.TenSP}
                           {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                             ` ${product.variants[0].dung_luong}`
@@ -1286,196 +1294,160 @@ const HomePage = () => {
         </section>
       )}
       {/* Special Product Section - Sản phẩm nổi bật */}
-      <section  style={{background:'#fff'}}>
-      <div style={{
-        position: 'relative',
-        width: 1278,
-        margin: '0 auto',
-        zIndex: 30,
-        background:'#fff',
-        paddingTop:90,
-      }}>
-        <img
-          src="/images/anhcuacam.png"
-          alt="Điện thoại kế bên số 1"
+      <section className="bg-white">
+  <div className="relative w-full max-w-[1278px] mx-auto px-4 sm:px-6 md:px-8 pt-10 lg:pt-[90px]">
+    {/* Ảnh điện thoại ở góc phải */}
+    <img
+      src="/images/anhcuacam.png"
+      alt="Điện thoại kế bên số 1"
+      className="hidden lg:block absolute top-0 right-10 z-30 h-[314px] max-w-[558px] object-contain"
+    />
+  </div>
+
+  {/* Phần nền cam và nội dung chính */}
+  <section
+    className="relative mx-auto w-full max-w-[1278px] bg-cover bg-no-repeat bg-center"
+    style={{ backgroundImage: "url('/images/maucam.png')" }}
+  >
+    <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-10 lg:py-[90px]">
+      {/* Slide sản phẩm nổi bật */}
+      <div className="w-full lg:w-[668px] flex flex-col items-start mb-0 lg:ml-[30px]">
+       <div
+          className="relative flex items-center justify-center text-center w-full"
           style={{
-            height: 314,
-            maxWidth: 558,
-            objectFit: 'contain',
-            position: 'absolute',
-            top: 0,
-            right: 50,
-            zIndex: 30,
+            backgroundImage: "url('/images/motcam.png')",
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            minHeight: 120,
+            width: '100%',
           }}
-        />
-      </div>
-      <section
-        className="relative mx-auto flex items-center justify-center"
-        style={{
-          background: `url('/images/maucam.png') center/cover no-repeat`,
-          width: 1278,
-          height: 827,
-          minWidth: '320px',
-          maxWidth: '100vw',
-          overflowX: 'auto',
-        }}
-      >
-        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
-          {/* Left: Slide sản phẩm nổi bật */}
-          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
-            {/* Ảnh motcam.png + chữ in trên ảnh */}
-            <div
-              className="flex items-center justify-center text-center"
-              style={{
-                backgroundImage: "url('/images/motcam.png')",
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                width: 732,
-                height: 108,
+        >
+          <p className="w-full text-left pl-14 sm:pl-8 md:pl-[90px] relative z-10">
+            <b className="text-white text-[18px] sm:text-[22px] font-normal">CHỈ CÓ TẠI POLYSMART </b><br />
+            <span className="text-white text-[24px] sm:text-[28px] md:text-[36px] font-extrabold">MÁY SIÊU TỐT - GIÁ SIÊU HỜI</span>
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl mt-10 p-4 sm:p-6 shadow-xl w-full">
+          <div className="flex items-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-black">iPhone bán chạy nhất</h2>
+          </div>
+          <div className="relative group">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{ nextEl: '.hot-iphone-next', prevEl: '.hot-iphone-prev' }}
+              spaceBetween={16}
+              loop={true}
+              breakpoints={{
+                320: { slidesPerView: 2 },
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
               }}
+              className="w-full"
             >
-              <p className="w-full"  style={{textAlign:'left', paddingLeft:90}}>
-                <b style={{fontSize:22, fontWeight:400,color:'#fff'}}>CHỈ CÓ TẠI POLYSMART </b><br />
-                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}> MÁY SIÊU TỐT - GIÁ SIÊU HỜI</span>
-              </p>
-            </div>
-            {/* Card lớn bao 3 card nhỏ */}
-            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
-              <div className="flex items-center mb-6">
-                <h2 className="text-3xl font-bold text-black">iPhone bán chạy nhất</h2>
-              </div>
-              <div className="relative group">
-              <Swiper
-                modules={[Navigation]}
-                  navigation={{
-                    nextEl: '.hot-iphone-next',
-                    prevEl: '.hot-iphone-prev',
-                  }}
-                spaceBetween={24}
-                slidesPerView={3}
-                loop={true}
-                className="w-full h-full"
-              >
-                {hotIphones.map((product: Product) => (
-                  <SwiperSlide key={product._id} className="h-full">
-                  
-                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
-                      <div className="relative flex items-center justify-center pt-10 bg-white">
-                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
-                          <Image
-                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                            alt={product.TenSP}
-                            className="w-[200px] h-[180px] object-contain"
-                            width={170}
-                            height={140}
-                          />
-                          {/* {product.khuyen_mai && (
-                            <img
-                              src="/images/khungfl.png"
-                              alt="Khung Flash Sale"
-                              className="absolute left-0 pointer-events-none"
-                              style={{ zIndex: 10, width:185, height: 176 }}
-                            />
-                          )} */}
-                        </div>
-                        {/* % giảm giá nếu có */}
-                        {product.khuyen_mai && (
-                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
-                        )}
+              {hotIphones.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link href={`/product/${product._id}`} className="block bg-white shadow-md hover:shadow-xl transition duration-300">
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                        <Image
+                          src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                          alt={product.TenSP}
+                          className="w-[200px] h-[180px] object-contain"
+                          width={170}
+                          height={140}
+                        />
                       </div>
-                      <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
-                        {/* Lựa chọn dung lượng */}
-                        {product.variants && product.variants.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {product.variants
-                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant: ProductVariant, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
-                                  style={{ borderRadius: 18,}}
-                                >
-                                  {variant.dung_luong}
-                                </span>
-                              ))}
+                      {product.khuyen_mai && (
+                        <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
+                          -{product.khuyen_mai}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm font-extrabold text-gray-800 mb-2 line-clamp-2">{product.TenSP}</p>
+                      {product.variants && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {product.variants
+                            .filter(v => v.mau === product.variants[0].mau)
+                            .map((variant, idx) => (
+                              <span key={idx} className="px-2 py-1 text-[10px] border border-gray-300 bg-gray-50 text-gray-700 rounded-full">
+                                {variant.dung_luong}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                      {/* Giá */}
+                      {(() => {
+                        const variants = product.variants?.filter(v => v.mau === product.variants[0].mau) || [];
+                        if (!variants.length) return null;
+                        const minPrice = Math.min(...variants.map(v => v.gia));
+                        const hasDiscount = !!product.khuyen_mai;
+                        const salePrice = hasDiscount ? minPrice * (1 - product.khuyen_mai / 100) : minPrice;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-[#FF763B]">{formatCurrency(salePrice)}</span>
+                            {hasDiscount && (
+                              <span className="text-[10px] text-gray-400 line-through">{formatCurrency(minPrice)}</span>
+                            )}
                           </div>
-                        )}
-                        {/* Giá tiền nằm ngoài chip dung lượng */}
-                        {(() => {
-                          const variants = product.variants?.filter(
-                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
-                          ) || [];
-                          if (variants.length === 0) return null;
-                          const minPrice = Math.min(...variants.map(v => v.gia));
-                          const hasDiscount = !!product.khuyen_mai;
-                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
-                          return (
-                            <div className="items-center mt-2">
-                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
-                                {formatCurrency(salePrice)}
-                              </span> 
-                              {hasDiscount && (
-                                <span className="text-[10px] text-gray-400 line-through ml-2">
-                                  {formatCurrency(minPrice)}
-                                </span> 
-                              )}
-                              
-                            </div>
-                          );
-                        })()}
-                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
-                                <p>Hỗ trợ trả góp 0%</p>
-                                <p>Thu cũ đổi mới</p>
-                                <p>Ưu đãi khách hàng thân thiết</p>
-                        </div>
+                        );
+                      })()}
+                      <div className="bg-gray-100 rounded mt-3 p-2 text-[10px] text-gray-600 leading-4 w-fit">
+                        <p>Hỗ trợ trả góp 0%</p>
+                        <p>Thu cũ đổi mới</p>
+                        <p>Ưu đãi khách hàng thân thiết</p>
                       </div>
-                    </Link>
-               
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-              {/* Custom Navigation Buttons for Hot iPhone */}
-              <div className="hot-iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="hot-iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="hot-iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="hot-iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-          {/* Right: Banner slide */}
-          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
-              <Swiper
-                modules={[Autoplay]}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                loop={true}
-                className="w-[455px] h-[515px]"
-                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
-              >
-                {(specialBanners || []).map((banner, idx) => (
-                  <SwiperSlide key={idx}>
-                    <div
-                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
-                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
-                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
         </div>
-      </section>
-      </section>
+      </div>
+
+      {/* Banner slide */}
+<div className="w-full lg:w-[455px] -mt-5 lg:mt-[150px] lg:mr-[30px]">
+  <Swiper
+    modules={[Autoplay]}
+    autoplay={{ delay: 5000, disableOnInteraction: false }}
+    loop={true}
+    className="w-full h-[400px] sm:h-[500px] md:h-[550px] lg:h-[505px]"
+  >
+    {(specialBanners || []).map((banner, idx) => (
+      <SwiperSlide key={idx}>
+        <div className="flex items-center justify-center w-full h-full rounded-2xl overflow-hidden shadow-xl bg-white">
+          <img
+            src={banner.image}
+            alt={banner.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </SwiperSlide>
+    ))}
+  </Swiper>
+</div>
+
+    </div>
+  </section>
+</section>
+
     
       {/* iPhone Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+<div className="container mx-auto px-4 sm:px-6 lg:px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
             <h2 className="section-title text-2xl font-bold">iPhone</h2>
             <Link 
@@ -1505,8 +1477,8 @@ const HomePage = () => {
               slidesPerGroup={1}
               loop={true}
               speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+               breakpoints={{
+                320: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
@@ -1518,21 +1490,21 @@ const HomePage = () => {
                   <div className="relative">
                     {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        
+                      <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">                        
                             <img
                               src="/images/spanfl.png" 
                               alt="Giảm giá"
                               className="w-full h-full object-contain"
                             />
                             <span
-                              className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
+                              className="absolute top-1/2 text-white left-1/2 text-[10px] sm:text-xs font-bold"
                               style={{
                                 transform: 'translate(-50%, -50%)',
-                                fontSize: 12,
+                                fontSize: '10px',
                                 fontWeight: 700,
-                                lineHeight:24,
+                                lineHeight: '20px',
                                 whiteSpace: 'nowrap',
-                                paddingBottom:5 ,
+                                paddingBottom: '3px',
                               }}
                             >
                               Giảm {product.khuyen_mai}%
@@ -1540,11 +1512,18 @@ const HomePage = () => {
                           </div>
                           )}
                     <Link
-                      href={`/product/${product._id}`}
-                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
-                    >
+  href={`/product/${product._id}`}
+className="
+      bg-white overflow-hidden border transition-all duration-300 group relative
+      w-full h-[320px]             
+      sm:w-[47vw] sm:h-[400px]          
+      lg:w-[285px] lg:h-[410px]       
+      block rounded-2xl
+    "
+  >
+
                     {/* Installment Badge */}
-                    <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
+                    <div className="absolute top-1 right-2 z-10 w-[70px] h-[26px] sm:w-[81px] sm:h-[30px]">
                       <img
                         src="/images/tragop.png" 
                         alt="Trả góp 0%"
@@ -1558,19 +1537,19 @@ const HomePage = () => {
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[280px] h-[280px]"
+                        className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px]"
                       />
                     </div>
                     {/* Product Info */}
                     <div className="flex flex-col pl-4">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                      <h3 className="text-[14px] sm:text-[16px] lg:text-[18px] font-bold mb-2 sm:mb-3 text-black min-h-[2rem] sm:min-h-[2.5rem]">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                        <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {
@@ -1585,7 +1564,7 @@ const HomePage = () => {
                           const priceRange = getPriceRange(product.variants);
                           if (priceRange && priceRange.maxPrice > priceRange.minPrice) {
                             return (
-                              <span className="text-gray-400 line-through text-[14px]">
+                              <span className="text-gray-400 line-through text-[12px] sm:text-[13px] lg:text-[14px]">
                                 {formatCurrency(priceRange.maxPrice)}
                               </span>
                             );
@@ -1593,7 +1572,7 @@ const HomePage = () => {
                           const originalPrice = (typeof product.Gia === 'number' && !isNaN(product.Gia)) ? product.Gia : 0;
                           if (product.khuyen_mai && originalPrice > 0) {
                             return (
-                              <span className="text-gray-400 line-through text-sm">
+                              <span className="text-gray-400 line-through text-[12px] sm:text-[13px] lg:text-sm">
                                 {formatCurrency(originalPrice)}
                               </span>
                             );
@@ -1622,195 +1601,158 @@ const HomePage = () => {
       </section>
       <GridiPhone/>
 
-      <section style={{background:'#fff'}}>
-      <div style={{
-        position: 'relative',
-        width: 1278,
-        margin: '0 auto',
-        zIndex: 30,
-        background:'#fff',
-        paddingTop:90,
-      }}>
-        <img
-          src="/images/anhcuatim.png"
-          alt="Điện thoại kế bên số 1"
+      <section className="bg-white">
+  <div className="relative w-full max-w-[1278px] mx-auto px-4 sm:px-6 md:px-8 pt-10 lg:pt-[90px]">
+    {/* Ảnh điện thoại ở góc phải */}
+    <img
+      src="/images/anhcuatim.png"
+      alt="Điện thoại kế bên số 1"
+      className="hidden lg:block absolute top-0 right-10 z-30 h-[314px] max-w-[558px] object-contain"
+    />
+  </div>
+
+  {/* Phần nền cam và nội dung chính */}
+  <section
+    className="relative mx-auto w-full max-w-[1278px] bg-cover bg-no-repeat bg-center"
+    style={{ backgroundImage: "url('/images/mautim.png')" }}
+  >
+    <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-10 lg:py-[90px]">
+      {/* Slide sản phẩm nổi bật */}
+      <div className="w-full lg:w-[668px] flex flex-col items-start mb-0 lg:ml-[30px]">
+       <div
+          className="relative flex items-center justify-center text-center w-full"
           style={{
-            height: 314,
-            maxWidth: 558,
-            objectFit: 'contain',
-            position: 'absolute',
-            top: 0,
-            right: 50,
-            zIndex: 30,
+            backgroundImage: "url('/images/mottim.png')",
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            minHeight: 120,
+            width: '100%',
           }}
-        />
-      </div>
-      <section
-        className="relative mx-auto flex items-center justify-center"
-        style={{
-          background: `url('/images/mautim.png') center/cover no-repeat`,
-          width: 1278,
-          height: 827,
-          minWidth: '320px',
-          maxWidth: '100vw',
-          overflowX: 'auto',
-        }}
-      >
-        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
-          {/* Left: Slide sản phẩm nổi bật */}
-          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
-            {/* Ảnh motcam.png + chữ in trên ảnh */}
-            <div
-              className="flex items-center justify-center text-center"
-              style={{
-                backgroundImage: "url('/images/mottim.png')",
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                width: 732,
-                height: 108,
+        >
+          <p className="w-full text-left pl-14 sm:pl-8 md:pl-[90px] relative z-10">
+            <b className="text-white text-[18px] sm:text-[22px] font-normal">CHỈ CÓ TẠI POLYSMART </b><br />
+            <span className="text-white text-[24px] sm:text-[28px] md:text-[36px] font-extrabold">MÁY SIÊU TỐT - GIÁ SIÊU HỜI</span>
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl mt-10 p-4 sm:p-6 shadow-xl w-full">
+          <div className="flex items-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-black">iPhone bán chạy nhất</h2>
+          </div>
+          <div className="relative group">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{ nextEl: '.hot-ipad-next', prevEl: '.hot-ipad-prev' }}
+              spaceBetween={16}
+              loop={true}
+              breakpoints={{
+                320: { slidesPerView: 2 },
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
               }}
+              className="w-full"
             >
-              <p className="w-full" style={{textAlign:'left', paddingLeft:90}}>
-                <b style={{fontSize:22, fontWeight:400,color:'#fff',}}>CHỈ CÓ TẠI POLYSMART </b><br />
-                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}> TRẢI NGHIỆM THỊ GIÁC TUYỆT VỜI</span>
-              </p>
-            </div>
-            {/* Card lớn bao 3 card nhỏ */}
-            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
-              <div className="flex items-center mb-6">
-                <h2 className="text-3xl font-bold text-black">iPad bán chạy nhất</h2>
-              </div>
-              <div className="relative group">
-              <Swiper
-                modules={[Navigation]}
-                  navigation={{
-                    nextEl: '.hot-ipad-next',
-                    prevEl: '.hot-ipad-prev',
-                  }}
-                spaceBetween={24}
-                slidesPerView={3}
-                loop={true}
-                className="w-full h-full"
-              >
-                {hotIpads.map((product: Product) => (
-                  <SwiperSlide key={product._id} className="h-full">
-                  
-                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
-                      <div className="relative flex items-center justify-center pt-10 bg-white">
-                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
-                          <Image
-                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                            alt={product.TenSP}
-                            className="w-[200px] h-[180px] object-contain"
-                            width={170}
-                            height={140}
-                          />
-                          {/* {product.khuyen_mai && (
-                            <img
-                              src="/images/khungfl.png"
-                              alt="Khung Flash Sale"
-                              className="absolute left-0 pointer-events-none"
-                              style={{ zIndex: 10, width:185, height: 176 }}
-                            />
-                          )} */}
-                        </div>
-                        {/* % giảm giá nếu có */}
-                        {product.khuyen_mai && (
-                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
-                        )}
+              {hotIpads.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link href={`/product/${product._id}`} className="block bg-white shadow-md hover:shadow-xl transition duration-300">
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                        <Image
+                          src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                          alt={product.TenSP}
+                          className="w-[200px] h-[180px] object-contain"
+                          width={170}
+                          height={140}
+                        />
                       </div>
-                      <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
-                        {/* Lựa chọn dung lượng */}
-                        {product.variants && product.variants.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {product.variants
-                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant: ProductVariant, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
-                                  style={{ borderRadius: 18,}}
-                                >
-                                  {variant.dung_luong}
-                                </span>
-                              ))}
+                      {product.khuyen_mai && (
+                        <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
+                          -{product.khuyen_mai}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm font-extrabold text-gray-800 mb-2 line-clamp-2">{product.TenSP}</p>
+                      {product.variants && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {product.variants
+                            .filter(v => v.mau === product.variants[0].mau)
+                            .map((variant, idx) => (
+                              <span key={idx} className="px-2 py-1 text-[10px] border border-gray-300 bg-gray-50 text-gray-700 rounded-full">
+                                {variant.dung_luong}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                      {/* Giá */}
+                      {(() => {
+                        const variants = product.variants?.filter(v => v.mau === product.variants[0].mau) || [];
+                        if (!variants.length) return null;
+                        const minPrice = Math.min(...variants.map(v => v.gia));
+                        const hasDiscount = !!product.khuyen_mai;
+                        const salePrice = hasDiscount ? minPrice * (1 - product.khuyen_mai / 100) : minPrice;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-[#FF763B]">{formatCurrency(salePrice)}</span>
+                            {hasDiscount && (
+                              <span className="text-[10px] text-gray-400 line-through">{formatCurrency(minPrice)}</span>
+                            )}
                           </div>
-                        )}
-                        {/* Giá tiền nằm ngoài chip dung lượng */}
-                        {(() => {
-                          const variants = product.variants?.filter(
-                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
-                          ) || [];
-                          if (variants.length === 0) return null;
-                          const minPrice = Math.min(...variants.map(v => v.gia));
-                          const hasDiscount = !!product.khuyen_mai;
-                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
-                          return (
-                            <div className="items-center mt-2">
-                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
-                                {formatCurrency(salePrice)}
-                              </span> 
-                              {hasDiscount && (
-                                <span className="text-[10px] text-gray-400 line-through ml-2">
-                                  {formatCurrency(minPrice)}
-                                </span> 
-                              )}
-                              
-                            </div>
-                          );
-                        })()}
-                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
-                                <p>Hỗ trợ trả góp 0%</p>
-                                <p>Thu cũ đổi mới</p>
-                                <p>Ưu đãi khách hàng thân thiết</p>
-                        </div>
+                        );
+                      })()}
+                      <div className="bg-gray-100 rounded mt-3 p-2 text-[10px] text-gray-600 leading-4 w-fit">
+                        <p>Hỗ trợ trả góp 0%</p>
+                        <p>Thu cũ đổi mới</p>
+                        <p>Ưu đãi khách hàng thân thiết</p>
                       </div>
-                    </Link>
-               
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-              {/* Custom Navigation Buttons for Hot iPad */}
-              <div className="hot-ipad-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="hot-ipad-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="hot-iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="hot-iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-          {/* Right: Banner slide */}
-          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
-              <Swiper
-                modules={[Autoplay]}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                loop={true}
-                className="w-[455px] h-[515px]"
-                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
-              >
-                {(specialBannersiPad || []).map((banner, idx) => (
-                  <SwiperSlide key={idx}>
-                    <div
-                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
-                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
-                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
         </div>
-      </section>
-      </section>
+      </div>
+
+      {/* Banner slide */}
+<div className="w-full lg:w-[455px] -mt-5 lg:mt-[150px] lg:mr-[30px]">
+  <Swiper
+    modules={[Autoplay]}
+    autoplay={{ delay: 5000, disableOnInteraction: false }}
+    loop={true}
+    className="w-full h-[400px] sm:h-[500px] md:h-[550px] lg:h-[505px]"
+  >
+    {(specialBannersiPad || []).map((banner, idx) => (
+      <SwiperSlide key={idx}>
+        <div className="flex items-center justify-center w-full h-full rounded-2xl overflow-hidden shadow-xl bg-white">
+          <img
+            src={banner.image}
+            alt={banner.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </SwiperSlide>
+    ))}
+  </Swiper>
+</div>
+
+    </div>
+  </section>
+</section>
       {/* iPad Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+<div className="container mx-auto px-4 sm:px-6 lg:px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">iPad</h2>
             <Link 
@@ -1840,8 +1782,8 @@ const HomePage = () => {
               slidesPerGroup={1}
               loop={true}
               speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+                breakpoints={{
+                320: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
@@ -1853,31 +1795,37 @@ const HomePage = () => {
                   <div className="relative">
                     {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                      <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">
+                      <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">                        
                       <img
                         src="/images/spanfl.png" 
                         alt="Giảm giá"
                         className="w-full h-full object-contain"
                       />
                       <span
-                        className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
-                        style={{
-                          transform: 'translate(-50%, -50%)',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          lineHeight:24,
-                          whiteSpace: 'nowrap',
-                          paddingBottom:5 ,
-                        }}
-                      >
+                              className="absolute top-1/2 text-white left-1/2 text-[10px] sm:text-xs font-bold"
+                              style={{
+                                transform: 'translate(-50%, -50%)',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                lineHeight: '20px',
+                                whiteSpace: 'nowrap',
+                                paddingBottom: '3px',
+                              }}
+                            >
                         Giảm {product.khuyen_mai}%
                       </span>
                     </div>
                     )}
                     <Link
                       href={`/product/${product._id}`}
-                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
-                    >
+className="
+      bg-white overflow-hidden border transition-all duration-300 group relative
+      w-full h-[320px]             
+      sm:w-[47vw] sm:h-[400px]          
+      lg:w-[285px] lg:h-[410px]       
+      block rounded-2xl
+    "
+  >                    
                     {/* Installment Badge */}
                     <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
                       <img
@@ -1887,25 +1835,26 @@ const HomePage = () => {
                       />
                     </div>
                     {/* Product Image */}
-                    <div className="relative flex items-center justify-center pt-8 bg-white">
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                        className="w-[280px] h-[280px]"
+                        className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px]"
+
                       />
                     </div>
                     {/* Product Info */}
-                    <div className="flex flex-col justify-between px-4 py-2 w-[265px]">
-                      <h3 className="text-[18px] font-bold mb-1 text-black min-h-[2.5rem]">
+                    <div className="flex flex-col pl-4">
+                      <h3 className="text-[14px] sm:text-[16px] lg:text-[18px] font-bold mb-2 sm:mb-3 text-black min-h-[2rem] sm:min-h-[2.5rem]">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                        <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             // Tính giá sau khuyến mãi cho variants
                             if (product.variants && product.variants.length > 0) {
@@ -1961,195 +1910,148 @@ const HomePage = () => {
         </div>
       </section>
       <GridiPad/>
-      <section style={{background:'#fff'}}>
-      <div style={{
-        position: 'relative',
-        width: 1278,
-        margin: '0 auto',
-        zIndex: 30,
-        background:'#fff',
-        paddingTop:90,
-      }}>
-        <img
-          src="/images/anhcuaxanh.png"
-          alt="Điện thoại kế bên số 1"
+      <section className="bg-white">
+  <div className="relative w-full max-w-[1278px] mx-auto px-4 sm:px-6 md:px-8 pt-10 lg:pt-[90px]">
+    {/* Ảnh điện thoại ở góc phải */}
+    <img
+      src="/images/anhcuaxanh.png"
+      alt="Điện thoại kế bên số 1"
+      className="hidden lg:block absolute top-0 right-10 z-30 h-[314px] max-w-[558px] object-contain"
+    />
+  </div>
+
+  {/* Phần nền cam và nội dung chính */}
+  <section
+    className="relative mx-auto w-full max-w-[1278px] bg-cover bg-no-repeat bg-center"
+    style={{ backgroundImage: "url('/images/mauxanh.png')" }}
+  >
+    <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-10 lg:py-[90px]">
+      {/* Slide sản phẩm nổi bật */}
+      <div className="w-full lg:w-[668px] flex flex-col items-start mb-0 lg:ml-[30px]">
+       <div
+          className="relative flex items-center justify-center text-center w-full"
           style={{
-            height: 314,
-            maxWidth: 558,
-            objectFit: 'contain',
-            position: 'absolute',
-            top: 0,
-            right: 50,
-            zIndex: 30,
+            backgroundImage: "url('/images/motxanh.png')",
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            minHeight: 120,
+            width: '100%',
           }}
-        />
-      </div>
-      <section
-        className="relative mx-auto flex items-center justify-center"
-        style={{
-          background: `url('/images/mauxanh.png') center/cover no-repeat`,
-          width: 1278,
-          height: 827,
-          minWidth: '320px',
-          maxWidth: '100vw',
-          overflowX: 'auto',
-        }}
-      >
-        <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-8" style={{paddingLeft:65}}>
-          {/* Left: Slide sản phẩm nổi bật */}
-          <div className="w-[668px] h-[515px] flex flex-col items-start" style={{marginBottom:180}}>
-            {/* Ảnh motcam.png + chữ in trên ảnh */}
-            <div
-              className="flex items-center justify-center text-center"
-              style={{
-                backgroundImage: "url('/images/motxanh.png')",
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                width: 732,
-                height: 108,
+        >
+          <p className="w-full text-left pl-14 sm:pl-8 md:pl-[90px] relative z-10">
+            <b className="text-white text-[18px] sm:text-[22px] font-normal">CHỈ CÓ TẠI POLYSMART </b><br />
+            <span className="text-white text-[24px] sm:text-[28px] md:text-[36px] font-extrabold">MÁY SIÊU TỐT - GIÁ SIÊU HỜI</span>
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl mt-10 p-4 sm:p-6 shadow-xl w-full">
+          <div className="flex items-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-black">Mac bán chạy nhất</h2>
+          </div>
+          <div className="relative group">
+            <Swiper
+              modules={[Navigation]}
+              navigation={{ nextEl: '.hot-mac-next', prevEl: '.hot-mac-prev' }}
+              spaceBetween={16}
+              loop={true}
+              breakpoints={{
+                320: { slidesPerView: 2 },
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
               }}
+              className="w-full"
             >
-              <p className="w-full"  style={{textAlign:'left', paddingLeft:90}}>
-                <b style={{fontSize:22, fontWeight:400,color:'#fff'}}>HIỆU SUẤT CAO</b><br />
-                <span style={{fontSize:36, fontWeight:800,color:'#fff'}}>BÙNG NỔ SÁNG TẠO</span>
-              </p>
-            </div>
-            {/* Card lớn bao 3 card nhỏ */}
-            <div className="bg-white rounded-2xl h-[515px] max-w-[668px] mt-[60px]" style={{padding:'20px 20px 30px 20px'}}>
-              <div className="flex items-center mb-6">
-                <h2 className="text-3xl font-bold text-black">Macbook bán chạy nhất</h2>
-              </div>
-              <div className="relative group">
-              <Swiper
-                modules={[Navigation]}
-                  navigation={{
-                    nextEl: '.hot-mac-next',
-                    prevEl: '.hot-mac-prev',
-                  }}
-                spaceBetween={24}
-                slidesPerView={3}
-                loop={true}
-                className="w-full h-full"
-              >
-                {hotMacs.map((product: Product) => (
-                  <SwiperSlide key={product._id} className="h-full">
-                  
-                    <Link href={`/product/${product._id}`} className="block bg-white shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300" style={{height:410}}>
-                      <div className="relative flex items-center justify-center pt-10 bg-white">
-                        <div className="relative w-[170px] h-[140px] flex items-center justify-center">
-                          <Image
-                            src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
-                            alt={product.TenSP}
-                            className="w-[200px] h-[180px] object-contain"
-                            width={170}
-                            height={140}
-                          />
-                          {/* {product.khuyen_mai && (
-                            <img
-                              src="/images/khungfl.png"
-                              alt="Khung Flash Sale"
-                              className="absolute left-0 pointer-events-none"
-                              style={{ zIndex: 10, width:185, height: 176 }}
-                            />
-                          )} */}
-                        </div>
-                        {/* % giảm giá nếu có */}
-                        {product.khuyen_mai && (
-                          <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">-{product.khuyen_mai}%</span>
-                        )}
+              {hotMacs.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Link href={`/product/${product._id}`} className="block bg-white shadow-md hover:shadow-xl transition duration-300">
+                    <div className="relative flex items-center justify-center pt-10 bg-white">
+                      <div className="relative w-[170px] h-[140px] flex items-center justify-center">
+                        <Image
+                          src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
+                          alt={product.TenSP}
+                          className="w-[200px] h-[180px] object-contain"
+                          width={170}
+                          height={140}
+                        />
                       </div>
-                      <div className="p-4">
-                        <p className="text-[14px]" style={{fontWeight:800, color:'#333', marginTop:0}}>{product.TenSP}</p>
-                        {/* Lựa chọn dung lượng */}
-                        {/* {product.variants && product.variants.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {product.variants
-                              .filter((variant: ProductVariant) => product.variants?.[0]?.mau && variant.mau === product.variants[0].mau)
-                              .map((variant: ProductVariant, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-1 text-[8px] border border-gray-300 bg-gray-50 text-gray-700 font-semibold"
-                                  style={{ borderRadius: 18,}}
-                                >
-                                  {variant.dung_luong}
-                                </span>
-                              ))}
+                      {product.khuyen_mai && (
+                        <span className="absolute top-2 right-2 bg-[#FF7337] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
+                          -{product.khuyen_mai}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm font-extrabold text-gray-800 mb-2 line-clamp-2">{product.TenSP}</p>
+                      
+                      {/* Giá */}
+                      {(() => {
+                        const variants = product.variants?.filter(v => v.mau === product.variants[0].mau) || [];
+                        if (!variants.length) return null;
+                        const minPrice = Math.min(...variants.map(v => v.gia));
+                        const hasDiscount = !!product.khuyen_mai;
+                        const salePrice = hasDiscount ? minPrice * (1 - product.khuyen_mai / 100) : minPrice;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-[#FF763B]">{formatCurrency(salePrice)}</span>
+                            {hasDiscount && (
+                              <span className="text-[10px] text-gray-400 line-through">{formatCurrency(minPrice)}</span>
+                            )}
                           </div>
-                        )} */}
-                        {/* Giá tiền nằm ngoài chip dung lượng */}
-                        {(() => {
-                          const variants = product.variants?.filter(
-                            (v: ProductVariant) => product.variants?.[0]?.mau && v.mau === product.variants[0].mau
-                          ) || [];
-                          if (variants.length === 0) return null;
-                          const minPrice = Math.min(...variants.map(v => v.gia));
-                          const hasDiscount = !!product.khuyen_mai;
-                          const salePrice = hasDiscount ? minPrice * (1 - (product.khuyen_mai ?? 0) / 100) : minPrice;
-                          return (
-                            <div className="items-center mt-2">
-                              <span className="text-[13px]" style={{ fontWeight: 800, color: '#FF763B',}}>
-                                {formatCurrency(salePrice)}
-                              </span> 
-                              {hasDiscount && (
-                                <span className="text-[10px] text-gray-400 line-through ml-2">
-                                  {formatCurrency(minPrice)}
-                                </span> 
-                              )}
-                              
-                            </div>
-                          );
-                        })()}
-                        <div style={{background:'#F2F4F6', borderRadius:8, fontSize:10, padding:10,height:60,width:160, marginTop:10}}>
-                                <p>Hỗ trợ trả góp 0%</p>
-                                <p>Thu cũ đổi mới</p>
-                                <p>Ưu đãi khách hàng thân thiết</p>
-                        </div>
+                        );
+                      })()}
+                      <div className="bg-gray-100 rounded mt-3 p-2 text-[10px] text-gray-600 leading-4 w-fit">
+                        <p>Hỗ trợ trả góp 0%</p>
+                        <p>Thu cũ đổi mới</p>
+                        <p>Ưu đãi khách hàng thân thiết</p>
                       </div>
-                    </Link>
-               
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-              {/* Custom Navigation Buttons for Hot Mac */}
-              <div className="hot-mac-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M15 19l-7-7 7-7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="hot-mac-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-600 sm:w-[28px] sm:h-[28px]">
-                  <path d="M9 5l7 7-7 7" stroke="#484848" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div className="hot-iphone-prev absolute top-1/2 -left-4 sm:-left-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="hot-iphone-next absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-10 bg-white/70 rounded-full p-1 sm:p-2 shadow cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-gray-600">
+                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-          {/* Right: Banner slide */}
-          <div className="flex flex-col items-center" style={{marginTop:115, marginRight:100}}>
-              <Swiper
-                modules={[Autoplay]}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                loop={true}
-                className="w-[455px] h-[515px]"
-                style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}
-              >
-                {(specialBannersMac || []).map((banner, idx) => (
-                  <SwiperSlide key={idx}>
-                    <div
-                      className="flex items-center justify-center w-[455px] h-[515px] rounded-2xl overflow-hidden shadow-xl bg-white"
-                      style={{ width: 455, height: 515, maxWidth: 455, maxHeight: 515 }}>
-                      <img src={banner.image} alt={banner.title} className="w-full h-full object-cover" />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
         </div>
-      </section>
-      </section>
+      </div>
+
+      {/* Banner slide */}
+<div className="w-full lg:w-[455px] -mt-5 lg:mt-[150px] lg:mr-[30px]">
+  <Swiper
+    modules={[Autoplay]}
+    autoplay={{ delay: 5000, disableOnInteraction: false }}
+    loop={true}
+    className="w-full h-[400px] sm:h-[500px] md:h-[550px] lg:h-[505px]"
+  >
+    {(specialBannersMac || []).map((banner, idx) => (
+      <SwiperSlide key={idx}>
+        <div className="flex items-center justify-center w-full h-full rounded-2xl overflow-hidden shadow-xl bg-white">
+          <img
+            src={banner.image}
+            alt={banner.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </SwiperSlide>
+    ))}
+  </Swiper>
+</div>
+
+    </div>
+  </section>
+</section>
       {/* Mac Section */}
       <section className="section bg-white">
-        <div className="container mx-auto px-40 bg-white">
+<div className="container mx-auto px-4 sm:px-6 lg:px-40 bg-white">
           <div className="section-header flex justify-between items-center mb-6 bg-white">
               <h2 className="section-title text-2xl font-bold">Mac</h2>
             <Link 
@@ -2179,8 +2081,8 @@ const HomePage = () => {
               slidesPerGroup={1}
               loop={true}
               speed={800}
-              breakpoints={{
-                320: { slidesPerView: 1, slidesPerGroup: 1, spaceBetween: 10 },
+             breakpoints={{
+                320: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 480: { slidesPerView: 2, slidesPerGroup: 2, spaceBetween: 15 },
                 768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 20 },
                 1024: { slidesPerView: 4, slidesPerGroup: 4, spaceBetween: 20 }
@@ -2192,21 +2094,22 @@ const HomePage = () => {
                   <div className="relative">
                     {/* Discount Badge - Positioned to hug the left edge */}
                     {(product.khuyen_mai ?? 0) > 0 && (
-                <div className="absolute -top-0 -left-1 z-20 w-[81px] h-[32px]">                        <img
+                      <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">                        
+                       <img
                        src="/images/spanfl.png" 
                        alt="Giảm giá"
                        className="w-full h-full object-contain"
                      />
                      <span
-                       className="absolute top-1/2 text-white left-1/2 text-xs font-bold"
-                       style={{
-                         transform: 'translate(-50%, -50%)',
-                         fontSize: 12,
-                         fontWeight: 700,
-                         lineHeight:24,
-                         whiteSpace: 'nowrap',
-                         paddingBottom:5 ,
-                       }}
+                        className="absolute top-1/2 text-white left-1/2 text-[10px] sm:text-xs font-bold"
+                      style={{
+                                transform: 'translate(-50%, -50%)',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                lineHeight: '20px',
+                                whiteSpace: 'nowrap',
+                                paddingBottom: '3px',
+                              }}
                      >
                        Giảm {product.khuyen_mai}%
                      </span>
@@ -2214,8 +2117,14 @@ const HomePage = () => {
                     )}
                     <Link
                       href={`/product/${product._id}`}
-                      className="bg-white overflow-hidden border transition-all duration-300 group relative w-[285px] h-[410px] block rounded-2xl"
-                    >
+                      className="
+      bg-white overflow-hidden border transition-all duration-300 group relative
+      w-full h-[320px]             
+      sm:w-[47vw] sm:h-[400px]          
+      lg:w-[285px] lg:h-[410px]       
+      block rounded-2xl
+    "
+  > 
                     {/* Installment Badge */}
                     <div className="absolute top-1 right-2 z-10 w-[81px] h-[30px]">
                       <img
@@ -2225,25 +2134,25 @@ const HomePage = () => {
                       />
                     </div>
                     {/* Product Image */}
-                    <div className="relative pt-5 flex items-center justify-center h-[180px] sm:h-[220px] bg-gradient-to-b from-white to-gray-50">
+                     <div className="relative flex items-center justify-center pt-0 bg-white">
                       <Image
                         src={getImageUrl(Array.isArray(product.hinh) ? product.hinh[0] : product.hinh)}
                         alt={product.TenSP}
                         width="0" 
                         height="0" 
-                       className="w-[280px] h-[280px]"
+                                               className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[280px] lg:h-[280px]"
                       />
                     </div>
                     {/* Product Info */}
-                    <div className="flex flex-col justify-between px-4 py-14 min-h-[100px] w-[300px]">
-                      <h3 className="text-[18px] font-bold mb-3 text-black min-h-[2.5rem]">
+                                       <div className="flex flex-col pl-4">
+                      <h3 className="text-[14px] sm:text-[16px] lg:text-[18px] font-bold mb-2 sm:mb-3 text-black min-h-[2rem] sm:min-h-[2.5rem]">
                         {product.TenSP}
                         {product.variants && product.variants.length > 0 && product.variants[0].dung_luong && (
                           ` ${product.variants[0].dung_luong}`
                         )}
                       </h3>
                       <div className="flex gap-2 mb-1">
-                        <span className="text-[16px] font-bold text-[#0066D6]">
+                                  <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-bold text-[#0066D6]">
                           {(() => {
                             const priceRange = getPriceRange(product.variants);
                             if (priceRange) {

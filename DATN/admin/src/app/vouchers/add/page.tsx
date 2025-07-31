@@ -24,9 +24,13 @@ const AddVoucherPage = () => {
     const generateVoucherCode = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = 'POLY';
-        for (let i = 0; i < 8; i++) {
+        // Tạo mã dài hơn để giảm khả năng trùng lặp
+        for (let i = 0; i < 10; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
+        // Thêm timestamp để đảm bảo unique
+        const timestamp = Date.now().toString().slice(-4);
+        result += timestamp;
         setFormData({ ...formData, ma_voucher: result });
     };
 
@@ -36,6 +40,28 @@ const AddVoucherPage = () => {
             ...formData,
             [name]: value,
         });
+        
+        // Kiểm tra mã voucher khi người dùng nhập
+        if (name === 'ma_voucher' && value.trim()) {
+            checkVoucherCode(value.trim());
+        }
+    };
+
+    const checkVoucherCode = async (code: string) => {
+        if (code.length < 4) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/vouchers/check/${code}`);
+            const data = await response.json();
+            
+            if (data.exists) {
+                setError('Mã voucher này đã tồn tại. Vui lòng chọn mã khác.');
+            } else {
+                setError(''); // Xóa lỗi nếu mã hợp lệ
+            }
+        } catch (err) {
+            console.error('Lỗi khi kiểm tra mã voucher:', err);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -43,16 +69,53 @@ const AddVoucherPage = () => {
         setError('');
         setSuccess('');
 
+        // Validation
+        if (!formData.ma_voucher.trim()) {
+            setError('Mã voucher là bắt buộc.');
+            return;
+        }
+        if (!formData.mo_ta.trim()) {
+            setError('Mô tả là bắt buộc.');
+            return;
+        }
+        if (!formData.ngay_bat_dau) {
+            setError('Ngày bắt đầu là bắt buộc.');
+            return;
+        }
+        if (!formData.ngay_ket_thuc) {
+            setError('Ngày kết thúc là bắt buộc.');
+            return;
+        }
         if (new Date(formData.ngay_bat_dau) >= new Date(formData.ngay_ket_thuc)) {
             setError('Ngày bắt đầu phải trước ngày kết thúc.');
             return;
         }
+        if (formData.phan_tram_giam_gia <= 0 || formData.phan_tram_giam_gia > 100) {
+            setError('Phần trăm giảm giá phải từ 1-100%.');
+            return;
+        }
+        if (formData.giam_toi_da <= 0) {
+            setError('Mức giảm tối đa phải lớn hơn 0.');
+            return;
+        }
+        if (formData.so_luong <= 0) {
+            setError('Số lượng voucher phải lớn hơn 0.');
+            return;
+        }
 
         try {
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                setError('Bạn cần đăng nhập để thực hiện thao tác này.');
+                return;
+            }
+
             const response = await fetch('http://localhost:3000/api/vouchers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     ...formData,
@@ -73,7 +136,8 @@ const AddVoucherPage = () => {
                 setError(data.message || 'Thêm voucher thất bại.');
             }
         } catch (err) {
-            setError('Lỗi kết nối server.');
+            console.error('Lỗi khi tạo voucher:', err);
+            setError('Lỗi server khi tạo voucher.');
         }
     };
 
@@ -130,7 +194,7 @@ const AddVoucherPage = () => {
                                 onChange={handleChange}
                                 placeholder="10"
                                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                                min="0" max="100"
+                                min="1" max="100" required
                             />
                         </div>
 
@@ -143,7 +207,7 @@ const AddVoucherPage = () => {
                                 onChange={handleChange}
                                 placeholder="50000"
                                 className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                                min="0"
+                                min="1" required
                             />
                         </div>
 
@@ -169,7 +233,7 @@ const AddVoucherPage = () => {
                             onChange={handleChange}
                             placeholder="100"
                             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            min="1"
+                            min="1" required
                         />
                     </div>
 

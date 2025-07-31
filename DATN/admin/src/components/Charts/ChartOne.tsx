@@ -181,9 +181,9 @@ const ChartOne: React.FC = () => {
         </div>
         <div className="flex w-full max-w-45 justify-end">
           <div className="inline-flex items-center rounded-md bg-whiter p-1.5 dark:bg-meta-4">
-            <button onClick={() => setType('day')} className={`rounded px-3 py-1 text-xs font-medium ${type==='day' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Day</button>
-            <button onClick={() => setType('week')} className={`rounded px-3 py-1 text-xs font-medium ${type==='week' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Week</button>
-            <button onClick={() => setType('month')} className={`rounded px-3 py-1 text-xs font-medium ${type==='month' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:hover:bg-boxdark'}`}>Month</button>
+            <button onClick={() => setType('day')} className={`rounded px-3 py-1 text-xs font-medium ${type==='day' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Ngày</button>
+            <button onClick={() => setType('week')} className={`rounded px-3 py-1 text-xs font-medium ${type==='week' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'}`}>Tuần</button>
+            <button onClick={() => setType('month')} className={`rounded px-3 py-1 text-xs font-medium ${type==='month' ? 'bg-white text-black shadow-card dark:bg-boxdark dark:text-white' : 'text-black hover:bg-white hover:shadow-card dark:hover:bg-boxdark'}`}>Tháng</button>
           </div>
         </div>
       </div>

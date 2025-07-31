@@ -1,27 +1,27 @@
-require('dotenv').config();
-const nodemailer = require('nodemailer');
-const mongoose = require('mongoose');
-const UserEvent = require('../models/userEventModel');
-const User = require('../models/userModel');
+require("dotenv").config();
+const nodemailer = require("nodemailer");
+const mongoose = require("mongoose");
+const UserEvent = require("../models/userEventModel");
+const User = require("../models/userModel");
 
 // Tạo transporter cho Gmail
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER, // Email Gmail của bạn
-    pass: process.env.EMAIL_PASSWORD // App password từ Gmail
-  }
+    pass: process.env.EMAIL_PASSWORD, // App password từ Gmail
+  },
 });
 
 // Hàm gửi email voucher
 const sendVoucherEmail = async (userEmail, userName, voucherCode) => {
-  console.log('EMAIL_USER:', process.env.EMAIL_USER);
-  console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD);
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD);
   try {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: userEmail,
-      subject: '🎁 Chúc mừng! Bạn đã nhận được voucher từ Poly Smart',
+      subject: "🎁 Chúc mừng! Bạn đã nhận được voucher từ Poly Smart",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: #E53935; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -68,58 +68,60 @@ const sendVoucherEmail = async (userEmail, userName, voucherCode) => {
             </p>
           </div>
         </div>
-      `
+      `,
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', result.messageId);
+    console.log("Email sent successfully:", result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
     return { success: false, error: error };
   }
 };
 
 function generateVoucherCode(length = 8) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
   for (let i = 0; i < length; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return 'POLY-' + code;
+  return "POLY-" + code;
 }
 
 async function sendEmail(to, voucherCode) {
   let transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
-      user: 'polysmart79@gmail.com',
-      pass: 'osqo augq eamh xkti',
+      user: "polysmart79@gmail.com",
+      pass: "osqo augq eamh xkti",
     },
   });
 
   await transporter.sendMail({
-    from: 'Poly Smart <your-email@gmail.com>',
+    from: "Poly Smart <your-email@gmail.com>",
     to,
-    subject: 'Mã giảm giá dành cho bạn!',
+    subject: "Mã giảm giá dành cho bạn!",
     text: `Bạn nhận được mã giảm giá 500.000đ cho sản phẩm bạn quan tâm!\nMã giảm giá của bạn: ${voucherCode}`,
   });
 }
 
-
-//gửi email quên mk-- thanhhoai
+//gửi email quên mk
 async function sendResetPasswordEmail(to, newPassword) {
   try {
-    console.log('Sending reset password email to:', to);
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
-    
+    console.log("Sending reset password email to:", to);
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+    console.log(
+      "EMAIL_PASSWORD:",
+      process.env.EMAIL_PASSWORD ? "***" : "NOT SET"
+    );
+
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      throw new Error('Email configuration not set');
+      throw new Error("Email configuration not set");
     }
 
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
@@ -129,7 +131,7 @@ async function sendResetPasswordEmail(to, newPassword) {
     const mailOptions = {
       from: `Poly Smart <${process.env.EMAIL_USER}>`,
       to: to,
-      subject: '🔐 Mật khẩu mới từ Poly Smart',
+      subject: "🔐 Mật khẩu mới từ Poly Smart",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: #0066D6; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -176,14 +178,14 @@ async function sendResetPasswordEmail(to, newPassword) {
             </p>
           </div>
         </div>
-      `
+      `,
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('Reset password email sent successfully:', result.messageId);
+    console.log("Reset password email sent successfully:", result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Error sending reset password email:', error);
+    console.error("Error sending reset password email:", error);
     throw error;
   }
 }
@@ -192,5 +194,5 @@ module.exports = {
   sendVoucherEmail,
   sendEmail,
   generateVoucherCode,
-  sendResetPasswordEmail
-}; 
+  sendResetPasswordEmail,
+};

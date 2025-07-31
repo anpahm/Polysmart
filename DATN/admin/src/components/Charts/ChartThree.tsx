@@ -1,144 +1,211 @@
-import { ApexOptions } from "apexcharts";
-import React from "react";
-import ReactApexChart from "react-apexcharts";
+"use client";
 
-interface ChartThreeState {
+import { ApexOptions } from "apexcharts";
+import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useAuth } from "@/contexts/AuthContext";
+
+const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
+
+interface OrderStatusData {
+  labels: string[];
   series: number[];
 }
 
-const options: ApexOptions = {
-  chart: {
-    fontFamily: "Satoshi, sans-serif",
-    type: "donut",
-  },
-  colors: ["#3C50E0", "#6577F3", "#8FD0EF", "#0FADCF"],
-  labels: ["Desktop", "Tablet", "Mobile", "Unknown"],
-  legend: {
-    show: false,
-    position: "bottom",
-  },
-
-  plotOptions: {
-    pie: {
-      donut: {
-        size: "65%",
-        background: "transparent",
-      },
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  responsive: [
-    {
-      breakpoint: 2600,
-      options: {
-        chart: {
-          width: 380,
-        },
-      },
-    },
-    {
-      breakpoint: 640,
-      options: {
-        chart: {
-          width: 200,
-        },
-      },
-    },
-  ],
-};
-
 const ChartThree: React.FC = () => {
-  const series = [65, 34, 12, 56];
+  const [orderStatusData, setOrderStatusData] = useState<OrderStatusData>({
+    labels: ["Đã giao hàng", "Đã hủy", "Đang vận chuyển", "pending", "processing", "Tiếp nhận"],
+    series: [25, 3, 12, 50, 2, 8]
+  });
+  const [loading, setLoading] = useState(false);
+  const { token } = useAuth();
+
+  const options: ApexOptions = {
+    chart: {
+      fontFamily: "Satoshi, sans-serif",
+      type: "donut",
+    },
+    colors: [
+      "#10B981", // Đã giao hàng - Green
+      "#EF4444", // Đã hủy - Red
+      "#3B82F6", // Đang vận chuyển - Blue
+      "#F59E0B", // pending - Orange
+      "#8B5CF6", // processing - Purple
+      "#06B6D4"  // Tiếp nhận - Cyan
+    ],
+    labels: orderStatusData.labels,
+    legend: {
+      show: true,
+      position: "bottom",
+      fontFamily: "Satoshi, sans-serif",
+      fontSize: "12px",
+      fontWeight: 500,
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "65%",
+        },
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      width: 0,
+    },
+    tooltip: {
+      enabled: true,
+      theme: 'light',
+      style: {
+        fontSize: '12px',
+        fontFamily: 'Satoshi, sans-serif',
+      },
+      custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+        const label = w.globals.labels[dataPointIndex];
+        const value = series[seriesIndex][dataPointIndex];
+        const total = series[seriesIndex].reduce((a: number, b: number) => a + b, 0);
+        const percentage = ((value / total) * 100).toFixed(1);
+        
+        return `
+          <div class="custom-tooltip" style="
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            font-family: 'Satoshi', sans-serif;
+            color: #374151;
+            max-width: 200px;
+          ">
+            <div style="font-weight: 600; margin-bottom: 4px; color: #111827;">
+              ${label}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <span style="color: #6b7280;">${value} đơn hàng</span>
+              <span style="color: #ef4444; font-weight: 600;">${percentage}%</span>
+            </div>
+          </div>
+        `;
+      }
+    },
+  };
+
+  // Fetch order status statistics
+  const fetchOrderStatusStats = async () => {
+    if (!token) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/statistics/order-status', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOrderStatusData(data);
+      } else {
+        console.error('Failed to fetch order status statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching order status statistics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderStatusStats();
+  }, [token]);
 
   return (
-    <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-5">
-      <div className="mb-3 justify-between gap-4 sm:flex">
-        <div>
-          <h5 className="text-xl font-semibold text-black dark:text-white">
-            Visitors Analytics
-          </h5>
+    <div className="h-full rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-lg dark:border-gray-700 dark:bg-boxdark hover:shadow-xl transition-shadow duration-300 flex flex-col">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div>
+            <h5 className="text-xl font-bold text-gray-900 dark:text-white">
+              Tỷ Lệ Trạng Thái Đơn Hàng
+            </h5>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Phân bố trạng thái đơn hàng
+            </p>
+          </div>
         </div>
-        <div>
-          <div className="relative z-20 inline-block">
-            <select
-              name=""
-              id=""
-              className="relative z-20 inline-flex appearance-none bg-transparent py-1 pl-3 pr-8 text-sm font-medium outline-none"
-            >
-              <option value="" className="dark:bg-boxdark">
-                Monthly
-              </option>
-              <option value="" className="dark:bg-boxdark">
-                Yearly
-              </option>
-            </select>
-            <span className="absolute right-3 top-1/2 z-10 -translate-y-1/2">
-              <svg
-                width="10"
-                height="6"
-                viewBox="0 0 10 6"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M0.47072 1.08816C0.47072 1.02932 0.500141 0.955772 0.54427 0.911642C0.647241 0.808672 0.809051 0.808672 0.912022 0.896932L4.85431 4.60386C4.92785 4.67741 5.06025 4.67741 5.14851 4.60386L9.09079 0.896932C9.19376 0.793962 9.35557 0.808672 9.45854 0.911642C9.56151 1.01461 9.5468 1.17642 9.44383 1.27939L5.50155 4.98632C5.22206 5.23639 4.78076 5.23639 4.51598 4.98632L0.558981 1.27939C0.50014 1.22055 0.47072 1.16171 0.47072 1.08816Z"
-                  fill="#637381"
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M1.22659 0.546578L5.00141 4.09604L8.76422 0.557869C9.08459 0.244537 9.54201 0.329403 9.79139 0.578788C10.112 0.899434 10.0277 1.36122 9.77668 1.61224L9.76644 1.62248L5.81552 5.33722C5.36257 5.74249 4.6445 5.7544 4.19352 5.32924C4.19327 5.32901 4.19377 5.32948 4.19352 5.32924L0.225953 1.61241C0.102762 1.48922 -4.20186e-08 1.31674 -3.20269e-08 1.08816C-2.40601e-08 0.905899 0.0780105 0.712197 0.211421 0.578787C0.494701 0.295506 0.935574 0.297138 1.21836 0.539529L1.22659 0.546578ZM4.51598 4.98632C4.78076 5.23639 5.22206 5.23639 5.50155 4.98632L9.44383 1.27939C9.5468 1.17642 9.56151 1.01461 9.45854 0.911642C9.35557 0.808672 9.19376 0.793962 9.09079 0.896932L5.14851 4.60386C5.06025 4.67741 4.92785 4.67741 4.85431 4.60386L0.912022 0.896932C0.809051 0.808672 0.647241 0.808672 0.54427 0.911642C0.500141 0.955772 0.47072 1.02932 0.47072 1.08816C0.47072 1.16171 0.50014 1.22055 0.558981 1.27939L4.51598 4.98632Z"
-                  fill="#637381"
-                />
+        
+
+      </div>
+
+      {/* Chart Container */}
+      <div className="relative flex-1">
+        {loading && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 dark:bg-boxdark dark:bg-opacity-90 flex items-center justify-center z-10 rounded-xl">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Đang tải dữ liệu...</p>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex justify-center items-center h-full">
+          <div id="chartThree" className="w-full">
+            <ReactApexChart 
+              options={options} 
+              series={orderStatusData.series} 
+              type="donut" 
+              height={280}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 p-4 dark:from-green-900/20 dark:to-emerald-900/20">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-green-500 flex items-center justify-center">
+              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-            </span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">Đã giao</p>
+              <p className="text-lg font-bold text-green-900 dark:text-green-100">
+                {(() => {
+                  const deliveredIndex = orderStatusData.labels.findIndex(label => 
+                    label === 'Đã giao hàng' || label === 'delivered'
+                  );
+                  return deliveredIndex !== -1 ? orderStatusData.series[deliveredIndex] : 0;
+                })()} đơn
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="mb-2">
-        <div id="chartThree" className="mx-auto flex justify-center">
-          <ReactApexChart options={options} series={series} type="donut" />
-        </div>
-      </div>
-
-      <div className="-mx-8 flex flex-wrap items-center justify-center gap-y-3">
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Desktop </span>
-              <span> 65% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Tablet </span>
-              <span> 34% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Mobile </span>
-              <span> 45% </span>
-            </p>
-          </div>
-        </div>
-        <div className="w-full px-8 sm:w-1/2">
-          <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
-              <span> Unknown </span>
-              <span> 12% </span>
-            </p>
+        
+        <div className="rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 p-4 dark:from-orange-900/20 dark:to-amber-900/20">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center">
+              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Chờ xử lý</p>
+              <p className="text-lg font-bold text-orange-900 dark:text-orange-100">
+                {(() => {
+                  const pendingIndex = orderStatusData.labels.findIndex(label => 
+                    label === 'Chờ xử lý' || label === 'pending'
+                  );
+                  return pendingIndex !== -1 ? orderStatusData.series[pendingIndex] : 0;
+                })()} đơn
+              </p>
+            </div>
           </div>
         </div>
       </div>

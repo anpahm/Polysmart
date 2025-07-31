@@ -103,9 +103,6 @@ exports.createOrder = async (req, res) => {
     try {
       await order.save();
 
-      // Note: Flash sale quantity will be updated when payment is confirmed (paid status)
-      // This ensures we don't reserve stock for unpaid orders
-
       return res.status(201).json({
         message: 'Đặt hàng thành công',
         order: {
@@ -194,9 +191,6 @@ exports.verifyBankTransfer = async (req, res) => {
     if (order.transferContent !== transferContent) {
       return res.status(400).json({ message: 'Mã giao dịch không hợp lệ' });
     }
-
-    // In a real app, you would verify the transfer with the bank's API
-    // For now, we'll just simulate a successful verification
     const wasUnpaid = order.paymentStatus !== 'paid';
     order.paymentStatus = 'paid';
     order.orderStatus = 'packing';

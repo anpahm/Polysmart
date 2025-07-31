@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { register, login, verifyToken, getUser, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin } = require('../controllers/userController');
+const { register, login, verifyToken, verifyAdmin, getUser, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin, deleteUser, toggleUserStatus } = require('../controllers/userController');
 
 //Đăng ký
 router.post('/register', register);
@@ -45,8 +45,20 @@ router.post('/change-password', verifyToken, async (req, res) => {
     }
 });
 
-//Lấy tất cả users
-router.get('/', getAllUsers);
+//Lấy tất cả users (cần admin quyền)
+router.get('/', verifyToken, verifyAdmin, getAllUsers);
+
+// Thêm user mới (cần admin quyền)
+router.post('/add', verifyToken, verifyAdmin, register);
+
+// Cập nhật user (cần admin quyền)
+router.patch('/:id', verifyToken, verifyAdmin, updateUser);
+
+// Xóa user (cần admin quyền)
+router.delete('/:id', verifyToken, verifyAdmin, deleteUser);
+
+// Toggle trạng thái user (cần admin quyền)
+router.patch('/:id/toggle-status', verifyToken, verifyAdmin, toggleUserStatus);
 
 // Quên mật khẩu
 router.post('/forgot-password', forgotPassword);

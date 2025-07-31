@@ -212,7 +212,7 @@ export default function ProfilePage() {
       qty: item.quantity,
       price: item.price,
       oldPrice: item.oldPrice || 0,
-      totalAmount, // Thêm trường tổng tiền
+      totalAmount, 
       ...statusObj,
       delivered: orderFromApi.orderStatus === 'delivered',
       note: '',

@@ -62,20 +62,30 @@ const register = [upload.single('img'), async (req, res) => {
 const login = async (req, res) => {
     try {
         // Kiểm tra email có tồn tại không
-        console.log(req.body);
         const checkUser = await userModel.findOne({
             email: req.body.email
         });
-        console.log(checkUser);
+        
         if (!checkUser) {
             throw new Error('Email không tồn tại');
         }
+        
+        // Kiểm tra trạng thái active
+        if (!checkUser.active) {
+            throw new Error('Tài khoản đã bị tạm ngưng');
+        }
+        
         // So sánh mật khẩu
         const isMatch = await bcrypt.compare(req.body.password, checkUser.password);
         if (!isMatch) {
             throw new Error('Mật khẩu không đúng');
         }
-        // Tạo token với mã bí mật là 'secretkey' và thời gian sống là 1 giờ
+        
+        // Cập nhật thời gian đăng nhập cuối
+        checkUser.lastLogin = new Date();
+        await checkUser.save();
+        
+        // Tạo token với mã bí mật là 'conguoiyeuchua' và thời gian sống là 1 giờ
         const token = jwt.sign({ id: checkUser._id, email: checkUser.email, role: checkUser.role }, 'conguoiyeuchua', { expiresIn: '1h' });
         res.json(token);
     } catch (error) {
@@ -87,11 +97,16 @@ const login = async (req, res) => {
 //Bảo mật token
 const verifyToken = (req, res, next) => {
     // Lấy token từ header
-    const token = req.headers.authorization.slice(7);
-    console.log(token);
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(403).json({ message: 'Không có token hoặc format không đúng' });
+    }
+    
+    const token = authHeader.slice(7);
     if (!token) {
         return res.status(403).json({ message: 'Không có token' });
     }
+    
     // Xác thực token với mã bí mật
     jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
         if (err) {
@@ -210,19 +225,21 @@ const changePassword = async (req, res) => {
 const verifyAdmin = async (req, res, next) => {
     try {
         // Lấy thông tin user từ id lưu trong req khi đã xác thực token
-        const user= await userModel.findById(req.userId);
-        console.log(user);
-        console.log(user.role);
+        const user = await userModel.findById(req.userId);
+        
         if (!user) {
-            throw new Error('Không tìm thấy user');
+            return res.status(404).json({ message: 'Không tìm thấy user' });
         }
+        
         if (user.role !== 'admin') {
-            throw new Error('Không có quyền truy cập');
+            return res.status(403).json({ message: 'Không có quyền truy cập' });
         }
+        
         next();
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('VerifyAdmin error:', error);
+        res.status(500).json({ message: 'Lỗi xác thực admin: ' + error.message });
     }
 }
 
@@ -297,4 +314,66 @@ const googleLogin = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin };
+// Xóa user
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Kiểm tra user có tồn tại không
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy user để xóa' });
+    }
+
+    // Kiểm tra không cho phép xóa admin
+    if (user.role === 'admin') {
+      return res.status(403).json({ message: 'Không thể xóa tài khoản admin' });
+    }
+
+    // Xóa user
+    await userModel.findByIdAndDelete(userId);
+    
+    res.status(200).json({ message: 'Đã xóa user thành công' });
+  } catch (error) {
+    console.error('Lỗi khi xóa user:', error);
+    res.status(500).json({ message: 'Lỗi khi xóa user: ' + error.message });
+  }
+};
+
+// Toggle trạng thái active của user
+const toggleUserStatus = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Kiểm tra user có tồn tại không
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy user' });
+    }
+
+    // Không cho phép thay đổi trạng thái của admin
+    if (user.role === 'admin') {
+      return res.status(403).json({ message: 'Không thể thay đổi trạng thái tài khoản admin' });
+    }
+
+    // Toggle trạng thái active
+    user.active = !user.active;
+    await user.save();
+    
+    res.status(200).json({ 
+      message: user.active ? 'Đã kích hoạt user' : 'Đã tạm ngưng user',
+      user: {
+        _id: user._id,
+        TenKH: user.TenKH,
+        email: user.email,
+        active: user.active,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Lỗi khi thay đổi trạng thái user:', error);
+    res.status(500).json({ message: 'Lỗi khi thay đổi trạng thái user: ' + error.message });
+  }
+};
+
+module.exports = { register, login, getUser, verifyToken, verifyAdmin, getAllUsers, updateUser, upload, changePassword, forgotPassword, googleLogin, deleteUser, toggleUserStatus };

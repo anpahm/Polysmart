@@ -140,7 +140,7 @@ const ChartTwo: React.FC = () => {
   ];
 
   return (
-    <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
+    <div className="h-full rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-lg dark:border-gray-700 dark:bg-boxdark hover:shadow-xl transition-shadow duration-300 flex flex-col">
       <div className="mb-4 justify-between gap-4 sm:flex">
         <div className="flex items-center gap-2">
           <h4 className="text-xl font-semibold text-black dark:text-white">
@@ -206,13 +206,13 @@ const ChartTwo: React.FC = () => {
         💡 Doanh thu chưa bao gồm chi phí vận hành, phí giao hàng và các khoản khấu trừ
       </div>
 
-      <div className="relative">
+      <div className="relative flex-1">
         {loading && (
           <div className="absolute inset-0 bg-white bg-opacity-75 dark:bg-boxdark dark:bg-opacity-75 flex items-center justify-center z-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         )}
-        <div id="chartTwo" className="-mb-9 -ml-5">
+        <div id="chartTwo" className="w-full h-full">
           <ReactApexChart
             options={options}
             series={series}

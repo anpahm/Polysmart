@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
     // Lấy các productId user đã xem gần đây
     const viewedEvents = await UserEvent.find({ userId, eventType: 'view_product' })
       .sort({ timestamp: -1 })
-      .limit(10)
+      .limit(1)
       .lean();
     if (!viewedEvents.length) {
       return res.json({ message: 'Hãy xem một số sản phẩm để được tư vấn!' });
@@ -35,8 +35,20 @@ router.get('/', async (req, res) => {
     // Chuẩn bị prompt cho Gemini
     const listProductNames = viewedProducts.map(p => p.TenSP).join(', ');
     const allProductNames = allProducts.map(p => p.TenSP).join(', ');
-    const prompt = `Tôi đã xem các sản phẩm: ${listProductNames}. Tôi đã thêm vào giỏ: ${cartProductNames.join(', ')}. Tôi đã tìm kiếm các từ khóa: ${searchKeywords.join(', ')}. Bạn hãy gợi ý 8 sản phẩm phù hợp nhất trong danh sách sau: ${allProductNames}. Với mỗi sản phẩm gợi ý, hãy ghi rõ lý do tại sao bạn chọn sản phẩm đó cho tôi. Trả về theo dạng: Tên sản phẩm: Lý do gợi ý.`;
-    const geminiPayload = {
+    const prompt = `
+    Chào bạn! Mình để ý bạn vừa xem qua sản phẩm: ${listProductNames}.
+    Ngoài ra, bạn đã thêm vào giỏ hàng các sản phẩm: ${cartProductNames.join(', ')}.
+    Và bạn cũng đã từng tìm kiếm với những từ khóa như: ${searchKeywords.join(', ')}.
+    
+    Dựa vào những điều đó, hãy trò chuyện với người dùng như một người bạn am hiểu sản phẩm Apple. Gợi ý một vài sản phẩm có thể phù hợp với họ — đừng nói chính xác số lượng sản phẩm, và đừng liệt kê máy móc.
+    
+    Hãy bắt đầu bằng một câu nói tự nhiên như: "Mình sẽ gợi ý bạn một số sản phẩm Apple có lẽ sẽ phù hợp với nhu cầu của bạn...", sau đó đưa ra các sản phẩm phù hợp, kèm theo lý do nhẹ nhàng, thân thiện và dễ hiểu.
+    
+    Bạn có thể chọn bất kỳ sản phẩm nào trong danh sách sau: ${allProductNames}.
+    
+    Đừng trả lời theo dạng bảng, chỉ cần viết như một đoạn hội thoại tự nhiên.
+    `;
+        const geminiPayload = {
       contents: [
         { parts: [ { text: prompt } ] }
       ]

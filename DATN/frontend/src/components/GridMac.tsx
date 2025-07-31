@@ -2,7 +2,16 @@ import React from 'react';
 
 const GridMac = () => {
   return (
-    <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center',  background:'#fff' }}>
+    <div 
+      className="grid-mac-container"
+      style={{ 
+        width: '100%', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',  
+        background:'#fff' 
+      }}
+    >
       <div
         className="parent"
         style={{
@@ -102,6 +111,13 @@ const GridMac = () => {
           <img src="/images/ronmac4.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       </div>
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          .grid-mac-container {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

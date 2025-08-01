@@ -60,6 +60,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Poly Smart - Đại lý ủy quyền Apple chính hãng',
     description: 'Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất.',
+    images: [''],
     creator: '@polysmart',
   },
   robots: {
@@ -109,6 +110,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "Poly Smart",
               "url": "https://polysmart.me",
+              "logo": "",
               "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
               "foundingDate": "2020",
               "address": {

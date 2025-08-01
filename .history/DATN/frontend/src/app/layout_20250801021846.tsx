@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://polysmart.me'),
+  metadataBase: new URL('https://polysmart.com.vn'),
   alternates: {
     canonical: '/',
   },
@@ -54,12 +54,20 @@ export const metadata: Metadata = {
     siteName: 'Poly Smart',
     title: 'Poly Smart - Đại lý ủy quyền Apple chính hãng',
     description: 'Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất.',
-
+    images: [
+      {
+        url: '/images/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Poly Smart - Đại lý Apple chính hãng',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Poly Smart - Đại lý ủy quyền Apple chính hãng',
     description: 'Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất.',
+    images: ['/images/twitter-image.jpg'],
     creator: '@polysmart',
   },
   robots: {
@@ -95,7 +103,16 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://api.fontshare.com" />    
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        
         {/* Theme color */}
         <meta name="theme-color" content="#007AFF" />
         <meta name="msapplication-TileColor" content="#007AFF" />
@@ -109,6 +126,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "Poly Smart",
               "url": "https://polysmart.me",
+              "logo": "https://polysmart.me/images/logo.png",
               "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
               "foundingDate": "2020",
               "address": {

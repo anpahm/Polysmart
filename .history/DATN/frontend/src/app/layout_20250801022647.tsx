@@ -109,6 +109,7 @@ export default function RootLayout({
               "@type": "Organization",
               "name": "Poly Smart",
               "url": "https://polysmart.me",
+              "logo": "",
               "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
               "foundingDate": "2020",
               "address": {

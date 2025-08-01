@@ -839,71 +839,8 @@ const HomePage = () => {
   };
 
   // Tính phần trăm giảm giá
-  const calculateDiscount = (original: number, sale: number): number => {
-    return Math.round(((original - sale) / original) * 100);
-  };
 
   // Hàm hiển thị thông tin variant
-  const renderVariantInfo = (variants: ProductVariant[] | undefined) => {
-    if (!variants || variants.length === 0) return null;
-
-    // Nhóm các variants theo dung lượng
-    const variantsByStorage = variants.reduce((acc, variant) => {
-      if (!acc[variant.dung_luong]) {
-        acc[variant.dung_luong] = [];
-      }
-      acc[variant.dung_luong].push(variant);
-      return acc;
-    }, {} as Record<string, ProductVariant[]>);
-
-    return (
-      <div className="mt-3 space-y-2">
-        {Object.entries(variantsByStorage).map(([storage, storageVariants]) => (
-          <div key={storage} className="space-y-1">
-            <div className="text-xs font-medium text-gray-700">{storage}</div>
-            <div className="flex flex-wrap gap-1">
-              {storageVariants.map((variant) => (
-                <div key={variant._id} className="relative group">
-                  {/* Badge Flash Sale bên trái */}
-                  <div className="absolute top-2 left-2 z-10">
-                    <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
-                      Flash Sale
-                    </span>
-                  </div>
-                  {/* Badge % giảm giá bên phải */}
-                  {variant.phan_tram_giam_gia && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <span className="bg-yellow-400 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                        -{variant.phan_tram_giam_gia}%
-                      </span>
-                    </div>
-                  )}
-                  <span
-                    className={`inline-block px-2 py-1 text-xs rounded-md 
-                    ${variant.so_luong_hang > 0
-                        ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                        : "bg-gray-100 text-gray-400"
-                    }`}
-                  >
-                    {variant.mau}
-                  </span>
-                  {/* Tooltip */}
-                  <div
-                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 
-                    bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 
-                    transition-opacity duration-200 whitespace-nowrap z-10"
-                  >
-                    {formatCurrency(variant.gia)}
-                    {variant.so_luong_hang === 0 && " - Hết hàng"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   // Hàm hiển thị giá thấp nhất và cao nhất của variants (trả về object)
   const getPriceRange = (variants: ProductVariant[] | undefined) => {

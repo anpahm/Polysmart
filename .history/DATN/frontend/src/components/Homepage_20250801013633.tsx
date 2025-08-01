@@ -114,19 +114,6 @@ const uploadImage = async (file: File) => {
   return data.path; // Đường dẫn hình ảnh đã upload
 };
 
-// Extend the Window interface to avoid using 'any'
-declare global {
-  interface Window {
-    refreshFlashSale?: () => Promise<void>;
-    processFlashSaleOrder?: (orderId: string) => Promise<boolean>;
-    checkOrderStatus?: (orderId: string) => Promise<void>;
-    debugFlashSale?: () => void;
-    fixFlashSaleOrder?: (orderId: string) => Promise<void>;
-    updateFlashSaleQuantity?: (variantId: string, newSoldCount: number) => Promise<void>;
-    showFlashSaleStatus?: () => void;
-  }
-}
-
 const HomePage = () => {
   // State cho banner slider
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -317,20 +304,20 @@ const HomePage = () => {
 
   // Expose functions globally for testing
   useEffect(() => {
-    window.refreshFlashSale = refreshFlashSaleData;
-    window.processFlashSaleOrder = processFlashSaleOrder;
-    window.checkOrderStatus = checkOrderStatus;
-    window.debugFlashSale = debugFlashSaleState;
-  
+    (window as any).refreshFlashSale = refreshFlashSaleData;
+    (window as any).processFlashSaleOrder = processFlashSaleOrder;
+    (window as any).checkOrderStatus = checkOrderStatus;
+    (window as any).debugFlashSale = debugFlashSaleState;
+
     // Helper function to fix flash sale for specific order
-    window.fixFlashSaleOrder = async (orderId: string) => {
+    (window as any).fixFlashSaleOrder = async (orderId: string) => {
       console.log(`Attempting to fix flash sale for order: ${orderId}`);
       await processFlashSaleOrder(orderId);
       await refreshFlashSaleData();
     };
-  
+
     // Helper to manually update flash sale quantity
-    window.updateFlashSaleQuantity = async (
+    (window as any).updateFlashSaleQuantity = async (
       variantId: string,
       newSoldCount: number
     ) => {
@@ -345,7 +332,7 @@ const HomePage = () => {
             body: JSON.stringify({ da_ban: newSoldCount }),
           }
         );
-  
+
         if (response.ok) {
           console.log(
             `Updated variant ${variantId} sold count to ${newSoldCount}`
@@ -358,9 +345,9 @@ const HomePage = () => {
         console.error("Error updating flash sale quantity:", error);
       }
     };
-  
+
     // Helper to show current quantities
-    window.showFlashSaleStatus = () => {
+    (window as any).showFlashSaleStatus = () => {
       debugFlashSaleState();
       const elements = document.querySelectorAll("[data-flash-variant]");
       elements.forEach((el) => {
@@ -373,15 +360,15 @@ const HomePage = () => {
         }
       });
     };
-  
+
     return () => {
-      delete window.refreshFlashSale;
-      delete window.processFlashSaleOrder;
-      delete window.checkOrderStatus;
-      delete window.fixFlashSaleOrder;
-      delete window.debugFlashSale;
-      delete window.updateFlashSaleQuantity;
-      delete window.showFlashSaleStatus;
+      delete (window as any).refreshFlashSale;
+      delete (window as any).processFlashSaleOrder;
+      delete (window as any).checkOrderStatus;
+      delete (window as any).fixFlashSaleOrder;
+      delete (window as any).debugFlashSale;
+      delete (window as any).updateFlashSaleQuantity;
+      delete (window as any).showFlashSaleStatus;
     };
   }, []);
 
@@ -794,20 +781,12 @@ const HomePage = () => {
         const recentOrders = await response.json();
 
         // Check if any recent orders contain flash sale items
-        interface RecentOrderItem {
-          isFlashSale?: boolean;
-        }
-        interface RecentOrder {
-          paymentStatus?: string;
-          orderStatus?: string;
-          items?: RecentOrderItem[];
-        }
-        const hasFlashSaleOrders = (recentOrders as RecentOrder[]).some(
-          (order) =>
+        const hasFlashSaleOrders = recentOrders.some(
+          (order: any) =>
             (order.paymentStatus === "paid" ||
               order.orderStatus === "delivered") &&
             order.items &&
-            order.items.some((item) => item.isFlashSale)
+            order.items.some((item: any) => item.isFlashSale)
         );
 
         if (hasFlashSaleOrders) {

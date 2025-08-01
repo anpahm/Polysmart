@@ -815,8 +815,6 @@ const HomePage = () => {
           refreshFlashSaleData();
         }
       } catch (error) {
-        // Silently fail - this is just a backup check
-        console.log("Background order check failed (normal if not logged in)");
       }
     };
 

@@ -699,10 +699,9 @@ const HomePage = () => {
   useEffect(() => {
     const handlePurchaseSuccess = (event: any) => {
       if (event.detail && event.detail.type === "flashsale_purchase") {
-        // Refresh immediately when a flash sale purchase is made
         setTimeout(() => {
           refreshFlashSaleData();
-        }, 1000); // Small delay to ensure backend is updated
+        }, 1000); 
       }
     };
 

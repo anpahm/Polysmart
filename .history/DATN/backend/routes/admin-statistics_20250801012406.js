@@ -44,6 +44,16 @@ router.get('/statistics', verifyToken, verifyAdmin, async (req, res) => {
       },
       paymentStatus: 'paid'
     });
+
+    // Get orders for previous period for comparison
+    const previousOrders = await Order.find({
+      createdAt: {
+        $gte: lastWeekStart,
+        $lte: lastWeekEnd
+      },
+      paymentStatus: 'paid'
+    });
+
     // Lấy đơn hàng cho khoảng thời gian trước để so sánh
     const previousOrders = await Order.find({
       createdAt: {
@@ -78,6 +88,21 @@ router.get('/statistics', verifyToken, verifyAdmin, async (req, res) => {
     const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalProfit = totalRevenue * 0.3;
     const totalProducts = orders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+
+    // Calculate previous period stats for comparison
+    const previousTotalOrders = previousOrders.length;
+    const previousTotalRevenue = previousOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const previousTotalProducts = previousOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+
+    // Calculate growth rates
+    const calculateGrowthRate = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous * 100).toFixed(2);
+    };
+
+    const orderGrowthRate = calculateGrowthRate(totalOrders, previousTotalOrders);
+    const revenueGrowthRate = calculateGrowthRate(totalRevenue, previousTotalRevenue);
+    const productGrowthRate = calculateGrowthRate(totalProducts, previousTotalProducts);
 
     // Tính thống kê khoảng thời gian trước để so sánh
     const previousTotalOrders = previousOrders.length;

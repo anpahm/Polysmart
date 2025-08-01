@@ -839,9 +839,6 @@ const HomePage = () => {
   };
 
   // Tính phần trăm giảm giá
-  const calculateDiscount = (original: number, sale: number): number => {
-    return Math.round(((original - sale) / original) * 100);
-  };
 
   // Hàm hiển thị thông tin variant
   const renderVariantInfo = (variants: ProductVariant[] | undefined) => {

@@ -23,6 +23,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { fetchRecommendedProducts } from "@/services/productService";
 import PetMascot from "./PetMascot";
+import PetMascot from "@/components/"
 import { showWarningAlert } from "@/utils/sweetAlert";
 import GridiPhone from "./GridiPhone";
 import GridiPad from "./GridiPad";

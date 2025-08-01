@@ -697,7 +697,7 @@ const HomePage = () => {
 
   // Listen for purchase success events
   useEffect(() => {
-    const handlePurchaseSuccess = (event: any) => {
+    const handlePurchaseSuccess = (event: CustomEvent<{ type: string }>) => {
       if (event.detail && event.detail.type === "flashsale_purchase") {
         // Refresh immediately when a flash sale purchase is made
         setTimeout(() => {

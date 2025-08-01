@@ -114,19 +114,6 @@ const uploadImage = async (file: File) => {
   return data.path; // Đường dẫn hình ảnh đã upload
 };
 
-// Extend the Window interface to avoid using 'any'
-declare global {
-  interface Window {
-    refreshFlashSale?: () => Promise<void>;
-    processFlashSaleOrder?: (orderId: string) => Promise<boolean>;
-    checkOrderStatus?: (orderId: string) => Promise<void>;
-    debugFlashSale?: () => void;
-    fixFlashSaleOrder?: (orderId: string) => Promise<void>;
-    updateFlashSaleQuantity?: (variantId: string, newSoldCount: number) => Promise<void>;
-    showFlashSaleStatus?: () => void;
-  }
-}
-
 const HomePage = () => {
   // State cho banner slider
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -315,6 +302,19 @@ const HomePage = () => {
     console.log("========================");
   };
 
+  // Extend the Window interface to avoid using 'any'
+  declare global {
+    interface Window {
+      refreshFlashSale?: () => Promise<void>;
+      processFlashSaleOrder?: (orderId: string) => Promise<boolean>;
+      checkOrderStatus?: (orderId: string) => Promise<void>;
+      debugFlashSale?: () => void;
+      fixFlashSaleOrder?: (orderId: string) => Promise<void>;
+      updateFlashSaleQuantity?: (variantId: string, newSoldCount: number) => Promise<void>;
+      showFlashSaleStatus?: () => void;
+    }
+  }
+  
   // Expose functions globally for testing
   useEffect(() => {
     window.refreshFlashSale = refreshFlashSaleData;
@@ -794,20 +794,12 @@ const HomePage = () => {
         const recentOrders = await response.json();
 
         // Check if any recent orders contain flash sale items
-        interface RecentOrderItem {
-          isFlashSale?: boolean;
-        }
-        interface RecentOrder {
-          paymentStatus?: string;
-          orderStatus?: string;
-          items?: RecentOrderItem[];
-        }
-        const hasFlashSaleOrders = (recentOrders as RecentOrder[]).some(
-          (order) =>
+        const hasFlashSaleOrders = recentOrders.some(
+          (order: any) =>
             (order.paymentStatus === "paid" ||
               order.orderStatus === "delivered") &&
             order.items &&
-            order.items.some((item) => item.isFlashSale)
+            order.items.some((item: any) => item.isFlashSale)
         );
 
         if (hasFlashSaleOrders) {

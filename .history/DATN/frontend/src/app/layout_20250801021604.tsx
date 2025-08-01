@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://polysmart.me'),
+  metadataBase: new URL('https://polysmart.com.vn'),
   alternates: {
     canonical: '/',
   },
@@ -54,12 +54,20 @@ export const metadata: Metadata = {
     siteName: 'Poly Smart',
     title: 'Poly Smart - Đại lý ủy quyền Apple chính hãng',
     description: 'Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất.',
-
+    images: [
+      {
+        url: '/images/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Poly Smart - Đại lý Apple chính hãng',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Poly Smart - Đại lý ủy quyền Apple chính hãng',
     description: 'Đại lý ủy quyền Apple chính hãng tại Việt Nam. Chuyên cung cấp iPhone, iPad, MacBook, Apple Watch, AirPods với giá tốt nhất.',
+    images: ['/images/twitter-image.jpg'],
     creator: '@polysmart',
   },
   robots: {
@@ -86,7 +94,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang="vi">
       <head>
         <link
           href="https://api.fontshare.com/v2/css?f[]=geist-mono@400&f[]=geist-sans@400&display=swap"
@@ -95,7 +103,16 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://api.fontshare.com" />    
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        
         {/* Theme color */}
         <meta name="theme-color" content="#007AFF" />
         <meta name="msapplication-TileColor" content="#007AFF" />
@@ -108,7 +125,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "Poly Smart",
-              "url": "https://polysmart.me",
+              "url": "https://polysmart.com.vn",
+              "logo": "https://polysmart.com.vn/images/logo.png",
               "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
               "foundingDate": "2020",
               "address": {
@@ -140,6 +158,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
               "name": "Poly Smart",
+              "image": "https://polysmart.com.vn/images/store-front.jpg",
               "description": "Đại lý ủy quyền Apple chính hãng tại Việt Nam",
               "address": {
                 "@type": "PostalAddress",
@@ -154,7 +173,7 @@ export default function RootLayout({
                 "latitude": 10.8231,
                 "longitude": 106.6297
               },
-              "url": "https://polysmart.me",
+              "url": "https://polysmart.com.vn",
               "telephone": "+84-xxx-xxx-xxxx",
               "openingHoursSpecification": [
                 {
@@ -195,7 +214,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={inter.className}>
         <GoogleOAuthProvider clientId="476889203302-b661q44fvhrvo4kv174o6rp95hs5vmp1.apps.googleusercontent.com">
           <ReduxProvider>
             <Header />

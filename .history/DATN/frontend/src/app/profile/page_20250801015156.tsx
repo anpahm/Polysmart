@@ -58,6 +58,7 @@ export default function ProfilePage() {
     address: user?.dia_chi || "",
     avatar: user?.avatar || "",
   });
+  console.log("ProfilePage: Initial formData", formData);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -125,6 +126,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      console.log(
+        "ProfilePage: user updated in useEffect, setting formData",
+        user
+      );
       let day = "",
         month = "",
         year = "";

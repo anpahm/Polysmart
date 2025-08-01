@@ -68,7 +68,8 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(cookieParser());
 
-app.use('/images', express.static('public/images'));
+// Serve static files from public directory
+// app.use('/images', express.static('public/images'));
 app.use('/video', express.static(path.join(__dirname, 'public/video')));
 app.use(express.static(path.join(__dirname, "public")));
 

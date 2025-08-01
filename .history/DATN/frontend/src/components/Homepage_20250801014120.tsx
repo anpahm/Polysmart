@@ -794,20 +794,12 @@ const HomePage = () => {
         const recentOrders = await response.json();
 
         // Check if any recent orders contain flash sale items
-        interface RecentOrderItem {
-          isFlashSale?: boolean;
-        }
-        interface RecentOrder {
-          paymentStatus?: string;
-          orderStatus?: string;
-          items?: RecentOrderItem[];
-        }
-        const hasFlashSaleOrders = (recentOrders as RecentOrder[]).some(
-          (order) =>
+        const hasFlashSaleOrders = recentOrders.some(
+          (order: any) =>
             (order.paymentStatus === "paid" ||
               order.orderStatus === "delivered") &&
             order.items &&
-            order.items.some((item) => item.isFlashSale)
+            order.items.some((item: any) => item.isFlashSale)
         );
 
         if (hasFlashSaleOrders) {

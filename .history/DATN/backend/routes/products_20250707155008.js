@@ -22,5 +22,4 @@ router.delete("/:id", deletePro);
 router.patch("/:id", editPro);
 router.get("/:id", getProductById);
 
-
 module.exports = router;

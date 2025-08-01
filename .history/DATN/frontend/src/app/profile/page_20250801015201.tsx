@@ -125,6 +125,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      console.log(
+        "ProfilePage: user updated in useEffect, setting formData",
+        user
+      );
       let day = "",
         month = "",
         year = "";

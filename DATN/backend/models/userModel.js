@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     dia_chi: { type: String },
     username: { type: String, unique: true },
     avatar: { type: String },
+    active: { type: Boolean, default: true }, // Trạng thái hoạt động
+    lastLogin: { type: Date }, // Thời gian đăng nhập cuối
 },{versionKey: false});
 const userModel = mongoose.model('users', userSchema, 'users');
 

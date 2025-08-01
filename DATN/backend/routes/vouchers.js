@@ -1,22 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const voucherController = require('../controllers/voucherController');
-
-// Middleware để bảo vệ route (giả sử bạn có)
-// const { protect, admin } = require('../middleware/authMiddleware');
+const { verifyToken, verifyAdmin } = require('../controllers/userController');
 
 // Route cho người dùng
 router.get('/apply/:code', voucherController.applyVoucher);
+router.get('/check/:code', voucherController.checkVoucherCode);
 
-// Routes cho admin
+// Routes cho admin (cần authentication)
 router.route('/')
-    .get(voucherController.getAllVouchers)    // Lấy tất cả voucher
-    .post(voucherController.createVoucher);   // Tạo voucher mới
+    .get(verifyToken, verifyAdmin, voucherController.getAllVouchers)    // Lấy tất cả voucher
+    .post(verifyToken, verifyAdmin, voucherController.createVoucher);   // Tạo voucher mới
 
 router.route('/:id')
-    .get(voucherController.getVoucherById)     // Lấy voucher theo ID
-    .put(voucherController.updateVoucher)      // Cập nhật voucher
-    .delete(voucherController.deleteVoucher); // Xóa voucher
+    .get(verifyToken, verifyAdmin, voucherController.getVoucherById)     // Lấy voucher theo ID
+    .put(verifyToken, verifyAdmin, voucherController.updateVoucher)      // Cập nhật voucher
+    .delete(verifyToken, verifyAdmin, voucherController.deleteVoucher); // Xóa voucher
 
 
 // UserVoucher routes

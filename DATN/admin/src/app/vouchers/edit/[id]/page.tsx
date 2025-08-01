@@ -34,7 +34,32 @@ const EditVoucherPage = () => {
     const fetchVoucherDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/vouchers/${id}`);
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                setError('Bạn cần đăng nhập để xem thông tin voucher');
+                setLoading(false);
+                return;
+            }
+
+            const response = await fetch(`http://localhost:3000/api/vouchers/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                } else if (response.status === 403) {
+                    setError('Bạn không có quyền truy cập trang này.');
+                } else {
+                    setError('Không thể tải thông tin voucher');
+                }
+                return;
+            }
+
             const data = await response.json();
             if (data.success && data.data) {
                 const voucher = data.data;
@@ -51,9 +76,10 @@ const EditVoucherPage = () => {
                     trang_thai: voucher.trang_thai,
                 });
             } else {
-                setError('Không thể tải thông tin voucher');
+                setError(data.message || 'Không thể tải thông tin voucher');
             }
         } catch (err) {
+            console.error('Lỗi khi fetch voucher details:', err);
             setError('Lỗi kết nối server');
         } finally {
             setLoading(false);
@@ -76,10 +102,18 @@ const EditVoucherPage = () => {
         }
 
         try {
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                setError('Bạn cần đăng nhập để thực hiện thao tác này');
+                return;
+            }
+
             const response = await fetch(`http://localhost:3000/api/vouchers/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                      ...formData,
@@ -89,6 +123,18 @@ const EditVoucherPage = () => {
                     so_luong: Number(formData.so_luong),
                 }),
             });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                } else if (response.status === 403) {
+                    setError('Bạn không có quyền thực hiện thao tác này.');
+                } else {
+                    setError('Lỗi khi cập nhật voucher');
+                }
+                return;
+            }
+
             const data = await response.json();
             if (data.success) {
                 setSuccess('Cập nhật voucher thành công! Đang chuyển hướng...');

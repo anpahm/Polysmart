@@ -35,23 +35,52 @@ exports.createVoucher = async (req, res) => {
     try {
         const { ma_voucher, mo_ta, phan_tram_giam_gia, giam_toi_da, don_hang_toi_thieu, so_luong, ngay_bat_dau, ngay_ket_thuc, trang_thai } = req.body;
 
+        // Validation
+        if (!ma_voucher || !ma_voucher.trim()) {
+            return res.status(400).json({ success: false, message: 'Mã voucher là bắt buộc' });
+        }
+        if (!mo_ta || !mo_ta.trim()) {
+            return res.status(400).json({ success: false, message: 'Mô tả là bắt buộc' });
+        }
+        if (!phan_tram_giam_gia || phan_tram_giam_gia <= 0 || phan_tram_giam_gia > 100) {
+            return res.status(400).json({ success: false, message: 'Phần trăm giảm giá phải từ 1-100%' });
+        }
+        if (!giam_toi_da || giam_toi_da <= 0) {
+            return res.status(400).json({ success: false, message: 'Mức giảm tối đa phải lớn hơn 0' });
+        }
+        if (!so_luong || so_luong <= 0) {
+            return res.status(400).json({ success: false, message: 'Số lượng voucher phải lớn hơn 0' });
+        }
+        if (!ngay_bat_dau) {
+            return res.status(400).json({ success: false, message: 'Ngày bắt đầu là bắt buộc' });
+        }
+        if (!ngay_ket_thuc) {
+            return res.status(400).json({ success: false, message: 'Ngày kết thúc là bắt buộc' });
+        }
+        if (new Date(ngay_bat_dau) >= new Date(ngay_ket_thuc)) {
+            return res.status(400).json({ success: false, message: 'Ngày bắt đầu phải trước ngày kết thúc' });
+        }
+
         const upper_ma_voucher = ma_voucher.toUpperCase();
         const voucherExists = await Voucher.findOne({ ma_voucher: upper_ma_voucher });
 
         if (voucherExists) {
-            return res.status(400).json({ success: false, message: 'Mã voucher này đã tồn tại' });
+            return res.status(400).json({ 
+                success: false, 
+                message: `Mã voucher "${upper_ma_voucher}" đã tồn tại. Vui lòng chọn mã khác.` 
+            });
         }
 
         const voucher = new Voucher({
             ma_voucher: upper_ma_voucher,
-            mo_ta,
-            phan_tram_giam_gia,
-            giam_toi_da,
-            don_hang_toi_thieu,
-            so_luong,
-            ngay_bat_dau,
-            ngay_ket_thuc,
-            trang_thai,
+            mo_ta: mo_ta.trim(),
+            phan_tram_giam_gia: Number(phan_tram_giam_gia),
+            giam_toi_da: Number(giam_toi_da),
+            don_hang_toi_thieu: Number(don_hang_toi_thieu) || 0,
+            so_luong: Number(so_luong),
+            ngay_bat_dau: new Date(ngay_bat_dau),
+            ngay_ket_thuc: new Date(ngay_ket_thuc),
+            trang_thai: trang_thai || 'active',
         });
 
         const createdVoucher = await voucher.save();
@@ -64,9 +93,14 @@ exports.createVoucher = async (req, res) => {
                 message: `Dữ liệu không hợp lệ: ${messages.join(', ')}`,
                 errors: messages,
             });
+        } else if (error.code === 11000) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Mã voucher này đã tồn tại. Vui lòng chọn mã khác.' 
+            });
         } else {
              console.error('Lỗi khi tạo voucher:', error);
-             res.status(500).json({ success: false, message: 'Lỗi server khi tạo voucher.', error: error.message });
+             res.status(500).json({ success: false, message: 'Lỗi server khi tạo voucher.' });
         }
     }
 };
@@ -169,6 +203,36 @@ exports.useUserVoucher = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+};
+
+// @desc    Kiểm tra mã voucher có tồn tại không
+// @route   GET /api/vouchers/check/:code
+// @access  Public
+exports.checkVoucherCode = async (req, res) => {
+    try {
+        const { code } = req.params;
+        const voucher = await Voucher.findOne({ ma_voucher: code.toUpperCase() });
+        
+        if (voucher) {
+            return res.json({ 
+                success: false, 
+                exists: true, 
+                message: 'Mã voucher này đã tồn tại' 
+            });
+        } else {
+            return res.json({ 
+                success: true, 
+                exists: false, 
+                message: 'Mã voucher có thể sử dụng' 
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Lỗi server khi kiểm tra mã voucher', 
+            error: error.message 
+        });
+    }
 };
 
 // @desc    Áp dụng voucher (cho người dùng ở trang thanh toán)

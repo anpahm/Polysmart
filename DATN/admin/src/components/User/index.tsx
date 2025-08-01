@@ -41,7 +41,16 @@ export default function UserAdminPage() {
 
   useEffect(() => {
     setIsClient(true);
-    fetch(getApiUrl('users'))
+    
+    // Lấy token từ localStorage
+    const token = localStorage.getItem('admin_token');
+    
+    fetch(getApiUrl('users'), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu user");
         return res.json();
@@ -78,9 +87,13 @@ export default function UserAdminPage() {
     }
     if (editUser) {
       // Sửa user
+      const token = localStorage.getItem('admin_token');
       fetch(getApiUrl(`users/${editUser._id}`), {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newUser)
       })
         .then(res => {
@@ -97,9 +110,13 @@ export default function UserAdminPage() {
         .catch(err => toast.error(err.message));
     } else {
       // Thêm user
-      fetch(getApiUrl('users'), {
+      const token = localStorage.getItem('admin_token');
+      fetch(getApiUrl('users/add'), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newUser)
       })
         .then(res => {
@@ -120,8 +137,16 @@ export default function UserAdminPage() {
 
   const handleDeleteUser = () => {
     if (!deleteId) return;
-          fetch(getApiUrl(`users/${deleteId}`), {
+    
+    // Lấy token từ localStorage
+    const token = localStorage.getItem('admin_token');
+    
+    fetch(getApiUrl(`users/${deleteId}`), {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     })
       .then(res => {
         if (!res.ok) throw new Error('Lỗi khi xóa user');
@@ -132,6 +157,31 @@ export default function UserAdminPage() {
       .catch(err => {
         toast.error(err.message);
         setDeleteId(null);
+      });
+  };
+
+  const handleToggleStatus = (userId: string) => {
+    const token = localStorage.getItem('admin_token');
+    
+    fetch(getApiUrl(`users/${userId}/toggle-status`), {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Lỗi khi thay đổi trạng thái user');
+        return res.json();
+      })
+      .then(data => {
+        setUsers(prev => prev.map(u => 
+          u._id === userId ? { ...u, active: data.user.active } : u
+        ));
+        toast.success(data.message);
+      })
+      .catch(err => {
+        toast.error(err.message);
       });
   };
 
@@ -270,51 +320,76 @@ export default function UserAdminPage() {
           <p className="text-center text-red-500 py-8">{error}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
+            <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
               <thead>
-                <tr>
-                  <th className="px-4 py-2 border-b">STT</th>
-                  <th className="px-4 py-2 border-b">Tên KH</th>
-                  <th className="px-4 py-2 border-b">Email</th>
-                  <th className="px-4 py-2 border-b">SĐT</th>
-                  <th className="px-4 py-2 border-b">Địa chỉ</th>
-                  <th className="px-4 py-2 border-b">Giới tính</th>
-                  <th className="px-4 py-2 border-b">Ngày sinh</th>
-                  <th className="px-4 py-2 border-b text-center">Trạng thái</th>
-                  <th className="px-4 py-2 border-b">Vai trò</th>
-                  <th className="px-4 py-2 border-b">Hành động</th>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">STT</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">Tên KH</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">Email</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">SĐT</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">Địa chỉ</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">Giới tính</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-left text-sm font-semibold text-gray-700">Ngày sinh</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-center text-sm font-semibold text-gray-700">Trạng thái</th>
+                  <th className="px-4 py-3 border-b border-gray-200 text-center text-sm font-semibold text-gray-700">Hành động</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="text-center text-gray-400 py-8">Chưa có user nào.</td>
+                    <td colSpan={9} className="text-center text-gray-400 py-12">
+                      <div className="flex flex-col items-center">
+                        <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        <p className="text-lg font-medium">Chưa có user nào</p>
+                        <p className="text-sm text-gray-500">Hãy thêm user đầu tiên để bắt đầu</p>
+                      </div>
+                    </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user, idx) => (
-                    <tr key={user._id}>
-                      <td className="px-4 py-2 border-b text-center">{idx + 1}</td>
-                      <td className="px-4 py-2 border-b">{user.TenKH}</td>
-                      <td className="px-4 py-2 border-b">{user.email}</td>
-                      <td className="px-4 py-2 border-b">{user.Sdt}</td>
-                      <td className="px-4 py-2 border-b">{user.dia_chi}</td>
-                      <td className="px-4 py-2 border-b">{user.gioi_tinh || '-'}</td>
-                      <td className="px-4 py-2 border-b">{user.sinh_nhat ? new Date(user.sinh_nhat).toLocaleDateString('vi-VN') : '-'}</td>
-                      <td className="px-4 py-2 border-b text-center">
-                        {user.active ? (
-                          <span className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">Hoạt động</span>
+                    <tr key={user._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 border-b border-gray-200 text-center text-sm text-gray-600 font-medium">{idx + 1}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm font-medium text-gray-900">{user.TenKH}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm text-gray-600">{user.email}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm text-gray-600">{user.Sdt || '-'}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm text-gray-600 max-w-xs truncate" title={user.dia_chi}>{user.dia_chi || '-'}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm text-gray-600">{user.gioi_tinh || '-'}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-sm text-gray-600">{user.sinh_nhat ? new Date(user.sinh_nhat).toLocaleDateString('vi-VN') : '-'}</td>
+                      <td className="px-4 py-3 border-b border-gray-200 text-center">
+                        {user.role === 'admin' ? (
+                          <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">Admin</span>
                         ) : (
-                          <span className="inline-block px-3 py-1 rounded-full bg-gray-200 text-gray-500 text-sm font-medium">Ngừng</span>
+                          <button
+                            onClick={() => handleToggleStatus(user._id)}
+                            className={`inline-block px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                              user.active 
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                            }`}
+                          >
+                            {user.active ? 'Hoạt động' : 'Ngừng'}
+                          </button>
                         )}
                       </td>
-                      <td className="px-4 py-2 border-b">{user.role}</td>
-                      <td className="px-4 py-2 border-b flex gap-2 justify-center">
-                        <button className="p-2 bg-blue-400 hover:bg-blue-500 rounded-full" onClick={() => openEditModal(user)}>
-                          <FaEdit className="text-white" />
-                        </button>
-                        <button className="p-2 bg-red-400 hover:bg-red-500 rounded-full" onClick={() => setDeleteId(user._id)}>
-                          <FaTrash className="text-white" />
-                        </button>
+                      <td className="px-4 py-3 border-b border-gray-200 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 hover:scale-110" 
+                            onClick={() => openEditModal(user)}
+                            title="Chỉnh sửa"
+                          >
+                            <FaEdit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 hover:scale-110" 
+                            onClick={() => setDeleteId(user._id)}
+                            title="Xóa"
+                          >
+                            <FaTrash className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

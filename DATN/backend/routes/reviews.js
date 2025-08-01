@@ -18,5 +18,7 @@ router.get('/all', reviewController.getAllReviews);
 router.patch('/:id/toggle-hide', reviewController.toggleReviewVisibility);
 // Phản hồi bình luận
 router.patch('/:id/reply', reviewController.replyToReview);
+// Xóa review
+router.delete('/:id', reviewController.deleteReview);
 
 module.exports = router; 

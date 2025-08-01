@@ -33,14 +33,40 @@ const VouchersPage = () => {
     const fetchVouchers = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/vouchers');
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                setError('Bạn cần đăng nhập để xem danh sách voucher');
+                setLoading(false);
+                return;
+            }
+
+            const response = await fetch('http://localhost:3000/api/vouchers', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                } else if (response.status === 403) {
+                    setError('Bạn không có quyền truy cập trang này.');
+                } else {
+                    setError('Không thể tải danh sách voucher');
+                }
+                return;
+            }
+
             const data = await response.json();
             if (data.success) {
                 setVouchers(data.data);
             } else {
-                setError('Không thể tải danh sách voucher');
+                setError(data.message || 'Không thể tải danh sách voucher');
             }
         } catch (err) {
+            console.error('Lỗi khi fetch vouchers:', err);
             setError('Lỗi kết nối server');
         } finally {
             setLoading(false);
@@ -50,9 +76,32 @@ const VouchersPage = () => {
     const handleDelete = async (id: string) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
             try {
+                // Lấy token từ localStorage
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    alert('Bạn cần đăng nhập để thực hiện thao tác này');
+                    return;
+                }
+
                 const response = await fetch(`http://localhost:3000/api/vouchers/${id}`, {
                     method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                    } else if (response.status === 403) {
+                        alert('Bạn không có quyền thực hiện thao tác này.');
+                    } else {
+                        alert('Lỗi khi xóa voucher');
+                    }
+                    return;
+                }
+
                 const data = await response.json();
                 if (data.success) {
                     alert('Xóa voucher thành công');
@@ -61,6 +110,7 @@ const VouchersPage = () => {
                     alert('Xóa voucher thất bại: ' + data.message);
                 }
             } catch (err) {
+                console.error('Lỗi khi xóa voucher:', err);
                 alert('Lỗi khi xóa voucher');
             }
         }

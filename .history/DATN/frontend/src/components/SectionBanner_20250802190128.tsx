@@ -40,7 +40,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
               <Image
                 src={banner.image}
                 alt={banner.title}
-                layout="responsive"
+                fill
                 width={1920}
                 height={720}
                 className="object-cover"

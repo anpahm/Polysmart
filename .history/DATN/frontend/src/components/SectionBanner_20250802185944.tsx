@@ -103,17 +103,18 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
           </svg>
         </button>
         {/* Dots nằm đè lên banner */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex">
-          {banners.map((_, idx) => (
-            <button
-              key={idx}
-              className={`w-2 h-2 rounded-full mx-1 ${
-                idx === currentSlide ? "bg-blue-600" : "bg-gray-300"
-              }`}
-              onClick={() => setCurrentSlide(idx)}
-            />
-          ))}
-        </div>
+<div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex">
+  {banners.map((_, idx) => (
+    <button
+      key={idx}
+      className={`w-2 h-2 rounded-full mx-1 ${
+        idx === currentSlide ? "bg-blue-600" : "bg-gray-300"
+      }`}
+      onClick={() => setCurrentSlide(idx)}
+    />
+  ))}
+</div>
+
       </div>
     </div>
   );

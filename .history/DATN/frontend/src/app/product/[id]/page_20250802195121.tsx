@@ -678,207 +678,114 @@ const ProductDetailPage = () => {
               </div>
             )}
           {/* Ưu đãi*/}
-          <div className="w-full bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm lg:w-[569px]">
-            {/* Tiêu đề */}
-            <div className="flex items-center mb-2">
-              <svg
-                className="w-6 h-6 text-gray-700 mr-2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="3"
-                  y="7"
-                  width="18"
-                  height="10"
-                  rx="2"
-                  stroke="currentColor"
-                />
-                <path d="M7 7V5a2 2 0 114 0v2" stroke="currentColor" />
-                <circle cx="17" cy="12" r="1" fill="currentColor" />
-              </svg>
-              <span className="font-bold text-xs sm:text-sm">Ưu đãi</span>
-            </div>
+        <div className="w-full bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm lg:w-[569px]">
+  {/* Tiêu đề */}
+  <div className="flex items-center mb-2">
+    <svg
+      className="w-6 h-6 text-gray-700 mr-2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+    >
+      <rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" />
+      <path d="M7 7V5a2 2 0 114 0v2" stroke="currentColor" />
+      <circle cx="17" cy="12" r="1" fill="currentColor" />
+    </svg>
+    <span className="font-bold text-xs sm:text-sm">Ưu đãi</span>
+  </div>
 
-            {/* Ưu đãi thanh toán */}
-            <div className="font-bold text-red-600 mb-1 text-xs sm:text-sm">
-              I. Ưu đãi thanh toán
-            </div>
-            <ul className="space-y-2 mb-4">
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  Giảm <b>200.000đ</b> khi thanh toán qua Kredivo
-                </p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  Hỗ trợ trả góp 0% lãi suất{" "}
-                  <a href="#" className="text-blue-500 underline">
-                    Xem chi tiết
-                  </a>
-                </p>
-              </li>
-            </ul>
+  {/* Ưu đãi thanh toán */}
+  <div className="font-bold text-red-600 mb-1 text-xs sm:text-sm">
+    I. Ưu đãi thanh toán
+  </div>
+  <ul className="space-y-2 mb-4">
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        Giảm <b>200.000đ</b> khi thanh toán qua Kredivo
+      </p>
+    </li>
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        Hỗ trợ trả góp 0% lãi suất <a href="#" className="text-blue-500 underline">Xem chi tiết</a>
+      </p>
+    </li>
+  </ul>
 
-            {/* Ưu đãi mua kèm */}
-            <div className="font-bold text-red-600 mb-1 text-xs sm:text-sm">
-              II. Ưu đãi mua kèm
-            </div>
-            <ul className="space-y-2 mb-4">
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  <b>Ốp chính hãng Apple iPhone 16 series</b> giảm{" "}
-                  <b>100.000đ</b>
-                </p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  Mua combo phụ kiện <b>Non Apple</b> giảm đến <b>200.000đ</b>{" "}
-                  <a href="#" className="text-blue-500 underline">
-                    Xem chi tiết
-                  </a>
-                </p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  <b>Tai nghe Sony</b> giảm đến <b>1.500.000đ</b>{" "}
-                  <a href="#" className="text-blue-500 underline">
-                    Xem chi tiết
-                  </a>
-                </p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  Giảm đến <b>20%</b> khi mua các gói bảo hành{" "}
-                  <a href="#" className="text-blue-500 underline">
-                    Xem thêm
-                  </a>
-                </p>
-              </li>
-            </ul>
+  {/* Ưu đãi mua kèm */}
+  <div className="font-bold text-red-600 mb-1 text-xs sm:text-sm">
+    II. Ưu đãi mua kèm
+  </div>
+  <ul className="space-y-2 mb-4">
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        <b>Ốp chính hãng Apple iPhone 16 series</b> giảm <b>100.000đ</b>
+      </p>
+    </li>
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        Mua combo phụ kiện <b>Non Apple</b> giảm đến <b>200.000đ</b> <a href="#" className="text-blue-500 underline">Xem chi tiết</a>
+      </p>
+    </li>
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        <b>Tai nghe Sony</b> giảm đến <b>1.500.000đ</b> <a href="#" className="text-blue-500 underline">Xem chi tiết</a>
+      </p>
+    </li>
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        Giảm đến <b>20%</b> khi mua các gói bảo hành <a href="#" className="text-blue-500 underline">Xem thêm</a>
+      </p>
+    </li>
+  </ul>
 
-            {/* Ưu đãi khác */}
-            <div className="font-bold text-red-500 mb-1 text-xs sm:text-sm">
-              III. Ưu đãi khác
-            </div>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2">
-                <div className="pt-1">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
-                  Thu cũ lên đời iPhone tặng <b>Voucher 4 triệu</b>{" "}
-                  <a href="#" className="text-blue-500 underline">
-                    Xem chi tiết
-                  </a>
-                </p>
-              </li>
-            </ul>
-          </div>
+  {/* Ưu đãi khác */}
+  <div className="font-bold text-red-500 mb-1 text-xs sm:text-sm">
+    III. Ưu đãi khác
+  </div>
+  <ul className="space-y-2">
+    <li className="flex items-start gap-2">
+      <div className="pt-1">
+        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-800 leading-5 break-words">
+        Thu cũ lên đời iPhone tặng <b>Voucher 4 triệu</b> <a href="#" className="text-blue-500 underline">Xem chi tiết</a>
+      </p>
+    </li>
+  </ul>
+</div>
 
           {/* Nút mua hàng */}
           <div className="flex flex-col items-center gap-4 mb-6">

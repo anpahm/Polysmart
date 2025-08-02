@@ -15,17 +15,13 @@ interface SectionBannerProps {
   setCurrentSlide: (slide: number) => void;
 }
 
-const SectionBanner: React.FC<SectionBannerProps> = ({
-  banners,
-  currentSlide,
-  setCurrentSlide,
-}) => {
+const SectionBanner: React.FC<SectionBannerProps> = ({ banners, currentSlide, setCurrentSlide }) => {
   if (!banners || banners.length === 0) return null;
   return (
-    <div className="w-screen overflow-hidden">
-      <div className="relative w-full group overflow-hidden h-[130px] sm:h-[280px] md:h-[240px] lg:h-[475px]">
+<div className="w-screen overflow-hidden">
+      <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[16/5] md:h-[360px] lg:aspect-auto lg:h-[475px] group overflow-hidden">
         <div
-          className="flex transition-transform duration-700 ease-in-out"
+          className="flex transition-transform duration-700 ease-in-out h-full"
           style={{
             width: `${banners.length * 100}%`,
             transform: `translateX(-${currentSlide * (100 / banners.length)}%)`,
@@ -34,15 +30,13 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
           {banners.map((banner, index) => (
             <div
               key={banner.id}
-              className="w-full flex-shrink-0 relative"
+              className="w-full flex-shrink-0 h-full relative"
               style={{ width: `${100 / banners.length}%` }}
             >
               <Image
                 src={banner.image}
                 alt={banner.title}
-                layout="responsive"
-                width={1920}
-                height={720}
+                fill
                 className="object-cover"
                 priority={index === 0}
               />
@@ -53,9 +47,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
         <button
           className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 rounded-full p-1 sm:p-2 shadow z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           onClick={() =>
-            setCurrentSlide(
-              currentSlide === 0 ? banners.length - 1 : currentSlide - 1
-            )
+            setCurrentSlide(currentSlide === 0 ? banners.length - 1 : currentSlide - 1)
           }
           aria-label="Previous slide"
         >
@@ -79,9 +71,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
         <button
           className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 rounded-full p-1 sm:p-2 shadow z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           onClick={() =>
-            setCurrentSlide(
-              currentSlide === banners.length - 1 ? 0 : currentSlide + 1
-            )
+            setCurrentSlide(currentSlide === banners.length - 1 ? 0 : currentSlide + 1)
           }
           aria-label="Next slide"
         >
@@ -103,13 +93,11 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
           </svg>
         </button>
         {/* Dots nằm đè lên banner */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex">
           {banners.map((_, idx) => (
             <button
               key={idx}
-              className={`w-2 h-2 rounded-full mx-1 ${
-                idx === currentSlide ? "bg-blue-600" : "bg-gray-300"
-              }`}
+              className={`w-2 h-2 rounded-full mx-1 ${idx === currentSlide ? "bg-blue-600" : "bg-gray-300"}`}
               onClick={() => setCurrentSlide(idx)}
             />
           ))}

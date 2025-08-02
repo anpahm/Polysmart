@@ -1104,18 +1104,18 @@ const CategoryDetailPage = () => {
                               {dungLuongDisplay ? ` ${dungLuongDisplay}` : ""}
                             </h3>
                             {/* Giá */}
-                            <div className="flex flex-wrap gap-2 items-start mb-1">
+                            <div className="flex gap-2 items-start mb-1">
                               {totalStock === 0 ? (
-                                <span className="text-[14px] sm:text-[15px] font-bold text-red-500">
+                                <span className="text-[15px] font-bold text-red-500">
                                   Liên hệ
                                 </span>
                               ) : (
                                 <>
-                                  <span className="text-[14px] sm:text-[15px] font-bold text-[#0066D6]">
+                                  <span className="text-[15px] font-bold text-[#0066D6]">
                                     {formatCurrency(salePrice)}
                                   </span>
                                   {originPrice > salePrice && (
-                                    <span className="text-[13px] sm:text-[14px] text-gray-700 line-through">
+                                    <span className="text-[14px] text-gray-700 line-through">
                                       {formatCurrency(originPrice)}
                                     </span>
                                   )}

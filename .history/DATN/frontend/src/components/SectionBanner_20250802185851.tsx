@@ -103,7 +103,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
           </svg>
         </button>
         {/* Dots nằm đè lên banner */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex">
           {banners.map((_, idx) => (
             <button
               key={idx}

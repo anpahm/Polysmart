@@ -1042,47 +1042,47 @@ const CategoryDetailPage = () => {
                         className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl duration-300 relative"
                       >
                         {/* Badge giảm giá */}
-                        {(product.khuyen_mai ?? 0) > 0 && (
-                          <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">
-                            <img
-                              src="/images/spanfl.png"
-                              alt="Giảm giá"
-                              className="w-full h-full object-contain"
-                            />
-                            <span
-                              className="absolute top-1/2 left-1/2 text-white font-bold"
-                              style={{
-                                transform: "translate(-50%, -50%)",
-                                fontSize: "10px",
-                                fontWeight: 700,
-                                lineHeight: "20px",
-                                whiteSpace: "nowrap",
-                                paddingBottom: "3px",
-                              }}
-                            >
-                              Giảm {product.khuyen_mai}%
-                            </span>
-                          </div>
-                        )}
+{(product.khuyen_mai ?? 0) > 0 && (
+  <div className="absolute -top-0 -left-1 z-20 w-[70px] h-[28px] sm:w-[81px] sm:h-[32px]">
+    <img
+      src="/images/spanfl.png"
+      alt="Giảm giá"
+      className="w-full h-full object-contain"
+    />
+    <span
+      className="absolute top-1/2 left-1/2 text-white font-bold"
+      style={{
+        transform: "translate(-50%, -50%)",
+        fontSize: "10px",
+        fontWeight: 700,
+        lineHeight: "20px",
+        whiteSpace: "nowrap",
+        paddingBottom: "3px",
+      }}
+    >
+      Giảm {product.khuyen_mai}%
+    </span>
+  </div>
+)}
 
-                        {/* Badge trả góp hoặc Sold out */}
-                        {totalStock === 0 ? (
-                          <div className="absolute top-3 right-3 z-10">
-                            <img
-                              src="/images/het_hang.png"
-                              alt="Sold out"
-                              className="w-12 h-12 object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="absolute top-1 right-2 z-10 w-[70px] h-[26px] sm:w-[81px] sm:h-[30px]">
-                            <img
-                              src="/images/tragop.png"
-                              alt="Trả góp 0%"
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        )}
+{/* Badge trả góp hoặc Sold out */}
+{totalStock === 0 ? (
+  <div className="absolute top-3 right-3 z-10">
+    <img
+      src="/images/het_hang.png"
+      alt="Sold out"
+      className="w-12 h-12 object-contain"
+    />
+  </div>
+) : (
+  <div className="absolute top-1 right-2 z-10 w-[70px] h-[26px] sm:w-[81px] sm:h-[30px]">
+    <img
+      src="/images/tragop.png"
+      alt="Trả góp 0%"
+      className="w-full h-full object-contain"
+    />
+  </div>
+)}
 
                         <Link href={`/product/${product._id}`}>
                           {/* Ảnh sản phẩm */}
@@ -1104,18 +1104,18 @@ const CategoryDetailPage = () => {
                               {dungLuongDisplay ? ` ${dungLuongDisplay}` : ""}
                             </h3>
                             {/* Giá */}
-                            <div className="flex flex-wrap gap-2 items-start mb-1">
+                            <div className="flex gap-2 items-start mb-1">
                               {totalStock === 0 ? (
-                                <span className="text-[14px] sm:text-[15px] font-bold text-red-500">
+                                <span className="text-[15px] font-bold text-red-500">
                                   Liên hệ
                                 </span>
                               ) : (
                                 <>
-                                  <span className="text-[14px] sm:text-[15px] font-bold text-[#0066D6]">
+                                  <span className="text-[15px] font-bold text-[#0066D6]">
                                     {formatCurrency(salePrice)}
                                   </span>
                                   {originPrice > salePrice && (
-                                    <span className="text-[13px] sm:text-[14px] text-gray-700 line-through">
+                                    <span className="text-[14px] text-gray-700 line-through">
                                       {formatCurrency(originPrice)}
                                     </span>
                                   )}

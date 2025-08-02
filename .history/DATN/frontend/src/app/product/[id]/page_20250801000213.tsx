@@ -949,165 +949,220 @@ const ProductDetailPage = () => {
         </div>
       </div>
       {/* Mua kèm giá sốc */}
-      {/* Mua kèm giá sốc */}
-{selectedVariant?.so_luong_hang !== 0 && (
-  <div className="mt-12 border-t pt-8">
-    <h2 className="text-2xl font-bold mb-6">Sản phẩm mua kèm</h2>
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* Sản phẩm chính */}
-      <div className="flex flex-col items-start lg:items-center w-full lg:w-[200px] bg-[#F8F9FA] p-4 rounded">
-        <img
-          src={getImageUrl(images[0])}
-          alt={product.TenSP}
-          className="w-28 h-28 object-contain mb-2"
-        />
-        <div className="font-medium mb-1 text-left lg:text-center">
-          {product.TenSP}
-          {variantName && ` ${variantName}`}
-        </div>
-        <div className="text-blue-600 font-bold mb-1 text-lg">
-          {price.toLocaleString()}₫
-        </div>
-        {price < originPrice && (
-          <div className="text-gray-400 line-through text-sm">
-            {originPrice.toLocaleString()}₫
-          </div>
-        )}
-        <div className="text-gray-500 text-sm">
-          {product.khuyen_mai ? `Giảm ${product.khuyen_mai}%` : null}
-        </div>
-      </div>
-
-      {/* Sản phẩm mua kèm */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:flex md:flex-row gap-4 overflow-x-auto md:overflow-visible scrollbar-hide">
-        {accessories.slice(0, 2).map((acc) => (
-          <div
-            key={acc._id}
-            className="bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative min-w-[140px] max-w-[180px] mx-auto"
-          >
-            {selectedAccessories.includes(acc._id) && (
-              <div className="absolute top-2 right-2">
+      {selectedVariant?.so_luong_hang !== 0 && (
+        <div className="mt-12 border-t pt-8">
+          <h2 className="text-2xl font-bold mb-6">Sản phẩm mua kèm</h2>
+<div className="flex flex-col lg:flex-row gap-6">
+  <div className="flex flex-col items-start lg:items-center w-full lg:w-[200px] bg-[#F8F9FA] p-4 rounded">
+              <img
+                src={getImageUrl(images[0])}
+                alt={product.TenSP}
+                className="w-28 h-28 object-contain mb-2"
+                style={{ backgroundColor: "#F8F9FA" }}
+              />
+    <div className="font-medium mb-1 text-left lg:text-center">
+                {product.TenSP}
+                {variantName && ` ${variantName}`}
+              </div>
+    <div className="text-blue-600 font-bold mb-1 text-lg">
+                {price.toLocaleString()}₫
+              </div>
+              {price < originPrice && (
+      <div className="text-gray-400 line-through text-sm">
+                  {originPrice.toLocaleString()}₫
+                </div>
+              )}
+    <div className="text-gray-500 text-sm">
+                {product.khuyen_mai ? `Giảm ${product.khuyen_mai}%` : null}
+              </div>
+            </div>
+            <div className="flex items-center">
+              <span className="text-4xl text-gray-400 font-bold">+</span>
+            </div>
+            <div
+              className="relative"
+              style={{ width: 580, overflow: "hidden" }}
+            >
+              <button
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                style={{ marginLeft: "2px" }}
+                onClick={() => {
+                  const container =
+                    document.getElementById("accessories-slider");
+                  if (container) container.scrollLeft -= 196;
+                }}
+                type="button"
+              >
                 <svg
-                  className="w-6 h-6 text-blue-500"
-                  fill="currentColor"
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
+              </button>
+              <div
+                id="accessories-slider"
+                className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth"
+                style={{
+                  width: '100%',
+                  scrollBehavior: "smooth",
+                }}
+              >
+                {accessories.map((acc) => (
+                  <div
+                    key={acc._id}
+                    className="min-w-[140px] sm:min-w-[160px] md:min-w-[180px] max-w-[180px] bg-white rounded-xl shadow p-4 flex flex-col items-center border hover:border-blue-500 transition relative"
+                  >
+                    {selectedAccessories.includes(acc._id) && (
+                      <div className="absolute top-2 right-2">
+                        <svg
+                          className="w-6 h-6 text-blue-500"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                        </svg>
+                      </div>
+                    )}
+                    <img
+                      src={getImageUrl(acc.hinh)}
+                      alt={acc.TenSP}
+                      className="w-20 h-20 object-contain mb-2"
+                    />
+                    <div className="font-medium text-center mb-1 line-clamp-2">
+                      {acc.TenSP}
+                    </div>
+                    <div className="text-blue-600 font-bold mb-2">
+                      {(
+                        acc.gia ??
+                        acc.variants?.[0]?.gia ??
+                        0
+                      ).toLocaleString()}
+                      ₫
+                    </div>
+                    <button
+                      className={`${
+                        selectedAccessories.includes(acc._id)
+                          ? "bg-red-100 text-red-600 border-red-500"
+                          : "border-blue-500 text-blue-600"
+                      } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
+                      onClick={() => toggleAccessory(acc._id)}
+                    >
+                      {selectedAccessories.includes(acc._id)
+                        ? "Bỏ chọn"
+                        : "Chọn sản phẩm"}
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-            <img
-              src={getImageUrl(acc.hinh)}
-              alt={acc.TenSP}
-              className="w-20 h-20 object-contain mb-2"
-            />
-            <div className="font-medium text-center mb-1 line-clamp-2">
-              {acc.TenSP}
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                style={{ marginRight: "2px" }}
+                onClick={() => {
+                  const container =
+                    document.getElementById("accessories-slider");
+                  if (container) container.scrollLeft += 196;
+                }}
+                type="button"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </div>
-            <div className="text-blue-600 font-bold mb-2">
-              {(acc.gia ?? acc.variants?.[0]?.gia ?? 0).toLocaleString()}₫
+            <div className="flex flex-col justify-center items-center min-w-[260px] ml-8">
+              <div className="text-2xl font-bold text-blue-700 mb-4">
+                {calculateTotal().toLocaleString()}₫
+              </div>
+              <button
+                className="bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
+                onClick={() => {
+                  if (!product || !selectedVariant) return;
+                  const flashSaleVariant = flashSaleVariants.find(
+                    (v: any) => v.id_variant === selectedVariant._id
+                  );
+                  const flashSaleVariantId = flashSaleVariant
+                    ? flashSaleVariant._id
+                    : undefined;
+                  if (user) {
+                    trackUserEvent("add_to_cart", product._id, user._id);
+                  }
+                  dispatch(
+                    addToCart({
+                      productId: product._id,
+                      variantId: selectedVariant._id,
+                      name:
+                        product.TenSP +
+                        (selectedVariant.dung_luong
+                          ? ` ${selectedVariant.dung_luong}`
+                          : ""),
+                      price: price,
+                      originPrice: originPrice,
+                      image: getImageUrl(selectedVariant.hinh || product.hinh),
+                      colors:
+                        product.variants?.map((v) => v.mau).filter(Boolean) ||
+                        [],
+                      selectedColor:
+                        product.variants?.findIndex(
+                          (v) => v._id === selectedVariant._id
+                        ) || 0,
+                      colorName: selectedVariant.mau || "",
+                      quantity: 1,
+                      flashSaleVariantId,
+                    })
+                  );
+                  selectedAccessories.forEach((accessoryId) => {
+                    const accessory = accessories.find(
+                      (acc) => acc._id === accessoryId
+                    );
+                    if (accessory) {
+                      const accessoryVariant = accessory.variants?.[0];
+                      const accessoryPrice =
+                        accessory.gia ?? accessoryVariant?.gia ?? 0;
+                      dispatch(
+                        addToCart({
+                          productId: accessory._id,
+                          variantId: accessoryVariant?._id || accessory._id,
+                          name: accessory.TenSP,
+                          price: accessoryPrice,
+                          originPrice: accessoryPrice,
+                          image: getImageUrl(accessory.hinh),
+                          colors:
+                            accessory.variants
+                              ?.map((v) => v.mau)
+                              .filter(Boolean) || [],
+                          selectedColor: 0,
+                          colorName: accessoryVariant?.mau || "",
+                          quantity: 1,
+                        })
+                      );
+                    }
+                  });
+                  showAddToCartSuccess(product.TenSP);
+                }}
+              >
+                Mua {selectedAccessories.length + 1} sản phẩm
+              </button>
             </div>
-            <button
-              className={`${
-                selectedAccessories.includes(acc._id)
-                  ? "bg-red-100 text-red-600 border-red-500"
-                  : "border-blue-500 text-blue-600"
-              } border px-3 py-1 rounded text-sm hover:bg-opacity-80 transition`}
-              onClick={() => toggleAccessory(acc._id)}
-            >
-              {selectedAccessories.includes(acc._id)
-                ? "Bỏ chọn"
-                : "Chọn sản phẩm"}
-            </button>
           </div>
-        ))}
-      </div>
-
-      {/* Tổng giá và nút mua */}
-      <div className="flex flex-col items-center mt-6 lg:mt-0 lg:ml-8 w-full">
-        <div className="text-2xl font-bold text-blue-700 mb-2">
-          {calculateTotal().toLocaleString()}₫
         </div>
-        <button
-          className="bg-blue-600 text-white w-full lg:w-auto px-6 py-3 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
-          onClick={() => {
-            if (!product || !selectedVariant) return;
-
-            const flashSaleVariant = flashSaleVariants.find(
-              (v: any) => v.id_variant === selectedVariant._id
-            );
-            const flashSaleVariantId = flashSaleVariant
-              ? flashSaleVariant._id
-              : undefined;
-
-            if (user) {
-              trackUserEvent("add_to_cart", product._id, user._id);
-            }
-
-            dispatch(
-              addToCart({
-                productId: product._id,
-                variantId: selectedVariant._id,
-                name:
-                  product.TenSP +
-                  (selectedVariant.dung_luong
-                    ? ` ${selectedVariant.dung_luong}`
-                    : ""),
-                price: price,
-                originPrice: originPrice,
-                image: getImageUrl(
-                  selectedVariant.hinh || product.hinh
-                ),
-                colors:
-                  product.variants?.map((v) => v.mau).filter(Boolean) || [],
-                selectedColor:
-                  product.variants?.findIndex(
-                    (v) => v._id === selectedVariant._id
-                  ) || 0,
-                colorName: selectedVariant.mau || "",
-                quantity: 1,
-                flashSaleVariantId,
-              })
-            );
-
-            selectedAccessories.forEach((accessoryId) => {
-              const accessory = accessories.find(
-                (acc) => acc._id === accessoryId
-              );
-              if (accessory) {
-                const accessoryVariant = accessory.variants?.[0];
-                const accessoryPrice =
-                  accessory.gia ?? accessoryVariant?.gia ?? 0;
-                dispatch(
-                  addToCart({
-                    productId: accessory._id,
-                    variantId: accessoryVariant?._id || accessory._id,
-                    name: accessory.TenSP,
-                    price: accessoryPrice,
-                    originPrice: accessoryPrice,
-                    image: getImageUrl(accessory.hinh),
-                    colors:
-                      accessory.variants
-                        ?.map((v) => v.mau)
-                        .filter(Boolean) || [],
-                    selectedColor: 0,
-                    colorName: accessoryVariant?.mau || "",
-                    quantity: 1,
-                  })
-                );
-              }
-            });
-
-            showAddToCartSuccess(product.TenSP);
-          }}
-        >
-          Mua {selectedAccessories.length + 1} sản phẩm
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
       {/* Sản phẩm liên quan */}
       <div className="mt-12">
         <h2 className="text-xl font-bold mb-4">Sản phẩm tương tự</h2>

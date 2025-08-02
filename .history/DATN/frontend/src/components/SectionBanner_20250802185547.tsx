@@ -23,7 +23,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
   if (!banners || banners.length === 0) return null;
   return (
     <div className="w-screen overflow-hidden">
-      <div className="relative w-full group overflow-hidden h-[130px] sm:h-[280px] md:h-[240px] lg:h-[475px]">
+<div className="relative w-full group overflow-hidden h-[400px] sm:h-[280px] md:h-[360px] lg:h-[475px]">
         <div
           className="flex transition-transform duration-700 ease-in-out"
           style={{
@@ -43,7 +43,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
                 layout="responsive"
                 width={1920}
                 height={720}
-                className="object-cover"
+  className="object-cover"
                 priority={index === 0}
               />
             </div>
@@ -103,7 +103,7 @@ const SectionBanner: React.FC<SectionBannerProps> = ({
           </svg>
         </button>
         {/* Dots nằm đè lên banner */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex">
           {banners.map((_, idx) => (
             <button
               key={idx}

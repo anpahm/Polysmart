@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Bỏ standalone mode để tránh lỗi WebAssembly memory
+  // output: 'standalone',
+
   images: {
-    domains: ['localhost'],
+    // domains đã deprecated, chỉ giữ remotePatterns
     remotePatterns: [
       {
         protocol: 'http',
@@ -10,36 +13,102 @@ const nextConfig = {
         pathname: '/images/**',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/images/**',
+      },
+      {
         protocol: 'https',
         hostname: 'localhost',
         port: '3000',
         pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'poly.nghiaht.io.vn',
+        pathname: '/images/**',
       }
     ],
-    unoptimized: true, // Cho phép dùng ảnh local mà không tối ưu hóa
+    unoptimized: false, // Bật lại tối ưu hóa ảnh để cải thiện performance
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  // Tăng giới hạn kích thước hình ảnh
-  experimental: {
-    largePageDataBytes: 128 * 100000, // Tăng giới hạn dữ liệu trang
-  },
-  // Thêm các cấu hình khác nếu cần
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.(mp4|webm)$/,
-      type: 'asset/resource',
-    });
-    return config;
-  }
-}
-
-module.exports = {
-  ...nextConfig,
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*'
+        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://poly.nghiaht.io.vn'}/api/:path*`
       }
     ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization'
+          }
+        ]
+      },
+      {
+        source: '/fonts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          }
+        ]
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          }
+        ]
+      }
+    ];
+  },
+  // Cấu hình cho development
+  experimental: {
+    // allowedDevOrigins: ['poly.nghiaht.io.vn', 'localhost:3001'] // Removed for Next.js 15 compatibility
+    // Tắt một số tính năng tốn memory
+    // webVitalsAttribution đã bị deprecated trong Next.js 14
+  },
+  // Tối ưu hóa để giảm memory usage
+  swcMinify: true,
+  compress: true,
+  // Đảm bảo CSS được xử lý đúng trong production
+  productionBrowserSourceMaps: false, // Tắt source maps để tránh conflict
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://poly.nghiaht.io.vn/api',
+    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://poly.nghiaht.io.vn',
+    NEXT_PUBLIC_IMAGE_URL: process.env.NEXT_PUBLIC_IMAGE_URL || 'https://poly.nghiaht.io.vn',
+    NEXT_PUBLIC_STORAGE_URL: process.env.NEXT_PUBLIC_STORAGE_URL || 'https://poly.nghiaht.io.vn'
   }
 };
+
+module.exports = nextConfig;
